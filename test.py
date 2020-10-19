@@ -3,8 +3,8 @@ import csv
 import os
 import time
 
-import torch.utils.data
 import torch.nn.functional as F
+import torch.utils.data
 import torchvision
 import tqdm
 

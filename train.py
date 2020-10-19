@@ -3,9 +3,9 @@ import os
 import time
 
 import torch.nn as nn
-import torchvision
 import torch.utils.data
 import torch.utils.tensorboard
+import torchvision
 import tqdm
 
 import model.unet
