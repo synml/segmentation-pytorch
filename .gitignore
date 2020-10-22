@@ -1,5 +1,6 @@
 # Project ignores
 .idea/
+runs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
