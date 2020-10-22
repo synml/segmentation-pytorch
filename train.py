@@ -10,10 +10,9 @@ import tqdm
 
 import model.unet
 import test
-from utils import utils
 
 parser = configparser.ConfigParser()
-parser.read('config.ini', encoding='utf-8')
+parser.read('config/u-net.ini', encoding='utf-8')
 config = {
     'batch_size': parser.getint('U-Net', 'batch_size'),
     'epoch': parser.getint('U-Net', 'epoch'),
@@ -77,8 +76,6 @@ if __name__ == '__main__':
         # 1 epoch의 각 배치에서 처리하는 코드
         for batch_idx, (images, masks) in enumerate(tqdm.tqdm(trainloader, desc='Batch', leave=False)):
             step = len(trainloader) * epoch + batch_idx
-
-            utils.show_dataset(images, masks)
 
             # 이미지와 정답 정보를 GPU로 복사
             images = images.to(device)
