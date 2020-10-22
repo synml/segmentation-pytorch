@@ -10,59 +10,60 @@ import tqdm
 
 import model.unet
 import test
+from utils import utils
+
+parser = configparser.ConfigParser()
+parser.read('config.ini', encoding='utf-8')
+config = {
+    'batch_size': parser.getint('U-Net', 'batch_size'),
+    'epoch': parser.getint('U-Net', 'epoch'),
+    'image_size': parser.getint('U-Net', 'image_size'),
+    'lr': parser.getfloat('U-Net', 'lr'),
+    'num_workers': parser.getint('U-Net', 'num_workers')
+}
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+# 데이터셋 설정
+transform = torchvision.transforms.Compose([
+    torchvision.transforms.Resize(config['image_size']),
+    torchvision.transforms.ToTensor()
+])
+trainset = torchvision.datasets.Cityscapes(root='../../data/cityscapes',
+                                           split='train',
+                                           mode='fine',
+                                           target_type='semantic',
+                                           transform=transform,
+                                           target_transform=torchvision.transforms.ToTensor())
+trainloader = torch.utils.data.DataLoader(trainset,
+                                          batch_size=config['batch_size'],
+                                          shuffle=True,
+                                          num_workers=config['num_workers'],
+                                          pin_memory=True)
+testset = torchvision.datasets.Cityscapes(root='../../data/cityscapes',
+                                          split='val',
+                                          mode='fine',
+                                          target_type='semantic',
+                                          transform=transform,
+                                          target_transform=torchvision.transforms.ToTensor())
+testloader = torch.utils.data.DataLoader(testset,
+                                         batch_size=config['batch_size'],
+                                         shuffle=False,
+                                         num_workers=config['num_workers'],
+                                         pin_memory=True)
+
+# 모델 설정
+model = model.unet.UNet(3, 19)
+model.to(device)
+
+# Loss Function, Optimizer 설정
+criterion = nn.CrossEntropyLoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=config['lr'])
+
+# learning rate scheduler 설정
+scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=2)
 
 if __name__ == '__main__':
-    parser = configparser.ConfigParser()
-    parser.read('config.ini', encoding='utf-8')
-    config = {
-        'batch_size': parser.getint('U-Net', 'batch_size'),
-        'epoch': parser.getint('U-Net', 'epoch'),
-        'image_size': parser.getint('U-Net', 'image_size'),
-        'lr': parser.getfloat('U-Net', 'lr'),
-        'num_workers': parser.getint('U-Net', 'num_workers')
-    }
-
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    # 데이터셋 설정
-    transform = torchvision.transforms.Compose([
-        torchvision.transforms.Resize(config['image_size']),
-        torchvision.transforms.ToTensor()
-    ])
-    trainset = torchvision.datasets.Cityscapes(root='../../data/cityscapes',
-                                               split='train',
-                                               mode='fine',
-                                               target_type='semantic',
-                                               transform=transform,
-                                               target_transform=torchvision.transforms.ToTensor())
-    trainloader = torch.utils.data.DataLoader(trainset,
-                                              batch_size=config['batch_size'],
-                                              shuffle=True,
-                                              num_workers=config['num_workers'],
-                                              pin_memory=True)
-    testset = torchvision.datasets.Cityscapes(root='../../data/cityscapes',
-                                              split='val',
-                                              mode='fine',
-                                              target_type='semantic',
-                                              transform=transform,
-                                              target_transform=torchvision.transforms.ToTensor())
-    testloader = torch.utils.data.DataLoader(testset,
-                                             batch_size=config['batch_size'],
-                                             shuffle=True,
-                                             num_workers=config['num_workers'],
-                                             pin_memory=True)
-
-    # 모델 설정
-    model = model.unet.UNet(3, 19)
-    model.to(device)
-
-    # Loss Function, Optimizer 설정
-    criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=config['lr'])
-
-    # learning rate scheduler 설정
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=2)
-
     # Tensorboard 설정
     writer = torch.utils.tensorboard.SummaryWriter()
 
@@ -76,6 +77,8 @@ if __name__ == '__main__':
         # 1 epoch의 각 배치에서 처리하는 코드
         for batch_idx, (images, masks) in enumerate(tqdm.tqdm(trainloader, desc='Batch', leave=False)):
             step = len(trainloader) * epoch + batch_idx
+
+            utils.show_dataset(images, masks)
 
             # 이미지와 정답 정보를 GPU로 복사
             images = images.to(device)
