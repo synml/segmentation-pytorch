@@ -33,7 +33,7 @@ trainset = torchvision.datasets.Cityscapes(root='../../data/cityscapes',
                                            mode='fine',
                                            target_type='semantic',
                                            transform=transform,
-                                           target_transform=torchvision.transforms.ToTensor())
+                                           target_transform=transform)
 trainloader = torch.utils.data.DataLoader(trainset,
                                           batch_size=config['batch_size'],
                                           shuffle=True,
@@ -44,7 +44,7 @@ testset = torchvision.datasets.Cityscapes(root='../../data/cityscapes',
                                           mode='fine',
                                           target_type='semantic',
                                           transform=transform,
-                                          target_transform=torchvision.transforms.ToTensor())
+                                          target_transform=transform)
 testloader = torch.utils.data.DataLoader(testset,
                                          batch_size=config['batch_size'],
                                          shuffle=False,
