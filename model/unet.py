@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import torch.utils.tensorboard
 
 
-def double_conv(in_channels, out_channels, batch_normalization=True):
+def double_conv(in_channels, out_channels, batch_normalization=False):
     if batch_normalization:
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
