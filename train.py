@@ -21,7 +21,7 @@ config = {
     'num_workers': parser.getint('U-Net', 'num_workers')
 }
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # 데이터셋 설정
 transform = torchvision.transforms.Compose([
