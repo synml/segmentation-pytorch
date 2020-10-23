@@ -3,8 +3,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.tensorboard
 
+import utils.utils
 
-def double_conv(in_channels, out_channels, batch_normalization=False):
+
+def double_conv(in_channels, out_channels, batch_normalization=True):
     if batch_normalization:
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
@@ -85,12 +87,14 @@ class UNet(nn.Module):
 
 
 if __name__ == '__main__':
-    model = UNet(3, 20)
-    print(model)
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    input_image = torch.rand(1, 3, 512, 512)
+    model = UNet(3, 19).to(device)
+    model.apply(utils.utils.init_weights)
+
+    input_image = torch.rand(1, 3, 256, 256).to(device)
     out = model(input_image)
 
-    writer = torch.utils.tensorboard.SummaryWriter()
+    writer = torch.utils.tensorboard.SummaryWriter('../runs')
     writer.add_graph(model, input_image)
     writer.close()

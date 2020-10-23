@@ -9,6 +9,7 @@ import torchvision
 import tqdm
 
 import model.unet
+import utils.utils
 import test
 
 parser = configparser.ConfigParser()
@@ -52,8 +53,8 @@ testloader = torch.utils.data.DataLoader(testset,
                                          pin_memory=True)
 
 # 모델 설정
-model = model.unet.UNet(3, 19)
-model.to(device)
+model = model.unet.UNet(3, 19).to(device)
+model.apply(utils.utils.init_weights)
 
 # Loss Function, Optimizer 설정
 criterion = nn.MSELoss(reduction='sum')
