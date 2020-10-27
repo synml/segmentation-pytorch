@@ -47,7 +47,7 @@ def evaluate(model, testloader, device):
 
 if __name__ == '__main__':
     parser = configparser.ConfigParser()
-    parser.read('u-net.ini', encoding='utf-8')
+    parser.read('model/u-net.ini', encoding='utf-8')
     config = {
         'batch_size': parser.getint('U-Net', 'batch_size'),
         'epoch': parser.getint('U-Net', 'epoch'),
