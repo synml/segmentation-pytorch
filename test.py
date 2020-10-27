@@ -47,14 +47,14 @@ def evaluate(model, testloader, device):
 
 if __name__ == '__main__':
     parser = configparser.ConfigParser()
-    parser.read('model/u-net.ini', encoding='utf-8')
+    parser.read('model/unet.ini', encoding='utf-8')
     config = {
-        'batch_size': parser.getint('U-Net', 'batch_size'),
-        'epoch': parser.getint('U-Net', 'epoch'),
-        'image_size': parser.getint('U-Net', 'image_size'),
-        'lr': parser.getfloat('U-Net', 'lr'),
-        'num_workers': parser.getint('U-Net', 'num_workers'),
-        'pretrained_weights': parser.getint('U-Net', 'pretrained_weights')
+        'batch_size': parser.getint('UNet', 'batch_size'),
+        'epoch': parser.getint('UNet', 'epoch'),
+        'image_size': parser.getint('UNet', 'image_size'),
+        'lr': parser.getfloat('UNet', 'lr'),
+        'num_workers': parser.getint('UNet', 'num_workers'),
+        'pretrained_weights': parser.getint('UNet', 'pretrained_weights')
     }
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
