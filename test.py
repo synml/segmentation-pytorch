@@ -29,7 +29,7 @@ def evaluate(model, testloader, device):
         entire_time += time.time() - start_time
 
         # validation loss를 모두 합침
-        total_loss += F.cross_entropy(masks_pred, masks).item()
+        total_loss += F.mse_loss(masks_pred, masks, reduction='sum').item()
 
     # 평균 validation loss 계산
     val_loss = total_loss / testloader.__len__()
