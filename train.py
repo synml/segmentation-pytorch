@@ -27,14 +27,19 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # 데이터셋 설정
 transform = torchvision.transforms.Compose([
     torchvision.transforms.Resize(config['image_size']),
-    torchvision.transforms.ToTensor()
+    torchvision.transforms.ToTensor(),
+    torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+])
+target_transform = torchvision.transforms.Compose([
+    torchvision.transforms.Resize(config['image_size']),
+    torchvision.transforms.ToTensor(),
 ])
 trainset = torchvision.datasets.Cityscapes(root='../../data/cityscapes',
                                            split='train',
                                            mode='fine',
                                            target_type='semantic',
                                            transform=transform,
-                                           target_transform=transform)
+                                           target_transform=target_transform)
 trainloader = torch.utils.data.DataLoader(trainset,
                                           batch_size=config['batch_size'],
                                           shuffle=True,
@@ -45,7 +50,7 @@ testset = torchvision.datasets.Cityscapes(root='../../data/cityscapes',
                                           mode='fine',
                                           target_type='semantic',
                                           transform=transform,
-                                          target_transform=transform)
+                                          target_transform=target_transform)
 testloader = torch.utils.data.DataLoader(testset,
                                          batch_size=config['batch_size'],
                                          shuffle=False,
@@ -57,7 +62,7 @@ model = model.unet.UNet(3, 19).to(device)
 model.apply(utils.utils.init_weights)
 
 # Loss Function, Optimizer 설정
-criterion = nn.MSELoss(reduction='sum')
+criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=config['lr'])
 
 # learning rate scheduler 설정
