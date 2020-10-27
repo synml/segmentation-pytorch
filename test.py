@@ -26,6 +26,7 @@ def evaluate(model, testloader, device):
         start_time = time.time()
         with torch.no_grad():
             masks_pred = model(images)
+            masks_pred = torch.max(masks_pred, dim=1, keepdim=True).values
         entire_time += time.time() - start_time
 
         # validation loss를 모두 합침
