@@ -1,4 +1,5 @@
 #!/bin/bash
 
-rm checkpoints
-rm runs
+rm -r checkpoints
+rm -r runs
+rm -r __pycache__
