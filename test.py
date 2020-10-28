@@ -18,6 +18,10 @@ def evaluate(model, testloader, device):
     total_loss = 0
     entire_time = 0
     for images, masks in tqdm.tqdm(testloader, desc='Batch', leave=False):
+        # mask에 255를 곱하여 0~1 사이의 값을 0~255 값으로 변경 + 채널 차원 제거
+        masks = torch.mul(masks, 255)
+        masks = torch.squeeze(masks, dim=1)
+
         # 이미지와 정답 정보를 GPU로 복사
         images = images.to(device)
         masks = masks.to(device)
@@ -30,7 +34,7 @@ def evaluate(model, testloader, device):
         entire_time += time.time() - start_time
 
         # validation loss를 모두 합침
-        total_loss += F.mse_loss(masks_pred, masks).item()
+        total_loss += F.cross_entropy(masks_pred, masks).item()
 
     # 평균 validation loss 계산
     val_loss = total_loss / testloader.__len__()
