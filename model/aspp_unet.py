@@ -60,7 +60,7 @@ class ASPP(nn.Module):
         # shape: (batch_size, out_channels, 1, 1)
         out_img = F.relu(self.bn_conv_1x1_2(self.conv_1x1_2(out_img)))
         # shape: (batch_size, out_channels, height/output_stride, width/output_stride)
-        out_img = F.interpolate(out_img, size=(feature_map_h, feature_map_w), mode="bilinear", align_corners=True)
+        out_img = F.interpolate(out_img, size=(feature_map_h, feature_map_w), mode="bilinear", align_corners=False)
 
         # shape: (batch_size, out_channels * 5, height/output_stride, width/output_stride)
         out = torch.cat([out_1x1, out_3x3_1, out_3x3_2, out_3x3_3, out_img], 1)
