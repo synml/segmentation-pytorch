@@ -9,6 +9,7 @@ import torchvision
 import tqdm
 
 import model.unet
+import train
 
 
 def evaluate(model, testloader, device):
@@ -30,7 +31,6 @@ def evaluate(model, testloader, device):
         start_time = time.time()
         with torch.no_grad():
             masks_pred = model(images)
-            masks_pred = torch.max(masks_pred, dim=1, keepdim=True).values
         entire_time += time.time() - start_time
 
         # validation loss를 모두 합침
@@ -54,9 +54,7 @@ if __name__ == '__main__':
     parser.read('model/unet.ini', encoding='utf-8')
     config = {
         'batch_size': parser.getint('UNet', 'batch_size'),
-        'epoch': parser.getint('UNet', 'epoch'),
         'image_size': parser.getint('UNet', 'image_size'),
-        'lr': parser.getfloat('UNet', 'lr'),
         'num_workers': parser.getint('UNet', 'num_workers'),
         'pretrained_weights': parser.getint('UNet', 'pretrained_weights')
     }
@@ -68,17 +66,8 @@ if __name__ == '__main__':
         torchvision.transforms.Resize(config['image_size']),
         torchvision.transforms.ToTensor()
     ])
-    testset = torchvision.datasets.Cityscapes(root='../../data/cityscapes',
-                                              split='val',
-                                              mode='fine',
-                                              target_type='semantic',
-                                              transform=transform,
-                                              target_transform=torchvision.transforms.ToTensor())
-    testloader = torch.utils.data.DataLoader(testset,
-                                             batch_size=config['batch_size'],
-                                             shuffle=True,
-                                             num_workers=config['num_workers'],
-                                             pin_memory=True)
+    testset = train.testset
+    testloader = train.testloader
 
     # 모델 설정
     model = model.unet.UNet(3, 20).to(device)
