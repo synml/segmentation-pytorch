@@ -24,7 +24,7 @@ def evaluate(model, testloader, device):
 
         # 이미지와 정답 정보를 GPU로 복사
         images = images.to(device)
-        masks = masks.to(device)
+        masks = masks.to(device, dtype=torch.long)
 
         # 순전파
         start_time = time.time()
