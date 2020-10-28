@@ -130,7 +130,6 @@ class ASPP_UNet(nn.Module):
         self.up1 = double_conv(128, 64)
 
         self.classifier = nn.Conv2d(64, n_classes, kernel_size=1)
-        self.softmax = nn.Softmax2d()
 
     def forward(self, x):
         down1 = self.down1(x)
@@ -167,7 +166,6 @@ class ASPP_UNet(nn.Module):
         x = self.up1(x)
 
         x = self.classifier(x)
-        x = self.softmax(x)
         return x
 
 
