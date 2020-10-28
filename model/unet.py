@@ -89,7 +89,7 @@ class UNet(nn.Module):
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    model = UNet(3, 19).to(device)
+    model = UNet(3, 20).to(device)
     model.apply(utils.utils.init_weights)
 
     input_image = torch.rand(1, 3, 256, 256).to(device)

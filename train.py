@@ -58,7 +58,7 @@ testloader = torch.utils.data.DataLoader(testset,
                                          pin_memory=True)
 
 # 모델 설정
-model = model.unet.UNet(3, 19).to(device)
+model = model.unet.UNet(3, 20).to(device)
 model.apply(utils.utils.init_weights)
 
 # Loss Function, Optimizer 설정
