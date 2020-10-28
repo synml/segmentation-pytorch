@@ -9,7 +9,6 @@ import torchvision
 import tqdm
 
 import model.unet
-import train
 
 
 def evaluate(model, testloader, device):
@@ -56,7 +55,7 @@ if __name__ == '__main__':
         'batch_size': parser.getint('UNet', 'batch_size'),
         'image_size': parser.getint('UNet', 'image_size'),
         'num_workers': parser.getint('UNet', 'num_workers'),
-        'pretrained_weights': parser.getint('UNet', 'pretrained_weights')
+        'pretrained_weights': parser['UNet']['pretrained_weights'],
     }
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -64,10 +63,24 @@ if __name__ == '__main__':
     # 데이터셋 설정
     transform = torchvision.transforms.Compose([
         torchvision.transforms.Resize(config['image_size']),
-        torchvision.transforms.ToTensor()
+        torchvision.transforms.ToTensor(),
+        torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
-    testset = train.testset
-    testloader = train.testloader
+    target_transform = torchvision.transforms.Compose([
+        torchvision.transforms.Resize(config['image_size']),
+        torchvision.transforms.ToTensor(),
+    ])
+    testset = torchvision.datasets.Cityscapes(root='../../data/cityscapes',
+                                              split='val',
+                                              mode='fine',
+                                              target_type='semantic',
+                                              transform=transform,
+                                              target_transform=target_transform)
+    testloader = torch.utils.data.DataLoader(testset,
+                                             batch_size=config['batch_size'],
+                                             shuffle=False,
+                                             num_workers=config['num_workers'],
+                                             pin_memory=True)
 
     # 모델 설정
     model = model.unet.UNet(3, 20).to(device)
