@@ -63,7 +63,7 @@ model = model.unet.UNet(3, 20).to(device)
 model.apply(utils.utils.init_weights)
 
 # Loss Function, Optimizer 설정
-criterion = nn.MSELoss()
+criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=config['lr'])
 
 # learning rate scheduler 설정
@@ -83,16 +83,19 @@ for epoch in tqdm.tqdm(range(config['epoch']), desc='Epoch'):
     for batch_idx, (images, masks) in enumerate(tqdm.tqdm(trainloader, desc='Batch', leave=False)):
         step = len(trainloader) * epoch + batch_idx
 
+        # mask에 255를 곱하여 0~1 사이의 값을 0~255 값으로 변경 + 채널 차원 제거
+        masks = torch.mul(masks, 255)
+        masks = torch.squeeze(masks, dim=1)
+
         # 이미지와 정답 정보를 GPU로 복사
         images = images.to(device)
-        masks = masks.to(device)
+        masks = masks.to(device, dtype=torch.long)
 
         # 변화도(Gradient) 매개변수를 0으로 만들기
         optimizer.zero_grad()
 
         # 순전파 + 역전파 + 최적화
         masks_pred = model(images)
-        masks_pred = torch.max(masks_pred, dim=1, keepdim=True).values
         loss = criterion(masks_pred, masks)
         loss.backward()
         optimizer.step()
