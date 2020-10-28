@@ -100,8 +100,8 @@ for epoch in tqdm.tqdm(range(config['epoch']), desc='Epoch'):
         loss.backward()
         optimizer.step()
 
-        # 손실값 출력
-        log_loss.set_description_str('Loss: {:.4f}'.format(loss.item()))
+        # 손실값, lr 출력
+        log_loss.set_description_str('Loss: {:.4f}\t lr: {}'.format(loss.item(), optimizer.param_groups[0]['lr']))
 
         # Tensorboard에 loss 기록
         writer.add_scalar('Train loss', loss.item(), step)
