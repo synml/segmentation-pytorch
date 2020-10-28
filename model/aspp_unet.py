@@ -124,10 +124,10 @@ class ASPP_UNet(nn.Module):
         self.upconv3 = nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2)
         self.upconv4 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
 
-        self.up4 = double_conv(640, 512)
-        self.up3 = double_conv(512, 256)
-        self.up2 = double_conv(256, 128)
-        self.up1 = double_conv(128, 64)
+        self.up4 = double_atrous_conv(640, 512)
+        self.up3 = double_atrous_conv(512, 256)
+        self.up2 = double_atrous_conv(256, 128)
+        self.up1 = double_atrous_conv(128, 64)
 
         self.classifier = nn.Conv2d(64, n_classes, kernel_size=1)
 
@@ -173,8 +173,8 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     model = ASPP_UNet(3, 20).to(device)
-    model.eval()
     model.apply(utils.utils.init_weights)
+    model.eval()
 
     input_image = torch.rand(1, 3, 256, 256).to(device)
     out = model(input_image)
