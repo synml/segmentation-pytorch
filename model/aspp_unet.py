@@ -116,6 +116,7 @@ class ASPP_UNet(nn.Module):
         self.down2 = double_atrous_conv(64, 128)
         self.down3 = double_atrous_conv(128, 256)
         self.down4 = double_atrous_conv(256, 512)
+        self.down5 = nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1)
         self.aspp = ASPP(512, 256)
 
         self.upconv1 = nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2)
@@ -144,6 +145,7 @@ class ASPP_UNet(nn.Module):
         down4 = self.down4(x)
 
         x = F.max_pool2d(down4, 2)
+        x = self.down5(x)
         x = self.aspp(x)
 
         # --------------------------------------
