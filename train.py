@@ -23,6 +23,7 @@ config = {
 }
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+now = time.strftime('%y%m%d_%H%M%S', time.localtime(time.time()))
 
 # 데이터셋 설정
 transform = torchvision.transforms.Compose([
@@ -112,7 +113,6 @@ for epoch in tqdm.tqdm(range(config['epoch']), desc='Epoch'):
     scheduler.step(val_loss)
 
     # checkpoint file 저장
-    now = time.strftime('%y%m%d_%H%M%S', time.localtime(time.time()))
     save_dir = os.path.join('checkpoints', now)
     os.makedirs(save_dir, exist_ok=True)
     dataset_name = trainset.__str__().split()[1]
