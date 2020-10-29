@@ -63,7 +63,7 @@ model.apply(utils.utils.init_weights)
 
 # Loss Function, Optimizer 설정
 criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=config['lr'], weight_decay=0.0001)
+optimizer = torch.optim.Adam(model.parameters(), lr=config['lr'])
 
 # learning rate scheduler 설정
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer)
