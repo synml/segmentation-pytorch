@@ -67,7 +67,7 @@ criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=config['lr'])
 
 # learning rate scheduler 설정
-scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=2)
+scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer)
 
 # Tensorboard 설정
 writer = torch.utils.tensorboard.SummaryWriter()
@@ -100,10 +100,10 @@ for epoch in tqdm.tqdm(range(config['epoch']), desc='Epoch'):
         loss.backward()
         optimizer.step()
 
-        # 손실값, lr 출력
+        # 손실값, 학습률 출력
         log_loss.set_description_str('Loss: {:.4f}\t lr: {}'.format(loss.item(), optimizer.param_groups[0]['lr']))
 
-        # Tensorboard에 loss 기록
+        # Tensorboard에 학습 과정 기록
         writer.add_scalar('Train loss', loss.item(), step)
 
     # 모델을 평가
@@ -111,6 +111,9 @@ for epoch in tqdm.tqdm(range(config['epoch']), desc='Epoch'):
 
     # Tensorboard에 평가 결과 기록
     writer.add_scalar('Val loss', val_loss, epoch)
+
+    # Tensorboard에 학습률 기록
+    writer.add_scalar('Learning rate', optimizer.param_groups[0]['lr'], epoch)
 
     # lr scheduler의 step을 진행
     scheduler.step(val_loss)
