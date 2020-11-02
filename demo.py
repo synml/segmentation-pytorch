@@ -67,5 +67,5 @@ for images, _ in tqdm.tqdm(testloader, desc='Demo'):
 
     # 배치 단위의 mask를 1개씩 분해
     for mask in masks_pred:
-        plt.imsave(config['result_dir'] + image_names[step], mask.cpu().squeeze())
+        plt.imsave(os.path.join(config['result_dir'], image_names[step]), mask.cpu().squeeze())
         step += 1
