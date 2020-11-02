@@ -16,7 +16,7 @@ config = {
     'image_size': parser.getint('UNet', 'image_size'),
     'num_workers': parser.getint('UNet', 'num_workers'),
     'pretrained_weights': parser['UNet']['pretrained_weights'],
-    'result_folder': '../../result/'
+    'result_dir': 'result/'
 }
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -54,7 +54,7 @@ for image_path in testset.images:
 
 # 예측 결과 저장
 step = 0
-os.makedirs(config['result_folder'], exist_ok=True)
+os.makedirs(config['result_dir'], exist_ok=True)
 for images, _ in tqdm.tqdm(testloader, desc='Demo'):
     # 이미지와 정답 정보를 GPU로 복사
     images = images.to(device)
@@ -67,5 +67,5 @@ for images, _ in tqdm.tqdm(testloader, desc='Demo'):
 
     # 배치 단위의 mask를 1개씩 분해
     for mask in masks_pred:
-        plt.imsave(config['result_folder'] + image_names[step], mask.cpu().squeeze())
+        plt.imsave(config['result_dir'] + image_names[step], mask.cpu().squeeze())
         step += 1
