@@ -36,10 +36,10 @@ def evaluate(model, testloader, device):
         total_loss += F.cross_entropy(masks_pred, masks, reduction='sum').item()
 
     # 평균 validation loss 계산
-    val_loss = total_loss / (testloader.__len__() * config['batch_size'])
+    val_loss = total_loss / (len(testloader) * config['batch_size'])
 
     # 추론 시간과 fps를 계산
-    inference_time = entire_time / (testloader.__len__() * config['batch_size'])
+    inference_time = entire_time / (len(testloader) * config['batch_size'])
     fps = 1 / inference_time
 
     # 추론 시간을 miliseconds 단위로 설정
