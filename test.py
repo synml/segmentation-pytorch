@@ -78,6 +78,10 @@ def evaluate(model, testloader, device, num_classes: int):
         # validation loss를 모두 합침
         total_loss += F.cross_entropy(masks_pred, masks, reduction='sum').item()
 
+        # Segmentation map 만들기
+        masks_pred = F.softmax(masks_pred, dim=1)
+        masks_pred = torch.argmax(masks_pred, dim=1, keepdim=True)
+
         # 배치당 IoU를 계산
         iou_batch = calc_iou(masks, masks_pred, testloader.batch_size, num_classes)
         for i in range(num_classes):
