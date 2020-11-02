@@ -43,7 +43,10 @@ def calc_miou(gt: torch.Tensor, pred: torch.Tensor, num_classes: int):
             union += confusion_matrix[k][i]  # 종으로 덧셈
 
         # 클래스 별 IoU = intersection / union
-        iou.append(intersection / union)
+        if union != 0:
+            iou.append(intersection / union)
+        else:
+            iou.append(0.0)
 
     # mIoU 계산
     miou = np.mean(iou)
