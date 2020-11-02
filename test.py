@@ -26,7 +26,7 @@ def evaluate(model, testloader, device):
         images = images.to(device)
         masks = masks.to(device, dtype=torch.long)
 
-        # 순전파
+        # 예측
         start_time = time.time()
         with torch.no_grad():
             masks_pred = model(images)
