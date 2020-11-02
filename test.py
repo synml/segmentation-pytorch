@@ -162,7 +162,7 @@ if __name__ == '__main__':
         writer.writerow(['Class Number', 'Class Name', 'IoU'])
         for class_num, iou_value in enumerate(iou):
             writer.writerow([class_num, utils.classes.class_names[class_num], iou_value])
-        writer.writerow(['mIoU', miou])
-        writer.writerow(['Validation loss', val_loss])
-        writer.writerow(['FPS', fps])
+        writer.writerow(['mIoU', miou, ' '])
+        writer.writerow(['Validation loss', val_loss, ' '])
+        writer.writerow(['FPS', fps, ' '])
     print('평가 결과를 csv 파일로 저장했습니다.')
