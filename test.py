@@ -99,6 +99,7 @@ if __name__ == '__main__':
         'image_size': parser.getint('UNet', 'image_size'),
         'num_workers': parser.getint('UNet', 'num_workers'),
         'pretrained_weights': parser['UNet']['pretrained_weights'],
+        'result_dir': 'csv/'
     }
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -138,9 +139,10 @@ if __name__ == '__main__':
     print('FPS: {:.02f}'.format(fps))
 
     # Validation loss, Inference time, FPS를 csv 파일로 저장
-    os.makedirs('csv', exist_ok=True)
+    os.makedirs(config['result_dir'], exist_ok=True)
     now = time.strftime('%y%m%d_%H%M%S', time.localtime(time.time()))
-    with open('csv/test{}.csv'.format(now), mode='w') as f:
+    filename = '{}_{}.csv'.format(model.__module__.lower(), now)
+    with open(os.path.join(config['result_dir'], filename), mode='w') as f:
         writer = csv.writer(f, delimiter=',', lineterminator='\n')
         writer.writerow(['Validation loss', val_loss])
         writer.writerow(['Inference time (ms)', inference_time])
