@@ -10,6 +10,7 @@ import torchvision
 import tqdm
 
 import model.unet
+import utils.classes
 
 
 # IoU (Intersection over Union)를 계산한다.
@@ -88,7 +89,7 @@ def evaluate(model, testloader, device, num_classes: int):
             iou[i] += iou_batch[i]
 
     # mIoU를 계산
-    miou = np.mean(iou)
+    miou = np.mean(iou[:-1])
 
     # 평균 validation loss 계산
     val_loss = total_loss / len(testloader.dataset)
@@ -100,7 +101,7 @@ def evaluate(model, testloader, device, num_classes: int):
     # 추론 시간을 miliseconds 단위로 설정
     inference_time *= 1000
 
-    return miou, val_loss, inference_time, fps
+    return miou, iou, val_loss, fps
 
 
 if __name__ == '__main__':
@@ -144,12 +145,11 @@ if __name__ == '__main__':
     model.load_state_dict(torch.load(config['pretrained_weights']))
 
     # 모델 평가
-    miou, val_loss, inference_time, fps = evaluate(model, testloader, device, config['num_classes'])
+    miou, iou, val_loss, fps = evaluate(model, testloader, device, config['num_classes'])
 
     # mIoU, Validation loss, Inference time, FPS 출력
     print('mIoU: {:.4f}'.format(miou))
     print('Validation loss: {:.4f}'.format(val_loss))
-    print('Inference time (ms): {:.02f}'.format(inference_time))
     print('FPS: {:.02f}'.format(fps))
 
     # Validation loss, Inference time, FPS를 csv 파일로 저장
@@ -158,7 +158,11 @@ if __name__ == '__main__':
     filename = '{}_{}.csv'.format(model.__module__.lower(), now)
     with open(os.path.join(config['result_dir'], filename), mode='w') as f:
         writer = csv.writer(f, delimiter=',', lineterminator='\n')
+
+        writer.writerow(['Class Number', 'Class Name', 'IoU'])
+        for class_num, iou_value in enumerate(iou):
+            writer.writerow([class_num, utils.classes.class_names[class_num], iou_value])
+        writer.writerow(['mIoU', miou])
         writer.writerow(['Validation loss', val_loss])
-        writer.writerow(['Inference time (ms)', inference_time])
         writer.writerow(['FPS', fps])
     print('평가 결과를 csv 파일로 저장했습니다.')
