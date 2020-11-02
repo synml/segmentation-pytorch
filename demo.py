@@ -14,6 +14,7 @@ parser.read('model/unet.ini', encoding='utf-8')
 config = {
     'batch_size': parser.getint('UNet', 'batch_size'),
     'image_size': parser.getint('UNet', 'image_size'),
+    'num_classes': parser.getint('UNet', 'num_classes'),
     'num_workers': parser.getint('UNet', 'num_workers'),
     'pretrained_weights': parser['UNet']['pretrained_weights'],
     'result_dir': 'result/'
@@ -43,7 +44,7 @@ testloader = torch.utils.data.DataLoader(testset,
                                          pin_memory=True)
 
 # 모델 설정
-model = model.unet.UNet(3, 20).to(device)
+model = model.unet.UNet(3, config['num_classes']).to(device)
 model.load_state_dict(torch.load(config['pretrained_weights']))
 
 # 이미지 이름 저장

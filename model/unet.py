@@ -26,10 +26,10 @@ def double_conv(in_channels, out_channels, batch_normalization=False):
 
 
 class UNet(nn.Module):
-    def __init__(self, n_channels, n_classes):
+    def __init__(self, num_channels, num_classes):
         super(UNet, self).__init__()
 
-        self.down1 = double_conv(n_channels, 64)
+        self.down1 = double_conv(num_channels, 64)
         self.down2 = double_conv(64, 128)
         self.down3 = double_conv(128, 256)
         self.down4 = double_conv(256, 512)
@@ -45,7 +45,7 @@ class UNet(nn.Module):
         self.up2 = double_conv(256, 128)
         self.up1 = double_conv(128, 64)
 
-        self.classifier = nn.Conv2d(64, n_classes, kernel_size=1)
+        self.classifier = nn.Conv2d(64, num_classes, kernel_size=1)
 
     def forward(self, x):
         down1 = self.down1(x)

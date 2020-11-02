@@ -19,7 +19,8 @@ config = {
     'epoch': parser.getint('UNet', 'epoch'),
     'image_size': parser.getint('UNet', 'image_size'),
     'lr': parser.getfloat('UNet', 'lr'),
-    'num_workers': parser.getint('UNet', 'num_workers')
+    'num_classes': parser.getint('UNet', 'num_classes'),
+    'num_workers': parser.getint('UNet', 'num_workers'),
 }
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -59,7 +60,7 @@ testloader = torch.utils.data.DataLoader(testset,
                                          pin_memory=True)
 
 # 모델 설정
-model = model.unet.UNet(3, 20).to(device)
+model = model.unet.UNet(3, config['num_classes']).to(device)
 model.apply(utils.utils.init_weights)
 
 # Loss Function, Optimizer 설정
