@@ -83,11 +83,11 @@ def evaluate(model, testloader, device, num_classes: int):
         for i in range(num_classes):
             iou[i] += iou_batch[i]
 
-    # 평균 validation loss 계산
-    val_loss = total_loss / (len(testloader) * testloader.batch_size)
-
     # mIoU를 계산
     miou = np.mean(iou)
+
+    # 평균 validation loss 계산
+    val_loss = total_loss / (len(testloader) * testloader.batch_size)
 
     # 추론 시간과 fps를 계산
     inference_time = entire_time / (len(testloader) * testloader.batch_size)
@@ -96,7 +96,7 @@ def evaluate(model, testloader, device, num_classes: int):
     # 추론 시간을 miliseconds 단위로 설정
     inference_time *= 1000
 
-    return val_loss, miou, inference_time, fps
+    return miou, val_loss, inference_time, fps
 
 
 if __name__ == '__main__':
@@ -140,9 +140,10 @@ if __name__ == '__main__':
     model.load_state_dict(torch.load(config['pretrained_weights']))
 
     # 모델 평가
-    val_loss, inference_time, fps = evaluate(model, testloader, device)
+    miou, val_loss, inference_time, fps = evaluate(model, testloader, device, config['num_classes'])
 
-    # Validation loss, Inference time, FPS 출력
+    # mIoU, Validation loss, Inference time, FPS 출력
+    print('mIoU: {:.4f}'.format(miou))
     print('Validation loss: {:.4f}'.format(val_loss))
     print('Inference time (ms): {:.02f}'.format(inference_time))
     print('FPS: {:.02f}'.format(fps))

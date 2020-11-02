@@ -108,7 +108,7 @@ for epoch in tqdm.tqdm(range(config['epoch']), desc='Epoch'):
         writer.add_scalar('Train loss', loss.item(), step)
 
     # 모델을 평가
-    val_loss, miou, _, _ = test.evaluate(model, testloader, device, config['num_classes'])
+    miou, val_loss, _, _ = test.evaluate(model, testloader, device, config['num_classes'])
 
     # Tensorboard에 평가 결과 기록
     writer.add_scalar('Val loss', val_loss, epoch)
