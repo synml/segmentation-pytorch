@@ -111,10 +111,11 @@ for epoch in tqdm.tqdm(range(config['epoch']), desc='Epoch'):
     miou, val_loss, _, _ = test.evaluate(model, testloader, device, config['num_classes'])
 
     # Tensorboard에 평가 결과 기록
+    writer.add_scalar('mIoU', miou, epoch)
     writer.add_scalar('Val loss', val_loss, epoch)
 
     # Tensorboard에 학습률 기록
-    writer.add_scalar('Learning rate', optimizer.param_groups[0]['lr'], epoch)
+    writer.add_scalar('lr', optimizer.param_groups[0]['lr'], epoch)
 
     # lr scheduler의 step을 진행
     scheduler.step(val_loss)
