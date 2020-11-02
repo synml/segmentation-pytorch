@@ -29,6 +29,7 @@ now = time.strftime('%y%m%d_%H%M%S', time.localtime(time.time()))
 transform = torchvision.transforms.Compose([
     torchvision.transforms.Resize(config['image_size']),
     torchvision.transforms.ToTensor(),
+    torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
 ])
 target_transform = torchvision.transforms.Compose([
     torchvision.transforms.Resize(config['image_size']),
@@ -99,8 +100,8 @@ for epoch in tqdm.tqdm(range(config['epoch']), desc='Epoch'):
         loss.backward()
         optimizer.step()
 
-        # 손실값, 학습률 출력
-        log_loss.set_description_str('Loss: {:.4f}\t lr: {}'.format(loss.item(), optimizer.param_groups[0]['lr']))
+        # 손실값 출력
+        log_loss.set_description_str('Loss: {:.4f}'.format(loss.item()))
 
         # Tensorboard에 학습 과정 기록
         writer.add_scalar('Train loss', loss.item(), step)
