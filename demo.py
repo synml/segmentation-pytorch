@@ -1,4 +1,5 @@
 import configparser
+import os
 
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
@@ -15,6 +16,7 @@ config = {
     'image_size': parser.getint('UNet', 'image_size'),
     'num_workers': parser.getint('UNet', 'num_workers'),
     'pretrained_weights': parser['UNet']['pretrained_weights'],
+    'result_folder': '../../result/'
 }
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -23,7 +25,6 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 transform = torchvision.transforms.Compose([
     torchvision.transforms.Resize(config['image_size']),
     torchvision.transforms.ToTensor(),
-    torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
 ])
 target_transform = torchvision.transforms.Compose([
     torchvision.transforms.Resize(config['image_size']),
@@ -45,8 +46,16 @@ testloader = torch.utils.data.DataLoader(testset,
 model = model.unet.UNet(3, 20).to(device)
 model.load_state_dict(torch.load(config['pretrained_weights']))
 
+# 이미지 이름 저장
+image_names = []
+for image_path in testset.images:
+    image_name = image_path.replace('\\', '/').split('/')[-1]
+    image_names.append(image_name)
+
 # 예측 결과 저장
-for images, _ in tqdm.tqdm(testloader, desc='Batch'):
+step = 0
+os.makedirs(config['result_folder'], exist_ok=True)
+for images, _ in tqdm.tqdm(testloader, desc='Demo'):
     # 이미지와 정답 정보를 GPU로 복사
     images = images.to(device)
 
@@ -58,5 +67,5 @@ for images, _ in tqdm.tqdm(testloader, desc='Batch'):
 
     # 배치 단위의 mask를 1개씩 분해
     for mask in masks_pred:
-        plt.imshow(mask.cpu().squeeze())
-        plt.show()
+        plt.imsave(config['result_folder'] + image_names[step], mask.cpu().squeeze())
+        step += 1
