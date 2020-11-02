@@ -91,10 +91,10 @@ def evaluate(model, testloader, device, num_classes: int):
     miou = np.mean(iou)
 
     # 평균 validation loss 계산
-    val_loss = total_loss / (len(testloader) * testloader.batch_size)
+    val_loss = total_loss / len(testloader.dataset)
 
     # 추론 시간과 fps를 계산
-    inference_time = entire_time / (len(testloader) * testloader.batch_size)
+    inference_time = entire_time / len(testloader.dataset)
     fps = 1 / inference_time
 
     # 추론 시간을 miliseconds 단위로 설정
