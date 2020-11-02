@@ -3,12 +3,52 @@ import csv
 import os
 import time
 
+import numpy as np
 import torch.nn.functional as F
 import torch.utils.data
 import torchvision
 import tqdm
 
 import model.unet
+
+
+# mIoU (mean Intersection over Union)을 계산한다.
+def calc_miou(gt: torch.Tensor, pred: torch.Tensor, num_classes: int):
+    # Tensor -> ndarray
+    gt = gt.numpy()
+    pred = pred.numpy()
+
+    # 2차원 행렬을 1차원 벡터로 변환
+    gt_count = gt.reshape(-1)
+    pred_count = pred.reshape(-1)
+
+    # 카테고리 행렬 생성
+    category = gt_count * num_classes + pred_count
+
+    # 혼동 행렬 생성
+    confusion_matrix = np.bincount(category).reshape((num_classes, num_classes))
+
+    # 클래스 별 IoU 계산 (intersection / union = TP / (TP + FP + FN))
+    iou = []
+    for i in range(num_classes):
+        intersection = 0
+        union = 0
+
+        for k in range(num_classes):
+            union += confusion_matrix[i][k]  # 횡으로 덧셈
+            # 같은 원소를 가리킬 때, intersection을 구함
+            if i == k:
+                intersection = confusion_matrix[i][k]
+                continue
+            union += confusion_matrix[k][i]  # 종으로 덧셈
+
+        # 클래스 별 IoU = intersection / union
+        iou.append(intersection / union)
+
+    # mIoU 계산
+    miou = np.mean(iou)
+
+    return miou, iou
 
 
 def evaluate(model, testloader, device):
