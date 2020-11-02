@@ -12,52 +12,52 @@ import tqdm
 import model.unet
 
 
-# mIoU (mean Intersection over Union)을 계산한다.
-def calc_miou(gt: torch.Tensor, pred: torch.Tensor, num_classes: int):
-    # Tensor -> ndarray
-    gt = gt.numpy()
-    pred = pred.numpy()
+# IoU (Intersection over Union)를 계산한다.
+def calc_iou(gt_batch: torch.Tensor, pred_batch: torch.Tensor, batch_size: int, num_classes: int):
+    iou = np.zeros(num_classes)
 
-    # 2차원 행렬을 1차원 벡터로 변환
-    gt_count = gt.reshape(-1)
-    pred_count = pred.reshape(-1)
+    # 각 배치 처리
+    for idx in range(batch_size):
+        # 채널 차원 제거, ndarrary로 변환
+        gt = gt_batch[idx].squeeze().cpu().numpy()
+        pred = pred_batch[idx].squeeze().cpu().numpy()
 
-    # 카테고리 행렬 생성
-    category = gt_count * num_classes + pred_count
+        # 2차원 행렬을 1차원 벡터로 변환
+        gt_count = gt.reshape(-1)
+        pred_count = pred.reshape(-1)
 
-    # 혼동 행렬 생성
-    confusion_matrix = np.bincount(category).reshape((num_classes, num_classes))
+        # 카테고리 행렬 생성
+        category = gt_count * num_classes + pred_count
 
-    # 클래스 별 IoU 계산 (intersection / union = TP / (TP + FP + FN))
-    iou = []
-    for i in range(num_classes):
-        intersection = 0
-        union = 0
+        # 혼동 행렬 생성
+        confusion_matrix = np.bincount(category, minlength=num_classes**2).reshape((num_classes, num_classes))
 
-        for k in range(num_classes):
-            union += confusion_matrix[i][k]  # 횡으로 덧셈
-            # 같은 원소를 가리킬 때, intersection을 구함
-            if i == k:
-                intersection = confusion_matrix[i][k]
-                continue
-            union += confusion_matrix[k][i]  # 종으로 덧셈
+        # 클래스 별 IoU 계산 (intersection / union = TP / (TP + FP + FN))
+        for i in range(num_classes):
+            intersection = 0
+            union = 0
 
-        # 클래스 별 IoU = intersection / union
-        if union != 0:
-            iou.append(intersection / union)
-        else:
-            iou.append(0.0)
+            # intersection, union 계산
+            for k in range(num_classes):
+                union += confusion_matrix[i][k]  # 횡으로 덧셈
+                # 같은 원소를 가리킬 때, intersection을 구함
+                if i == k:
+                    intersection = confusion_matrix[i][k]
+                    continue
+                union += confusion_matrix[k][i]  # 종으로 덧셈
 
-    # mIoU 계산
-    miou = np.mean(iou)
+            # 클래스 별 IoU = intersection / union
+            if union != 0:
+                iou[i] += intersection / union
 
-    return miou, iou
+    return iou
 
 
-def evaluate(model, testloader, device):
+def evaluate(model, testloader, device, num_classes: int):
     model.eval()
 
     # Evaluate
+    iou = np.zeros(num_classes)
     total_loss = 0
     entire_time = 0
     for images, masks in tqdm.tqdm(testloader, desc='Eval', leave=False):
@@ -78,17 +78,25 @@ def evaluate(model, testloader, device):
         # validation loss를 모두 합침
         total_loss += F.cross_entropy(masks_pred, masks, reduction='sum').item()
 
+        # 배치당 IoU를 계산
+        iou_batch = calc_iou(masks, masks_pred, testloader.batch_size, num_classes)
+        for i in range(num_classes):
+            iou[i] += iou_batch[i]
+
     # 평균 validation loss 계산
-    val_loss = total_loss / (len(testloader) * config['batch_size'])
+    val_loss = total_loss / (len(testloader) * testloader.batch_size)
+
+    # mIoU를 계산
+    miou = np.mean(iou)
 
     # 추론 시간과 fps를 계산
-    inference_time = entire_time / (len(testloader) * config['batch_size'])
+    inference_time = entire_time / (len(testloader) * testloader.batch_size)
     fps = 1 / inference_time
 
     # 추론 시간을 miliseconds 단위로 설정
     inference_time *= 1000
 
-    return val_loss, inference_time, fps
+    return val_loss, miou, inference_time, fps
 
 
 if __name__ == '__main__':
@@ -97,6 +105,7 @@ if __name__ == '__main__':
     config = {
         'batch_size': parser.getint('UNet', 'batch_size'),
         'image_size': parser.getint('UNet', 'image_size'),
+        'num_classes': parser.getint('UNet', 'num_classes'),
         'num_workers': parser.getint('UNet', 'num_workers'),
         'pretrained_weights': parser['UNet']['pretrained_weights'],
         'result_dir': 'csv/'
@@ -127,7 +136,7 @@ if __name__ == '__main__':
                                              pin_memory=True)
 
     # 모델 설정
-    model = model.unet.UNet(3, 20).to(device)
+    model = model.unet.UNet(3, config['num_classes']).to(device)
     model.load_state_dict(torch.load(config['pretrained_weights']))
 
     # 모델 평가
