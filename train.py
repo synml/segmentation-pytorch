@@ -59,6 +59,8 @@ testloader = torch.utils.data.DataLoader(testset,
                                          num_workers=config['num_workers'],
                                          pin_memory=True)
 
+a = trainset.__module__
+
 # 모델 설정
 model = model.unet.UNet(3, config['num_classes']).to(device)
 model.apply(utils.utils.init_weights)
@@ -123,8 +125,8 @@ for epoch in tqdm.tqdm(range(config['epoch']), desc='Epoch'):
     # checkpoint file 저장
     save_dir = os.path.join('checkpoints', now)
     os.makedirs(save_dir, exist_ok=True)
-    model_name = model.__module__.lower()
-    dataset_name = trainset.__str__().split()[1].lower()
+    model_name = model.__module__.split('.')[-1]
+    dataset_name = trainset.__module__.split('.')[-1]
     torch.save(model.state_dict(), os.path.join(save_dir, '{}_{}_{}.pth'.format(model_name, dataset_name, epoch)))
 
 writer.close()
