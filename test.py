@@ -14,11 +14,11 @@ import utils.classes
 
 
 # IoU (Intersection over Union)를 계산한다.
-def calc_iou(gt_batch: torch.Tensor, pred_batch: torch.Tensor, batch_size: int, num_classes: int):
+def calc_iou(gt_batch: torch.Tensor, pred_batch: torch.Tensor, num_classes: int):
     iou = np.zeros(num_classes)
 
     # 각 배치 처리
-    for idx in range(batch_size):
+    for idx in range(gt_batch.shape[0]):
         # 채널 차원 제거, ndarrary로 변환
         gt = gt_batch[idx].squeeze().cpu().numpy()
         pred = pred_batch[idx].squeeze().cpu().numpy()
@@ -84,7 +84,7 @@ def evaluate(model, testloader, device, num_classes: int):
         masks_pred = torch.argmax(masks_pred, dim=1, keepdim=True)
 
         # 배치당 IoU를 계산
-        iou_batch = calc_iou(masks, masks_pred, testloader.batch_size, num_classes)
+        iou_batch = calc_iou(masks, masks_pred, num_classes)
         for i in range(num_classes):
             iou[i] += iou_batch[i]
 
