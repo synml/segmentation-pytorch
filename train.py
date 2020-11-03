@@ -59,8 +59,6 @@ testloader = torch.utils.data.DataLoader(testset,
                                          num_workers=config['num_workers'],
                                          pin_memory=True)
 
-a = trainset.__module__
-
 # 모델 설정
 model = model.unet.UNet(3, config['num_classes']).to(device)
 model.apply(utils.utils.init_weights)
