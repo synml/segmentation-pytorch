@@ -13,11 +13,12 @@ import model.unet
 import utils.classes
 
 
-# IoU (Intersection over Union)를 계산한다.
-def calc_iou(gt_batch: torch.Tensor, pred_batch: torch.Tensor, num_classes: int):
+# IoU (Intersection over Union)를 계산한다. 현재는 reduction=sum이다.
+def calc_iou(gt_batch: torch.Tensor, pred_batch: torch.Tensor, num_classes: int, reduction='sum'):
+    # 1batch의 이미지에 대한 iou를 저장 (단, reduction=sum이면 평균내지 않고 덧셈만 함)
     iou = np.zeros(num_classes)
 
-    # 각 배치 처리
+    # 1batch에 포함된 각 이미지의 iou를 계산
     for idx in range(gt_batch.shape[0]):
         # 채널 차원 제거, ndarrary로 변환
         gt = gt_batch[idx].squeeze().cpu().numpy()
@@ -33,12 +34,12 @@ def calc_iou(gt_batch: torch.Tensor, pred_batch: torch.Tensor, num_classes: int)
         # 혼동 행렬 생성
         confusion_matrix = np.bincount(category, minlength=num_classes**2).reshape((num_classes, num_classes))
 
-        # 클래스 별 IoU 계산 (intersection / union = TP / (TP + FP + FN))
+        # 각 이미지의 IoU를 계산 (intersection / union = TP / (TP + FP + FN))
         for i in range(num_classes):
             intersection = 0
             union = 0
 
-            # intersection, union 계산
+            # intersection과 union을 계산
             for k in range(num_classes):
                 union += confusion_matrix[i][k]  # 횡으로 덧셈
                 # 같은 원소를 가리킬 때, intersection을 구함
@@ -47,7 +48,7 @@ def calc_iou(gt_batch: torch.Tensor, pred_batch: torch.Tensor, num_classes: int)
                     continue
                 union += confusion_matrix[k][i]  # 종으로 덧셈
 
-            # 클래스 별 IoU = intersection / union
+            # IoU = intersection / union (ZeroDivisionError 방지)
             if union != 0:
                 iou[i] += intersection / union
 
@@ -83,12 +84,15 @@ def evaluate(model, testloader, device, num_classes: int):
         masks_pred = F.softmax(masks_pred, dim=1)
         masks_pred = torch.argmax(masks_pred, dim=1, keepdim=True)
 
-        # 배치당 IoU를 계산
+        # 각 batch의 IoU를 계산
         iou_batch = calc_iou(masks, masks_pred, num_classes)
         for i in range(num_classes):
             iou[i] += iou_batch[i]
 
-    # mIoU를 계산
+    # 데이터셋 전체의 IoU를 계산 (백분율 단위)
+    iou = iou / len(testloader.dataset) * 100
+
+    # mIoU를 계산 (백분율 단위)
     miou = np.mean(iou[:-1])
 
     # 평균 validation loss 계산
