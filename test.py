@@ -13,9 +13,13 @@ import model.unet
 import utils.classes
 
 
-# IoU (Intersection over Union)를 계산한다. 현재는 reduction=sum이다.
-def calc_iou(gt_batch: torch.Tensor, pred_batch: torch.Tensor, num_classes: int, reduction='sum'):
-    # 1batch의 이미지에 대한 iou를 저장 (단, reduction=sum이면 평균내지 않고 덧셈만 함)
+# IoU (Intersection over Union)를 계산한다.
+# reduction='mean': IoU는 batch에 대한 산술평균 값
+# reduction='sum': IoU는 batch의 각 이미지에서 계산된 IoU 값의 합
+def calc_iou(gt_batch: torch.Tensor, pred_batch: torch.Tensor, num_classes: int, reduction='mean'):
+    assert reduction == 'mean' or reduction == 'sum'
+
+    # 1batch의 이미지에 대한 iou를 합하여 저장
     iou = np.zeros(num_classes)
 
     # 1batch에 포함된 각 이미지의 iou를 계산
@@ -52,6 +56,10 @@ def calc_iou(gt_batch: torch.Tensor, pred_batch: torch.Tensor, num_classes: int,
             if union != 0:
                 iou[i] += intersection / union
 
+    # reduction이 mean이면 batch에 대한 산술평균을 수행
+    if reduction == 'mean':
+        return iou / gt_batch.shape[0]
+
     return iou
 
 
@@ -85,7 +93,7 @@ def evaluate(model, testloader, device, num_classes: int):
         masks_pred = torch.argmax(masks_pred, dim=1, keepdim=True)
 
         # 각 batch의 IoU를 계산
-        iou_batch = calc_iou(masks, masks_pred, num_classes)
+        iou_batch = calc_iou(masks, masks_pred, num_classes, reduction='sum')
         for i in range(num_classes):
             iou[i] += iou_batch[i]
 
