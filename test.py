@@ -86,7 +86,7 @@ def evaluate(model, testloader, device, num_classes: int):
         entire_time += time.time() - start_time
 
         # validation loss를 모두 합침
-        total_loss += F.cross_entropy(masks_pred, masks, reduction='sum').item()
+        total_loss += F.cross_entropy(masks_pred, masks).item()
 
         # Segmentation map 만들기
         masks_pred = F.softmax(masks_pred, dim=1)
@@ -104,7 +104,7 @@ def evaluate(model, testloader, device, num_classes: int):
     miou = np.mean(iou[:-1])
 
     # 평균 validation loss 계산
-    val_loss = total_loss / len(testloader.dataset)
+    val_loss = total_loss / len(testloader)
 
     # 추론 시간과 fps를 계산
     inference_time = entire_time / len(testloader.dataset)
@@ -154,7 +154,7 @@ if __name__ == '__main__':
 
     # 모델 설정
     model = model.unet.UNet(3, config['num_classes']).to(device)
-    model.load_state_dict(torch.load(config['pretrained_weights']))
+    #model.load_state_dict(torch.load(config['pretrained_weights']))
 
     # 모델 평가
     miou, iou, val_loss, fps = evaluate(model, testloader, device, config['num_classes'])
