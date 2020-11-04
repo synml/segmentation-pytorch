@@ -154,7 +154,7 @@ if __name__ == '__main__':
 
     # 모델 설정
     model = model.unet.UNet(3, config['num_classes']).to(device)
-    #model.load_state_dict(torch.load(config['pretrained_weights']))
+    model.load_state_dict(torch.load(config['pretrained_weights']))
 
     # 모델 평가
     miou, iou, val_loss, fps = evaluate(model, testloader, device, config['num_classes'])
