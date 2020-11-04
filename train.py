@@ -105,8 +105,7 @@ for epoch in tqdm.tqdm(range(config['epoch']), desc='Epoch'):
         log_loss.set_description_str('Loss: {:.4f}'.format(loss.item()))
 
         # Tensorboard에 학습 과정 기록
-        if step % 2 == 0:
-            writer.add_scalar('Train loss', loss.item(), step)
+        writer.add_scalar('Train loss', loss.item(), step)
 
     # 모델을 평가
     miou, _, val_loss, _ = test.evaluate(model, testloader, device, config['num_classes'])
