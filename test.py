@@ -98,10 +98,11 @@ def evaluate(model, testloader, device, num_classes: int):
             iou[i] += iou_batch[i]
 
     # 데이터셋 전체의 IoU를 계산 (백분율 단위)
-    iou = iou / len(testloader.dataset) * 100
+    iou /= len(testloader.dataset) * 100
+    iou = iou[:-1]
 
     # mIoU를 계산 (백분율 단위)
-    miou = np.mean(iou[:-1])
+    miou = np.mean(iou)
 
     # 평균 validation loss 계산
     val_loss = total_loss / len(testloader)
