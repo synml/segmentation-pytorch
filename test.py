@@ -99,7 +99,7 @@ def evaluate(model, testloader, device, num_classes: int):
             iou[i] += iou_batch[i]
 
     # 데이터셋 전체의 IoU를 계산 (백분율 단위)
-    iou /= len(testloader.dataset) * 100
+    iou = iou / len(testloader.dataset) * 100
     iou = iou[:-1]
 
     # mIoU를 계산 (백분율 단위)
