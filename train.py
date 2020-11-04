@@ -68,7 +68,7 @@ criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=config['lr'])
 
 # learning rate scheduler 설정
-scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer)
+scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=4)
 
 # Tensorboard 설정
 writer = torch.utils.tensorboard.SummaryWriter()
