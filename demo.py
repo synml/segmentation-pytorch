@@ -8,15 +8,18 @@ import torchvision
 import tqdm
 
 import model.unet
+import model.aspp_unet
 
+ini_file = 'model/unet.ini'
+section = ini_file.split('/')[-1].split('.')[0]
 parser = configparser.ConfigParser()
-parser.read('model/unet.ini', encoding='utf-8')
+parser.read(ini_file, encoding='utf-8')
 config = {
-    'batch_size': parser.getint('UNet', 'batch_size'),
-    'image_size': parser.getint('UNet', 'image_size'),
-    'num_classes': parser.getint('UNet', 'num_classes'),
-    'num_workers': parser.getint('UNet', 'num_workers'),
-    'pretrained_weights': parser['UNet']['pretrained_weights'],
+    'batch_size': parser.getint(section, 'batch_size'),
+    'image_size': parser.getint(section, 'image_size'),
+    'num_classes': parser.getint(section, 'num_classes'),
+    'num_workers': parser.getint(section, 'num_workers'),
+    'pretrained_weights': parser[section]['pretrained_weights'],
     'result_dir': 'result/'
 }
 

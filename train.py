@@ -9,18 +9,21 @@ import torchvision
 import tqdm
 
 import model.unet
+import model.aspp_unet
 import utils.utils
 import test
 
+ini_file = 'model/unet.ini'
+section = ini_file.split('/')[-1].split('.')[0]
 parser = configparser.ConfigParser()
-parser.read('model/unet.ini', encoding='utf-8')
+parser.read(ini_file, encoding='utf-8')
 config = {
-    'batch_size': parser.getint('UNet', 'batch_size'),
-    'epoch': parser.getint('UNet', 'epoch'),
-    'image_size': parser.getint('UNet', 'image_size'),
-    'lr': parser.getfloat('UNet', 'lr'),
-    'num_classes': parser.getint('UNet', 'num_classes'),
-    'num_workers': parser.getint('UNet', 'num_workers'),
+    'batch_size': parser.getint(section, 'batch_size'),
+    'epoch': parser.getint(section, 'epoch'),
+    'image_size': parser.getint(section, 'image_size'),
+    'lr': parser.getfloat(section, 'lr'),
+    'num_classes': parser.getint(section, 'num_classes'),
+    'num_workers': parser.getint(section, 'num_workers'),
 }
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
