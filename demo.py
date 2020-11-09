@@ -9,6 +9,7 @@ import tqdm
 
 import model.unet
 import model.aspp_unet
+import utils.dataset
 
 ini_file = 'model/unet.ini'
 section = ini_file.split('/')[-1].split('.')[0]
@@ -35,7 +36,7 @@ target_transform = torchvision.transforms.Compose([
     torchvision.transforms.Resize(config['image_size']),
     torchvision.transforms.ToTensor(),
 ])
-testset = torchvision.datasets.Cityscapes(root='../../data/cityscapes',
+testset = utils.dataset.Cityscapes(root='../../data/cityscapes',
                                           split='val',
                                           mode='fine',
                                           target_type='semantic',

@@ -11,7 +11,7 @@ import tqdm
 
 import model.unet
 import model.aspp_unet
-import utils.classes
+import utils.dataset
 
 
 # IoU (Intersection over Union)를 계산한다.
@@ -144,7 +144,7 @@ if __name__ == '__main__':
         torchvision.transforms.Resize(config['image_size']),
         torchvision.transforms.ToTensor(),
     ])
-    testset = torchvision.datasets.Cityscapes(root='../../data/cityscapes',
+    testset = utils.dataset.Cityscapes(root='../../data/cityscapes',
                                               split='val',
                                               mode='fine',
                                               target_type='semantic',
@@ -177,7 +177,7 @@ if __name__ == '__main__':
 
         writer.writerow(['Class Number', 'Class Name', 'IoU'])
         for class_num, iou_value in enumerate(iou):
-            writer.writerow([class_num, utils.classes.class_names[class_num], iou_value])
+            writer.writerow([class_num, utils.dataset.class_names[class_num], iou_value])
         writer.writerow(['mIoU', miou, ' '])
         writer.writerow(['Validation loss', val_loss, ' '])
         writer.writerow(['FPS', fps, ' '])
