@@ -111,59 +111,40 @@ class ASPP_UNet(nn.Module):
     def __init__(self, num_channels, num_classes):
         super(ASPP_UNet, self).__init__()
 
-        self.down1 = double_atrous_conv(num_channels, 64)
-        self.down2 = double_atrous_conv(64, 128)
-        self.down3 = double_atrous_conv(128, 256)
-        self.down4 = double_atrous_conv(256, 512)
-        self.down5 = nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1)
+        self.encode1 = double_atrous_conv(num_channels, 64)
+        self.encode2 = double_atrous_conv(64, 128)
+        self.encode3 = double_atrous_conv(128, 256)
+        self.encode4 = double_atrous_conv(256, 512)
+        self.encode5 = nn.Conv2d(512, 512, kernel_size=3, stride=1, padding=1)
         self.aspp = ASPP(512, 256)
 
-        self.upconv1 = nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2)
-        self.upconv2 = nn.ConvTranspose2d(512, 256, kernel_size=2, stride=2)
-        self.upconv3 = nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2)
-        self.upconv4 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
+        self.upconv4 = nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2)
+        self.upconv3 = nn.ConvTranspose2d(512, 256, kernel_size=2, stride=2)
+        self.upconv2 = nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2)
+        self.upconv1 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
 
-        self.up4 = double_atrous_conv(640, 512)
-        self.up3 = double_atrous_conv(512, 256)
-        self.up2 = double_atrous_conv(256, 128)
-        self.up1 = double_atrous_conv(128, 64)
+        self.decode4 = double_atrous_conv(640, 512)
+        self.decode3 = double_atrous_conv(512, 256)
+        self.decode2 = double_atrous_conv(256, 128)
+        self.decode1 = double_atrous_conv(128, 64)
 
         self.classifier = nn.Conv2d(64, num_classes, kernel_size=1)
 
     def forward(self, x):
-        down1 = self.down1(x)
+        # Encoder
+        encode1 = self.encode1(x)
+        encode2 = self.encode2(F.max_pool2d(encode1, 2))
+        encode3 = self.encode3(F.max_pool2d(encode2, 2))
+        encode4 = self.encode4(F.max_pool2d(encode3, 2))
+        encode_end = self.aspp(self.encode5(F.max_pool2d(encode4, 2)))
 
-        x = F.max_pool2d(down1, 2)
-        down2 = self.down2(x)
+        # Decoder
+        x = self.decode4(torch.cat([self.upconv4(encode_end), encode4], dim=1))
+        x = self.decode3(torch.cat([self.upconv3(x), encode3], dim=1))
+        x = self.decode2(torch.cat([self.upconv2(x), encode2], dim=1))
+        x = self.decode1(torch.cat([self.upconv1(x), encode1], dim=1))
 
-        x = F.max_pool2d(down2, 2)
-        down3 = self.down3(x)
-
-        x = F.max_pool2d(down3, 2)
-        down4 = self.down4(x)
-
-        x = F.max_pool2d(down4, 2)
-        x = self.down5(x)
-        x = self.aspp(x)
-
-        # --------------------------------------
-
-        x = self.upconv1(x)
-        x = torch.cat([x, down4], dim=1)
-        x = self.up4(x)
-
-        x = self.upconv2(x)
-        x = torch.cat([x, down3], dim=1)
-        x = self.up3(x)
-
-        x = self.upconv3(x)
-        x = torch.cat([x, down2], dim=1)
-        x = self.up2(x)
-
-        x = self.upconv4(x)
-        x = torch.cat([x, down1], dim=1)
-        x = self.up1(x)
-
+        # Classifier
         x = self.classifier(x)
         return x
 
