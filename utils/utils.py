@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import torch
 import torch.nn as nn
 import torchvision
 
@@ -11,12 +12,13 @@ def make_plt_subplot(nrows: int, ncols: int, index: int, title: str, image):
     plt.yticks([])
 
 
-def show_dataset(images, masks):
+def show_dataset(images: torch.Tensor, masks: torch.Tensor):
     to_pil_image = torchvision.transforms.ToPILImage()
-    make_plt_subplot(1, 2, 1, 'Input image', to_pil_image(images.cpu()))
-    make_plt_subplot(1, 2, 2, 'Groundtruth', to_pil_image(masks.cpu()))
 
-    plt.show()
+    for i in range(images.shape[0]):
+        make_plt_subplot(1, 2, 1, 'Input image', to_pil_image(images[i].squeeze().cpu()))
+        make_plt_subplot(1, 2, 2, 'Groundtruth', to_pil_image(masks[i].squeeze().cpu()))
+        plt.show()
 
 
 def init_weights(m):
