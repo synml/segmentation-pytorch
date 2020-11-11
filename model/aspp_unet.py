@@ -37,7 +37,6 @@ class ASPP(nn.Module):
 
     def forward(self, x):
         # feature map의 shape은 (batch_size, in_channels, height/output_stride, width/output_stride)
-
         feature_map_h = x.size()[2]  # (== h/16)
         feature_map_w = x.size()[3]  # (== w/16)
 
@@ -109,10 +108,10 @@ def double_atrous_conv(in_channels, out_channels, batch_normalization=False):
 
 
 class ASPP_UNet(nn.Module):
-    def __init__(self, n_channels, n_classes):
+    def __init__(self, num_channels, num_classes):
         super(ASPP_UNet, self).__init__()
 
-        self.down1 = double_atrous_conv(n_channels, 64)
+        self.down1 = double_atrous_conv(num_channels, 64)
         self.down2 = double_atrous_conv(64, 128)
         self.down3 = double_atrous_conv(128, 256)
         self.down4 = double_atrous_conv(256, 512)
@@ -129,7 +128,7 @@ class ASPP_UNet(nn.Module):
         self.up2 = double_atrous_conv(256, 128)
         self.up1 = double_atrous_conv(128, 64)
 
-        self.classifier = nn.Conv2d(64, n_classes, kernel_size=1)
+        self.classifier = nn.Conv2d(64, num_classes, kernel_size=1)
 
     def forward(self, x):
         down1 = self.down1(x)
