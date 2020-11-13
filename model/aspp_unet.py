@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.tensorboard
+import torchsummary
 
 import utils.utils
 
@@ -152,9 +153,11 @@ class ASPP_UNet(nn.Module):
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    model = ASPP_UNet(3, 20).to(device)
+    model = ASPP_UNet(3, 8).to(device)
     model.apply(utils.utils.init_weights)
     model.eval()
+
+    torchsummary.torchsummary.summary(model, (3, 256, 512))
 
     input_image = torch.rand(1, 3, 256, 256).to(device)
     out = model(input_image)
