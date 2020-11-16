@@ -36,6 +36,7 @@ def init_weights(m):
         nn.init.ones_(m.weight)
         nn.init.zeros_(m.bias)
 
+
 # 가중치 초기화 (제안하는 방법)
 def init_weights_proposed(m):
     if type(m) == nn.Conv2d:
