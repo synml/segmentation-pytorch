@@ -1,5 +1,4 @@
 import os
-import time
 
 import torch.nn as nn
 import torch.utils.data
