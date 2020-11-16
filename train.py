@@ -41,8 +41,7 @@ scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=8, mi
 writer = torch.utils.tensorboard.SummaryWriter()
 
 # 모델 그래프를 Tensorboard에 저장
-input_image = trainloader.__iter__().__next__()[0].to(device)
-writer.add_graph(model, input_image)
+writer.add_graph(model, trainloader.__iter__().__next__()[0].to(device))
 
 # 현재 배치 손실값을 출력하는 tqdm 설정
 log_loss = tqdm.tqdm(total=0, position=2, bar_format='{desc}', leave=False)
