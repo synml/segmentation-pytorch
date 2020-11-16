@@ -1,10 +1,12 @@
 import configparser
+import os
 
 import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import torch.utils.data
 import torchvision
+import tqdm
 
 import utils.dataset
 
@@ -99,3 +101,17 @@ def init_dataset(config: dict):
                                              pin_memory=True)
 
     return trainset, trainloader, testset, testloader
+
+
+def save_groundtruth(testset):
+    testloader = torch.utils.data.DataLoader(testset)
+
+    image_names = []
+    for image_path in testset.images:
+        image_name = image_path.replace('\\', '/').split('/')[-1]
+        image_names.append(image_name)
+
+    result_dir = os.path.join('demo', 'groundtruth')
+    os.makedirs(result_dir, exist_ok=True)
+    for i, (_, mask) in enumerate(tqdm.tqdm(testloader, desc='GroundTruth')):
+        plt.imsave(os.path.join(result_dir, image_names[i]), mask.squeeze())
