@@ -43,6 +43,13 @@ writer = torch.utils.tensorboard.SummaryWriter()
 # 현재 배치 손실값을 출력하는 tqdm 설정
 log_loss = tqdm.tqdm(total=0, position=2, bar_format='{desc}', leave=False)
 
+# Train에 필요한 변수들을 설정
+prev_miou = 0.0
+save_dir = os.path.join('checkpoints', now)
+os.makedirs(save_dir, exist_ok=True)
+model_name = model.__module__.split('.')[-1]
+dataset_name = trainset.__module__.split('.')[-1]
+
 # Train
 for epoch in tqdm.tqdm(range(config['epoch']), desc='Epoch'):
     model.train()
@@ -77,21 +84,21 @@ for epoch in tqdm.tqdm(range(config['epoch']), desc='Epoch'):
     # 모델을 평가
     miou, _, val_loss, _ = test.evaluate(model, testloader, device, config['num_classes'])
 
-    # Tensorboard에 평가 결과 기록
+    # Tensorboard에 값 기록
     writer.add_scalar('mIoU', miou, epoch)
     writer.add_scalar('Val loss', val_loss, epoch)
-
-    # Tensorboard에 학습률 기록
     writer.add_scalar('lr', optimizer.param_groups[0]['lr'], epoch)
 
     # lr scheduler의 step을 진행
     scheduler.step(val_loss)
 
     # checkpoint file 저장
-    save_dir = os.path.join('checkpoints', now)
-    os.makedirs(save_dir, exist_ok=True)
-    model_name = model.__module__.split('.')[-1]
-    dataset_name = trainset.__module__.split('.')[-1]
     torch.save(model.state_dict(), os.path.join(save_dir, '{}_{}_{}.pth'.format(model_name, dataset_name, epoch)))
+
+    # Best mIoU를 가진 모델을 저장
+    if miou > prev_miou:
+        torch.save(model.state_dict(),
+                   os.path.join(save_dir, '{}_{}_{}_best.pth'.format(model_name, dataset_name, epoch)))
+        prev_miou = miou
 
 writer.close()
