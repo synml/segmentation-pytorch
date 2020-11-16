@@ -37,11 +37,11 @@ target_transform = torchvision.transforms.Compose([
     torchvision.transforms.ToTensor(),
 ])
 testset = utils.dataset.Cityscapes(root='../../data/cityscapes',
-                                          split='val',
-                                          mode='fine',
-                                          target_type='semantic',
-                                          transform=transform,
-                                          target_transform=target_transform)
+                                   split='val',
+                                   mode='fine',
+                                   target_type='semantic',
+                                   transform=transform,
+                                   target_transform=target_transform)
 testloader = torch.utils.data.DataLoader(testset,
                                          batch_size=config['batch_size'],
                                          shuffle=False,
@@ -49,7 +49,10 @@ testloader = torch.utils.data.DataLoader(testset,
                                          pin_memory=True)
 
 # 모델 설정
-model = model.unet.UNet(3, config['num_classes']).to(device)
+if section == 'unet':
+    model = model.unet.UNet(3, config['num_classes']).to(device)
+elif section == 'proposed':
+    model = model.proposed.Proposed(3, config['num_classes']).to(device)
 model.load_state_dict(torch.load(config['pretrained_weights']))
 
 # 이미지 이름 저장

@@ -37,7 +37,7 @@ def calc_iou(gt_batch: torch.Tensor, pred_batch: torch.Tensor, num_classes: int,
         category = gt_count * num_classes + pred_count
 
         # 혼동 행렬 생성
-        confusion_matrix = np.bincount(category, minlength=num_classes**2).reshape((num_classes, num_classes))
+        confusion_matrix = np.bincount(category, minlength=num_classes ** 2).reshape((num_classes, num_classes))
 
         # 각 이미지의 IoU를 계산 (intersection / union = TP / (TP + FP + FN))
         for i in range(num_classes):
@@ -145,11 +145,11 @@ if __name__ == '__main__':
         torchvision.transforms.ToTensor(),
     ])
     testset = utils.dataset.Cityscapes(root='../../data/cityscapes',
-                                              split='val',
-                                              mode='fine',
-                                              target_type='semantic',
-                                              transform=transform,
-                                              target_transform=target_transform)
+                                       split='val',
+                                       mode='fine',
+                                       target_type='semantic',
+                                       transform=transform,
+                                       target_transform=target_transform)
     testloader = torch.utils.data.DataLoader(testset,
                                              batch_size=config['batch_size'],
                                              shuffle=False,
@@ -157,7 +157,10 @@ if __name__ == '__main__':
                                              pin_memory=True)
 
     # 모델 설정
-    model = model.unet.UNet(3, config['num_classes']).to(device)
+    if section == 'unet':
+        model = model.unet.UNet(3, config['num_classes']).to(device)
+    elif section == 'proposed':
+        model = model.proposed.Proposed(3, config['num_classes']).to(device)
     model.load_state_dict(torch.load(config['pretrained_weights']))
 
     # 모델 평가

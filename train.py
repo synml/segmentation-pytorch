@@ -64,8 +64,12 @@ testloader = torch.utils.data.DataLoader(testset,
                                          pin_memory=True)
 
 # 모델 설정
-model = model.unet.UNet(3, config['num_classes']).to(device)
-model.apply(utils.utils.init_weights)
+if section == 'unet':
+    model = model.unet.UNet(3, config['num_classes']).to(device)
+    model.apply(utils.utils.init_weights)
+elif section == 'proposed':
+    model = model.proposed.Proposed(3, config['num_classes']).to(device)
+    model.apply(utils.utils.init_weights_proposed)
 
 # Loss Function, Optimizer 설정
 criterion = nn.CrossEntropyLoss()

@@ -28,3 +28,12 @@ def init_weights(m):
     elif type(m) == nn.BatchNorm2d:
         nn.init.ones_(m.weight)
         nn.init.zeros_(m.bias)
+
+
+def init_weights_proposed(m):
+    if type(m) == nn.Conv2d:
+        nn.init.kaiming_uniform_(m.weight, nonlinearity='leaky_relu')
+        nn.init.normal_(m.bias)
+    elif type(m) == nn.BatchNorm2d:
+        nn.init.ones_(m.weight)
+        nn.init.zeros_(m.bias)

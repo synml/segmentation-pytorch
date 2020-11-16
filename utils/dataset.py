@@ -1,5 +1,5 @@
 import random
-from typing import Any, Callable, Dict, List, Optional, Union, Tuple
+from typing import Any, Callable, List, Optional, Union, Tuple
 from PIL import Image
 
 import torchvision
