@@ -146,8 +146,7 @@ if __name__ == '__main__':
     # Validation loss, Inference time, FPS를 csv 파일로 저장
     result_dir = 'csv'
     os.makedirs(result_dir, exist_ok=True)
-    now = time.strftime('%y%m%d_%H%M%S', time.localtime(time.time()))
-    filename = '{}_{}.csv'.format(model.__module__.split('.')[-1], now)
+    filename = '{}.csv'.format(model.__module__.split('.')[-1])
     with open(os.path.join(result_dir, filename), mode='w') as f:
         writer = csv.writer(f, delimiter=',', lineterminator='\n')
 
