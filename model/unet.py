@@ -76,7 +76,7 @@ if __name__ == '__main__':
 
     torchsummary.torchsummary.summary(model, (3, 256, 512))
 
-    input_image = torch.rand(1, 3, 256, 256).to(device)
+    input_image = torch.rand(1, 3, 256, 512).to(device)
     out = model(input_image)
 
     writer = torch.utils.tensorboard.SummaryWriter('../runs')
