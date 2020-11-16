@@ -147,7 +147,7 @@ if __name__ == '__main__':
     os.makedirs('csv', exist_ok=True)
     now = time.strftime('%y%m%d_%H%M%S', time.localtime(time.time()))
     filename = '{}_{}.csv'.format(model.__module__.split('.')[-1], now)
-    with open(os.path.join(config['result_dir'], filename), mode='w') as f:
+    with open(os.path.join('result', filename), mode='w') as f:
         writer = csv.writer(f, delimiter=',', lineterminator='\n')
 
         writer.writerow(['Class Number', 'Class Name', 'IoU'])
