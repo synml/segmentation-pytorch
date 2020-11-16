@@ -17,6 +17,7 @@ def make_plt_subplot(nrows: int, ncols: int, index: int, title: str, image):
     plt.yticks([])
 
 
+# 데이터셋 불러오는 코드 검증
 def show_dataset(images: torch.Tensor, masks: torch.Tensor):
     to_pil_image = torchvision.transforms.ToPILImage()
 
@@ -26,6 +27,7 @@ def show_dataset(images: torch.Tensor, masks: torch.Tensor):
         plt.show()
 
 
+# 가중치 초기화
 def init_weights(m):
     if type(m) == nn.Conv2d:
         nn.init.kaiming_uniform_(m.weight, nonlinearity='relu')
@@ -34,7 +36,7 @@ def init_weights(m):
         nn.init.ones_(m.weight)
         nn.init.zeros_(m.bias)
 
-
+# 가중치 초기화 (제안하는 방법)
 def init_weights_proposed(m):
     if type(m) == nn.Conv2d:
         nn.init.kaiming_uniform_(m.weight, nonlinearity='leaky_relu')
@@ -44,6 +46,7 @@ def init_weights_proposed(m):
         nn.init.zeros_(m.bias)
 
 
+# 설정 불러오기
 def load_config(ini_file: str):
     section = ini_file.split('/')[-1].split('.')[0]
     parser = configparser.ConfigParser()
