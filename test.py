@@ -121,6 +121,7 @@ if __name__ == '__main__':
     # 설정 불러오기
     ini_file = 'model/unet.ini'
     config, section = utils.utils.load_config(ini_file)
+    print('{}를 불러왔습니다.'.format(ini_file.split('/')[-1]))
 
     # 장치 설정
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
