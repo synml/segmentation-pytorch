@@ -34,7 +34,7 @@ for image_path in testset.images:
 
 # 예측 결과 저장
 step = 0
-result_dir = os.path.join('result', section)
+result_dir = os.path.join('demo', section)
 os.makedirs(result_dir, exist_ok=True)
 for images, _ in tqdm.tqdm(testloader, desc='Demo'):
     # 이미지와 정답 정보를 GPU로 복사
