@@ -100,8 +100,7 @@ for epoch in tqdm.tqdm(range(config['epoch']), desc='Epoch'):
 
     # Best mIoU를 가진 모델을 저장
     if miou > prev_miou:
-        torch.save(model.state_dict(),
-                   os.path.join(save_dir, '{}_{}_{}_best.pth'.format(model_name, dataset_name, epoch)))
+        torch.save(model.state_dict(), os.path.join(save_dir, '{}_{}_best.pth'.format(model_name, dataset_name)))
         prev_miou = miou
 
 writer.close()
