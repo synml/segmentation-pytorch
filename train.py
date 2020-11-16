@@ -38,7 +38,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=config['lr'])
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=8, min_lr=0.0001)
 
 # Tensorboard 설정
-writer = torch.utils.tensorboard.SummaryWriter()
+writer = torch.utils.tensorboard.SummaryWriter(os.path.join('runs', section))
 
 # 모델 그래프를 Tensorboard에 저장
 writer.add_graph(model, trainloader.__iter__().__next__()[0].to(device))
