@@ -34,7 +34,8 @@ for image_path in testset.images:
 
 # 예측 결과 저장
 step = 0
-os.makedirs('result', exist_ok=True)
+result_dir = os.path.join('result', section)
+os.makedirs(result_dir, exist_ok=True)
 for images, _ in tqdm.tqdm(testloader, desc='Demo'):
     # 이미지와 정답 정보를 GPU로 복사
     images = images.to(device)
@@ -47,5 +48,5 @@ for images, _ in tqdm.tqdm(testloader, desc='Demo'):
 
     # 배치 단위의 mask를 1개씩 분해
     for mask in masks_pred:
-        plt.imsave(os.path.join('result', image_names[step]), mask.cpu().squeeze())
+        plt.imsave(os.path.join(result_dir, image_names[step]), mask.cpu().squeeze())
         step += 1
