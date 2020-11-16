@@ -17,7 +17,6 @@ config, section = utils.utils.load_config(ini_file)
 
 # 장치, 시각 설정
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-now = time.strftime('%y%m%d_%H%M%S', time.localtime(time.time()))
 
 # 데이터셋 설정
 trainset, trainloader, testset, testloader = utils.utils.init_dataset(config)
@@ -48,10 +47,9 @@ log_loss = tqdm.tqdm(total=0, position=2, bar_format='{desc}', leave=False)
 
 # Train에 필요한 변수들을 설정
 prev_miou = 0.0
-save_dir = os.path.join('checkpoints', now)
+save_dir = 'checkpoints'
 os.makedirs(save_dir, exist_ok=True)
 model_name = model.__module__.split('.')[-1]
-dataset_name = trainset.__module__.split('.')[-1]
 
 # Train
 for epoch in tqdm.tqdm(range(config['epoch']), desc='Epoch'):
@@ -96,11 +94,11 @@ for epoch in tqdm.tqdm(range(config['epoch']), desc='Epoch'):
     scheduler.step(val_loss)
 
     # checkpoint file 저장
-    torch.save(model.state_dict(), os.path.join(save_dir, '{}_{}_{}.pth'.format(model_name, dataset_name, epoch)))
+    torch.save(model.state_dict(), os.path.join(save_dir, '{}_{}.pth'.format(model_name, epoch)))
 
     # Best mIoU를 가진 모델을 저장
     if miou > prev_miou:
-        torch.save(model.state_dict(), os.path.join(save_dir, '{}_{}_best.pth'.format(model_name, dataset_name)))
+        torch.save(model.state_dict(), os.path.join(save_dir, '{}_best.pth'.format(model_name)))
         prev_miou = miou
 
 writer.close()
