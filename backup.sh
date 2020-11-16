@@ -1,6 +1,6 @@
 #!/bin/bash
 
 mkdir ../../backup
-mkdir rename
+mkdir ../../backup/rename
 mv checkpoints ../../backup/rename
 mv runs ../../backup/rename
