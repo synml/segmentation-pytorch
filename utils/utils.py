@@ -1,7 +1,12 @@
+import configparser
+
 import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
+import torch.utils.data
 import torchvision
+
+import utils.dataset
 
 
 def make_plt_subplot(nrows: int, ncols: int, index: int, title: str, image):
@@ -37,3 +42,56 @@ def init_weights_proposed(m):
     elif type(m) == nn.BatchNorm2d:
         nn.init.ones_(m.weight)
         nn.init.zeros_(m.bias)
+
+
+def load_config(ini_file: str):
+    section = ini_file.split('/')[-1].split('.')[0]
+    parser = configparser.ConfigParser()
+    parser.read(ini_file, encoding='utf-8')
+    config = {
+        'batch_size': parser.getint(section, 'batch_size'),
+        'epoch': parser.getint(section, 'epoch'),
+        'image_size': parser.getint(section, 'image_size'),
+        'lr': parser.getfloat(section, 'lr'),
+        'num_classes': parser.getint(section, 'num_classes'),
+        'num_workers': parser.getint(section, 'num_workers'),
+        'pretrained_weights': parser[section]['pretrained_weights'],
+    }
+    return config, section
+
+
+# 데이터셋 설정
+def init_dataset(config: dict):
+    transform = torchvision.transforms.Compose([
+        torchvision.transforms.Resize(config['image_size']),
+        torchvision.transforms.ToTensor(),
+        torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ])
+    target_transform = torchvision.transforms.Compose([
+        torchvision.transforms.Resize(config['image_size']),
+        torchvision.transforms.ToTensor(),
+    ])
+    trainset = utils.dataset.Cityscapes(root='../../data/cityscapes',
+                                        split='train',
+                                        mode='fine',
+                                        target_type='semantic',
+                                        transform=transform,
+                                        target_transform=target_transform)
+    trainloader = torch.utils.data.DataLoader(trainset,
+                                              batch_size=config['batch_size'],
+                                              shuffle=True,
+                                              num_workers=config['num_workers'],
+                                              pin_memory=True)
+    testset = utils.dataset.Cityscapes(root='../../data/cityscapes',
+                                       split='val',
+                                       mode='fine',
+                                       target_type='semantic',
+                                       transform=transform,
+                                       target_transform=target_transform)
+    testloader = torch.utils.data.DataLoader(testset,
+                                             batch_size=config['batch_size'],
+                                             shuffle=False,
+                                             num_workers=config['num_workers'],
+                                             pin_memory=True)
+
+    return trainset, trainloader, testset, testloader

@@ -1,67 +1,26 @@
-import configparser
 import os
 import time
 
 import torch.nn as nn
 import torch.utils.data
 import torch.utils.tensorboard
-import torchvision
 import tqdm
 
 import model.unet
 import model.proposed
 import utils.utils
-import utils.dataset
 import test
 
+# 설정 불러오기
 ini_file = 'model/unet.ini'
-section = ini_file.split('/')[-1].split('.')[0]
-parser = configparser.ConfigParser()
-parser.read(ini_file, encoding='utf-8')
-config = {
-    'batch_size': parser.getint(section, 'batch_size'),
-    'epoch': parser.getint(section, 'epoch'),
-    'image_size': parser.getint(section, 'image_size'),
-    'lr': parser.getfloat(section, 'lr'),
-    'num_classes': parser.getint(section, 'num_classes'),
-    'num_workers': parser.getint(section, 'num_workers'),
-}
+config, section = utils.utils.load_config(ini_file)
 
+# 장치, 시각 설정
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 now = time.strftime('%y%m%d_%H%M%S', time.localtime(time.time()))
 
 # 데이터셋 설정
-transform = torchvision.transforms.Compose([
-    torchvision.transforms.Resize(config['image_size']),
-    torchvision.transforms.ToTensor(),
-    torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-])
-target_transform = torchvision.transforms.Compose([
-    torchvision.transforms.Resize(config['image_size']),
-    torchvision.transforms.ToTensor(),
-])
-trainset = utils.dataset.Cityscapes(root='../../data/cityscapes',
-                                    split='train',
-                                    mode='fine',
-                                    target_type='semantic',
-                                    transform=transform,
-                                    target_transform=target_transform)
-trainloader = torch.utils.data.DataLoader(trainset,
-                                          batch_size=config['batch_size'],
-                                          shuffle=True,
-                                          num_workers=config['num_workers'],
-                                          pin_memory=True)
-testset = utils.dataset.Cityscapes(root='../../data/cityscapes',
-                                   split='val',
-                                   mode='fine',
-                                   target_type='semantic',
-                                   transform=transform,
-                                   target_transform=target_transform)
-testloader = torch.utils.data.DataLoader(testset,
-                                         batch_size=config['batch_size'],
-                                         shuffle=False,
-                                         num_workers=config['num_workers'],
-                                         pin_memory=True)
+trainset, trainloader, testset, testloader = utils.utils.init_dataset(config)
 
 # 모델 설정
 if section == 'unet':

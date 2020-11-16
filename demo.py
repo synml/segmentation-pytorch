@@ -1,52 +1,23 @@
-import configparser
 import os
 
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
 import torch.utils.data
-import torchvision
 import tqdm
 
 import model.unet
 import model.proposed
-import utils.dataset
+import utils.utils
 
+# 설정 불러오기
 ini_file = 'model/unet.ini'
-section = ini_file.split('/')[-1].split('.')[0]
-parser = configparser.ConfigParser()
-parser.read(ini_file, encoding='utf-8')
-config = {
-    'batch_size': parser.getint(section, 'batch_size'),
-    'image_size': parser.getint(section, 'image_size'),
-    'num_classes': parser.getint(section, 'num_classes'),
-    'num_workers': parser.getint(section, 'num_workers'),
-    'pretrained_weights': parser[section]['pretrained_weights'],
-    'result_dir': 'result/'
-}
+config, section = utils.utils.load_config(ini_file)
 
+# 장치 설정
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # 데이터셋 설정
-transform = torchvision.transforms.Compose([
-    torchvision.transforms.Resize(config['image_size']),
-    torchvision.transforms.ToTensor(),
-    torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-])
-target_transform = torchvision.transforms.Compose([
-    torchvision.transforms.Resize(config['image_size']),
-    torchvision.transforms.ToTensor(),
-])
-testset = utils.dataset.Cityscapes(root='../../data/cityscapes',
-                                   split='val',
-                                   mode='fine',
-                                   target_type='semantic',
-                                   transform=transform,
-                                   target_transform=target_transform)
-testloader = torch.utils.data.DataLoader(testset,
-                                         batch_size=config['batch_size'],
-                                         shuffle=False,
-                                         num_workers=config['num_workers'],
-                                         pin_memory=True)
+_, _, testset, testloader = utils.utils.init_dataset(config)
 
 # 모델 설정
 if section == 'unet':
@@ -63,7 +34,7 @@ for image_path in testset.images:
 
 # 예측 결과 저장
 step = 0
-os.makedirs(config['result_dir'], exist_ok=True)
+os.makedirs('result', exist_ok=True)
 for images, _ in tqdm.tqdm(testloader, desc='Demo'):
     # 이미지와 정답 정보를 GPU로 복사
     images = images.to(device)
@@ -76,5 +47,5 @@ for images, _ in tqdm.tqdm(testloader, desc='Demo'):
 
     # 배치 단위의 mask를 1개씩 분해
     for mask in masks_pred:
-        plt.imsave(os.path.join(config['result_dir'], image_names[step]), mask.cpu().squeeze())
+        plt.imsave(os.path.join('result', image_names[step]), mask.cpu().squeeze())
         step += 1

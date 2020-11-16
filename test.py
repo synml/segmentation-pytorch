@@ -1,4 +1,3 @@
-import configparser
 import csv
 import os
 import time
@@ -6,12 +5,12 @@ import time
 import numpy as np
 import torch.nn.functional as F
 import torch.utils.data
-import torchvision
 import tqdm
 
 import model.unet
 import model.proposed
 import utils.dataset
+import utils.utils
 
 
 # IoU (Intersection over Union)를 계산한다.
@@ -119,42 +118,15 @@ def evaluate(model, testloader, device, num_classes: int):
 
 
 if __name__ == '__main__':
+    # 설정 불러오기
     ini_file = 'model/unet.ini'
-    section = ini_file.split('/')[-1].split('.')[0]
-    parser = configparser.ConfigParser()
-    parser.read(ini_file, encoding='utf-8')
-    config = {
-        'batch_size': parser.getint(section, 'batch_size'),
-        'image_size': parser.getint(section, 'image_size'),
-        'num_classes': parser.getint(section, 'num_classes'),
-        'num_workers': parser.getint(section, 'num_workers'),
-        'pretrained_weights': parser[section]['pretrained_weights'],
-        'result_dir': 'csv/'
-    }
+    config, section = utils.utils.load_config(ini_file)
 
+    # 장치 설정
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # 데이터셋 설정
-    transform = torchvision.transforms.Compose([
-        torchvision.transforms.Resize(config['image_size']),
-        torchvision.transforms.ToTensor(),
-        torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-    ])
-    target_transform = torchvision.transforms.Compose([
-        torchvision.transforms.Resize(config['image_size']),
-        torchvision.transforms.ToTensor(),
-    ])
-    testset = utils.dataset.Cityscapes(root='../../data/cityscapes',
-                                       split='val',
-                                       mode='fine',
-                                       target_type='semantic',
-                                       transform=transform,
-                                       target_transform=target_transform)
-    testloader = torch.utils.data.DataLoader(testset,
-                                             batch_size=config['batch_size'],
-                                             shuffle=False,
-                                             num_workers=config['num_workers'],
-                                             pin_memory=True)
+    _, _, testset, testloader = utils.utils.init_dataset(config)
 
     # 모델 설정
     if section == 'unet':
@@ -172,7 +144,7 @@ if __name__ == '__main__':
     print('FPS: {:.02f}'.format(fps))
 
     # Validation loss, Inference time, FPS를 csv 파일로 저장
-    os.makedirs(config['result_dir'], exist_ok=True)
+    os.makedirs('csv', exist_ok=True)
     now = time.strftime('%y%m%d_%H%M%S', time.localtime(time.time()))
     filename = '{}_{}.csv'.format(model.__module__.split('.')[-1], now)
     with open(os.path.join(config['result_dir'], filename), mode='w') as f:
