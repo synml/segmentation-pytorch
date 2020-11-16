@@ -9,7 +9,7 @@ import torchvision
 import tqdm
 
 import model.unet
-import model.aspp_unet
+import model.proposed
 import utils.utils
 import utils.dataset
 import test

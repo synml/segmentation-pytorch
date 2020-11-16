@@ -108,9 +108,9 @@ def double_atrous_conv(in_channels, out_channels, batch_normalization=False):
         )
 
 
-class ASPP_UNet(nn.Module):
+class Proposed(nn.Module):
     def __init__(self, num_channels, num_classes):
-        super(ASPP_UNet, self).__init__()
+        super(Proposed, self).__init__()
 
         self.encode1 = double_atrous_conv(num_channels, 64)
         self.encode2 = double_atrous_conv(64, 128)
@@ -153,7 +153,7 @@ class ASPP_UNet(nn.Module):
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    model = ASPP_UNet(3, 8).to(device)
+    model = Proposed(3, 8).to(device)
     model.apply(utils.utils.init_weights)
     model.eval()
 
