@@ -42,11 +42,9 @@ def init_weights(m):
 # 가중치 초기화 (제안하는 방법)
 def init_weights_proposed(m):
     if type(m) == nn.Conv2d:
-        nn.init.kaiming_uniform_(m.weight, 0.01, nonlinearity='leaky_relu')
-        nn.init.normal_(m.bias)
+        nn.init.kaiming_uniform_(m.weight, nonlinearity='relu')
     elif type(m) == nn.BatchNorm2d:
-        nn.init.ones_(m.weight)
-        nn.init.zeros_(m.bias)
+        nn.init.zeros_(m.weight)
 
 
 # 설정 불러오기

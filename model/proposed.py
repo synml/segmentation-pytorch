@@ -70,66 +70,76 @@ class ASPP(nn.Module):
         return out
 
 
-def double_conv(in_channels, out_channels, batch_normalization=False):
-    if batch_normalization:
-        return nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True)
-        )
-    else:
-        return nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(inplace=True)
-        )
+class ResidualBlock(nn.Module):
+    def __init__(self, in_channels, out_channels, stride):
+        super(ResidualBlock, self).__init__()
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.relu = nn.ReLU(inplace=True)
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False)
+        self.downsample = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=2, padding=1, bias=False)
+        self.stride = stride
 
+    def forward(self, x):
+        identity = x
 
-def double_atrous_conv(in_channels, out_channels, batch_normalization=False):
-    if batch_normalization:
-        return nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=2, dilation=2),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=2, dilation=2),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True)
-        )
-    else:
-        return nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=2, dilation=2),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=2, dilation=2),
-            nn.ReLU(inplace=True)
-        )
+        out = self.conv1(x)
+        out = self.relu(out)
+        out = self.conv2(out)
+
+        if self.stride == 2:
+            identity = self.downsample(x)
+
+        out += identity
+        out = self.relu(out)
+
+        return out
 
 
 class Proposed(nn.Module):
     def __init__(self, num_channels, num_classes):
         super(Proposed, self).__init__()
 
-        self.encode1 = double_atrous_conv(num_channels, 64)
-        self.encode2 = double_atrous_conv(64, 128)
-        self.encode3 = double_atrous_conv(128, 256)
-        self.encode4 = double_atrous_conv(256, 512)
-        self.encode5 = double_atrous_conv(512, 512)
-        self.aspp = ASPP(512, 512)
+        self.encode1 = self._double_conv(num_channels, 64)
+        self.encode2 = self._make_layer(64, 128, 3)
+        self.encode3 = self._make_layer(128, 256, 4, stride=2)
+        self.encode4 = self._make_layer(256, 512, 6, stride=2)
+        self.encode5 = self._make_layer(512, 1024, 3, stride=2)
+        self.aspp = ASPP(1024, 512)
 
-        self.upconv4 = nn.ConvTranspose2d(512, 256, kernel_size=2, stride=2)
-        self.upconv3 = nn.ConvTranspose2d(512, 256, kernel_size=2, stride=2)
-        self.upconv2 = nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2)
-        self.upconv1 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
+        self.upsample = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=False)
 
-        self.decode4 = double_atrous_conv(768, 512)
-        self.decode3 = double_atrous_conv(512, 256)
-        self.decode2 = double_atrous_conv(256, 128)
-        self.decode1 = double_atrous_conv(128, 64)
+        self.decode4 = self._double_conv(1024, 512)
+        self.decode3 = self._double_conv(512, 256)
+        self.decode2 = self._double_conv(256, 128)
+        self.decode1 = self._double_conv(128, 64)
 
         self.classifier = nn.Conv2d(64, num_classes, kernel_size=1)
+
+    def _double_conv(self, in_channels, out_channels, batch_normalization=False):
+        if batch_normalization:
+            return nn.Sequential(
+                nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
+                nn.BatchNorm2d(out_channels),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
+                nn.BatchNorm2d(out_channels),
+                nn.ReLU(inplace=True)
+            )
+        else:
+            return nn.Sequential(
+                nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
+                nn.ReLU(inplace=True)
+            )
+
+    def _make_layer(self, in_channels, out_channels, num_blocks, stride=1):
+        layers = [ResidualBlock(in_channels, out_channels, stride)]
+
+        for _ in range(1, num_blocks):
+            layers.append(ResidualBlock(in_channels, out_channels, stride=1))
+
+        return nn.Sequential(*layers)
 
     def forward(self, x):
         # Encoder
@@ -154,7 +164,7 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     model = Proposed(3, 8).to(device)
-    model.apply(utils.utils.init_weights)
+    model.apply(utils.utils.init_weights_proposed)
     model.eval()
 
     torchsummary.torchsummary.summary(model, (3, 256, 512))
