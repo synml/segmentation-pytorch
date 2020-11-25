@@ -168,16 +168,16 @@ class Proposed(nn.Module):
 
         # Decoder
         out = self.decode4(
-            torch.cat([F.upsample(encode_end, scale_factor=2, mode='bilinear', align_corners=False), encode4], dim=1)
+            torch.cat([F.interpolate(encode_end, scale_factor=2, mode='bilinear', align_corners=False), encode4], dim=1)
         )
         out = self.decode3(
-            torch.cat([F.upsample(out, scale_factor=2, mode='bilinear', align_corners=False), encode3], dim=1)
+            torch.cat([F.interpolate(out, scale_factor=2, mode='bilinear', align_corners=False), encode3], dim=1)
         )
         out = self.decode2(
-            torch.cat([F.upsample(out, scale_factor=2, mode='bilinear', align_corners=False), encode2], dim=1)
+            torch.cat([F.interpolate(out, scale_factor=2, mode='bilinear', align_corners=False), encode2], dim=1)
         )
         out = self.decode1(
-            torch.cat([F.upsample(out, scale_factor=2, mode='bilinear', align_corners=False), encode1], dim=1)
+            torch.cat([F.interpolate(out, scale_factor=2, mode='bilinear', align_corners=False), encode1], dim=1)
         )
 
         # Classifier
