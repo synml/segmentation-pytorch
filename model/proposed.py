@@ -71,13 +71,11 @@ class ASPP(nn.Module):
 
 
 class ResidualBlock(nn.Module):
-    def __init__(self, in_channels, out_channels, stride):
+    def __init__(self, in_channels, out_channels):
         super(ResidualBlock, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False)
         self.relu = nn.ReLU(inplace=True)
         self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False)
-        self.downsample = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=2, padding=1, bias=False)
-        self.stride = stride
 
     def forward(self, x):
         identity = x
@@ -86,8 +84,26 @@ class ResidualBlock(nn.Module):
         out = self.relu(out)
         out = self.conv2(out)
 
-        if self.stride == 2:
-            identity = self.downsample(x)
+        out += identity
+        out = self.relu(out)
+
+        return out
+
+
+class ResidualBlockDown(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super(ResidualBlockDown, self).__init__()
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=2, padding=1, bias=False)
+        self.relu = nn.ReLU(inplace=True)
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False)
+        self.downsample = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=2, padding=1, bias=False)
+
+    def forward(self, x):
+        identity = self.downsample(x)
+
+        out = self.conv1(x)
+        out = self.relu(out)
+        out = self.conv2(out)
 
         out += identity
         out = self.relu(out)
@@ -101,17 +117,17 @@ class Proposed(nn.Module):
 
         self.encode1 = self._double_conv(num_channels, 64)
         self.encode2 = self._make_layer(64, 128, 3)
-        self.encode3 = self._make_layer(128, 256, 4, stride=2)
-        self.encode4 = self._make_layer(256, 512, 6, stride=2)
-        self.encode5 = self._make_layer(512, 1024, 3, stride=2)
+        self.encode3 = self._make_layer(128, 256, 4)
+        self.encode4 = self._make_layer(256, 512, 6)
+        self.encode5 = self._make_layer(512, 1024, 3)
         self.aspp = ASPP(1024, 512)
 
         self.upsample = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=False)
 
         self.decode4 = self._double_conv(1024, 512)
-        self.decode3 = self._double_conv(512, 256)
-        self.decode2 = self._double_conv(256, 128)
-        self.decode1 = self._double_conv(128, 64)
+        self.decode3 = self._double_conv(768, 256)
+        self.decode2 = self._double_conv(384, 128)
+        self.decode1 = self._double_conv(192, 64)
 
         self.classifier = nn.Conv2d(64, num_classes, kernel_size=1)
 
@@ -133,31 +149,31 @@ class Proposed(nn.Module):
                 nn.ReLU(inplace=True)
             )
 
-    def _make_layer(self, in_channels, out_channels, num_blocks, stride=1):
-        layers = [ResidualBlock(in_channels, out_channels, stride)]
+    def _make_layer(self, in_channels, out_channels, num_blocks):
+        layers = [ResidualBlockDown(in_channels, out_channels)]
 
         for _ in range(1, num_blocks):
-            layers.append(ResidualBlock(in_channels, out_channels, stride=1))
+            layers.append(ResidualBlock(out_channels, out_channels))
 
         return nn.Sequential(*layers)
 
     def forward(self, x):
         # Encoder
         encode1 = self.encode1(x)
-        encode2 = self.encode2(F.max_pool2d(encode1, 2))
-        encode3 = self.encode3(F.max_pool2d(encode2, 2))
-        encode4 = self.encode4(F.max_pool2d(encode3, 2))
-        encode_end = self.aspp(self.encode5(F.max_pool2d(encode4, 2)))
+        encode2 = self.encode2(encode1)
+        encode3 = self.encode3(encode2)
+        encode4 = self.encode4(encode3)
+        encode_end = self.aspp(self.encode5(encode4))
 
         # Decoder
-        x = self.decode4(torch.cat([self.upconv4(encode_end), encode4], dim=1))
-        x = self.decode3(torch.cat([self.upconv3(x), encode3], dim=1))
-        x = self.decode2(torch.cat([self.upconv2(x), encode2], dim=1))
-        x = self.decode1(torch.cat([self.upconv1(x), encode1], dim=1))
+        out = self.decode4(torch.cat([self.upsample(encode_end), encode4], dim=1))
+        out = self.decode3(torch.cat([self.upsample(out), encode3], dim=1))
+        out = self.decode2(torch.cat([self.upsample(out), encode2], dim=1))
+        out = self.decode1(torch.cat([self.upsample(out), encode1], dim=1))
 
         # Classifier
-        x = self.classifier(x)
-        return x
+        out = self.classifier(out)
+        return out
 
 
 if __name__ == '__main__':
