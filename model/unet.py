@@ -7,46 +7,45 @@ import torchsummary
 import utils.utils
 
 
-def double_conv(in_channels, out_channels, batch_normalization=False):
-    if batch_normalization:
-        return nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True)
-        )
-    else:
-        return nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(inplace=True)
-        )
-
-
 class UNet(nn.Module):
     def __init__(self, num_channels, num_classes):
         super(UNet, self).__init__()
 
-        self.encode1 = double_conv(num_channels, 64)
-        self.encode2 = double_conv(64, 128)
-        self.encode3 = double_conv(128, 256)
-        self.encode4 = double_conv(256, 512)
-        self.encode5 = double_conv(512, 1024)
+        self.encode1 = self._double_conv(num_channels, 64)
+        self.encode2 = self._double_conv(64, 128)
+        self.encode3 = self._double_conv(128, 256)
+        self.encode4 = self._double_conv(256, 512)
+        self.encode5 = self._double_conv(512, 1024)
 
         self.upconv4 = nn.ConvTranspose2d(1024, 512, kernel_size=2, stride=2)
         self.upconv3 = nn.ConvTranspose2d(512, 256, kernel_size=2, stride=2)
         self.upconv2 = nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2)
         self.upconv1 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
 
-        self.decode4 = double_conv(1024, 512)
-        self.decode3 = double_conv(512, 256)
-        self.decode2 = double_conv(256, 128)
-        self.decode1 = double_conv(128, 64)
+        self.decode4 = self._double_conv(1024, 512)
+        self.decode3 = self._double_conv(512, 256)
+        self.decode2 = self._double_conv(256, 128)
+        self.decode1 = self._double_conv(128, 64)
 
         self.classifier = nn.Conv2d(64, num_classes, kernel_size=1)
+
+    def _double_conv(self, in_channels, out_channels, batch_normalization=False):
+        if batch_normalization:
+            return nn.Sequential(
+                nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
+                nn.BatchNorm2d(out_channels),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
+                nn.BatchNorm2d(out_channels),
+                nn.ReLU(inplace=True)
+            )
+        else:
+            return nn.Sequential(
+                nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
+                nn.ReLU(inplace=True)
+            )
 
     def forward(self, x):
         # Encoder
@@ -77,7 +76,7 @@ if __name__ == '__main__':
     torchsummary.torchsummary.summary(model, (3, 256, 512))
 
     input_image = torch.rand(1, 3, 256, 512).to(device)
-    out = model(input_image)
+    model(input_image)
 
     writer = torch.utils.tensorboard.SummaryWriter('../runs')
     writer.add_graph(model, input_image)
