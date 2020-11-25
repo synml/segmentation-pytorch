@@ -74,18 +74,19 @@ class ResidualBlock(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(ResidualBlock, self).__init__()
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False)
-        self.relu = nn.ReLU(inplace=True)
+        self.relu1 = nn.ReLU(inplace=True)
         self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False)
+        self.relu2 = nn.ReLU(inplace=True)
 
     def forward(self, x):
         identity = x
 
         out = self.conv1(x)
-        out = self.relu(out)
+        out = self.relu1(out)
         out = self.conv2(out)
 
         out += identity
-        out = self.relu(out)
+        out = self.relu2(out)
 
         return out
 
@@ -93,20 +94,22 @@ class ResidualBlock(nn.Module):
 class ResidualBlockDown(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(ResidualBlockDown, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=2, padding=1, bias=False)
-        self.relu = nn.ReLU(inplace=True)
-        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False)
         self.downsample = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=2, padding=1, bias=False)
+
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=2, padding=1, bias=False)
+        self.relu1 = nn.ReLU(inplace=True)
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False)
+        self.relu2 = nn.ReLU(inplace=True)
 
     def forward(self, x):
         identity = self.downsample(x)
 
         out = self.conv1(x)
-        out = self.relu(out)
+        out = self.relu1(out)
         out = self.conv2(out)
 
         out += identity
-        out = self.relu(out)
+        out = self.relu2(out)
 
         return out
 
@@ -121,8 +124,6 @@ class Proposed(nn.Module):
         self.encode4 = self._make_layer(256, 512, 6)
         self.encode5 = self._make_layer(512, 1024, 3)
         self.aspp = ASPP(1024, 512)
-
-        self.upsample = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=False)
 
         self.decode4 = self._double_conv(1024, 512)
         self.decode3 = self._double_conv(768, 256)
@@ -166,10 +167,18 @@ class Proposed(nn.Module):
         encode_end = self.aspp(self.encode5(encode4))
 
         # Decoder
-        out = self.decode4(torch.cat([self.upsample(encode_end), encode4], dim=1))
-        out = self.decode3(torch.cat([self.upsample(out), encode3], dim=1))
-        out = self.decode2(torch.cat([self.upsample(out), encode2], dim=1))
-        out = self.decode1(torch.cat([self.upsample(out), encode1], dim=1))
+        out = self.decode4(
+            torch.cat([F.upsample(encode_end, scale_factor=2, mode='bilinear', align_corners=False), encode4], dim=1)
+        )
+        out = self.decode3(
+            torch.cat([F.upsample(out, scale_factor=2, mode='bilinear', align_corners=False), encode3], dim=1)
+        )
+        out = self.decode2(
+            torch.cat([F.upsample(out, scale_factor=2, mode='bilinear', align_corners=False), encode2], dim=1)
+        )
+        out = self.decode1(
+            torch.cat([F.upsample(out, scale_factor=2, mode='bilinear', align_corners=False), encode1], dim=1)
+        )
 
         # Classifier
         out = self.classifier(out)
