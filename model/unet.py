@@ -57,14 +57,14 @@ class UNet(nn.Module):
         encode_end = self.encode5(F.max_pool2d(encode4, 2))
 
         # Decoder
-        x = self.decode4(torch.cat([self.upconv4(encode_end), encode4], dim=1))
-        x = self.decode3(torch.cat([self.upconv3(x), encode3], dim=1))
-        x = self.decode2(torch.cat([self.upconv2(x), encode2], dim=1))
-        x = self.decode1(torch.cat([self.upconv1(x), encode1], dim=1))
+        out = self.decode4(torch.cat([self.upconv4(encode_end), encode4], dim=1))
+        out = self.decode3(torch.cat([self.upconv3(out), encode3], dim=1))
+        out = self.decode2(torch.cat([self.upconv2(out), encode2], dim=1))
+        out = self.decode1(torch.cat([self.upconv1(out), encode1], dim=1))
 
         # Classifier
-        x = self.classifier(x)
-        return x
+        out = self.classifier(out)
+        return out
 
 
 if __name__ == '__main__':
