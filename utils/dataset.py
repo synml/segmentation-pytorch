@@ -5,10 +5,10 @@ from PIL import Image
 import torchvision
 import torchvision.transforms.functional
 
-class_names = ['flat', 'construction', 'object', 'nature', 'sky', 'human', 'vehicle']
-
 
 class Cityscapes(torchvision.datasets.Cityscapes):
+    class_names = ['flat', 'construction', 'object', 'nature', 'sky', 'human', 'vehicle']
+
     def __init__(self,
                  root: str,
                  split: str = "train",

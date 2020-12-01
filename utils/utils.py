@@ -8,7 +8,7 @@ import torch.utils.data
 import torchvision
 import tqdm
 
-import utils.dataset
+import utils
 
 
 def make_plt_subplot(nrows: int, ncols: int, index: int, title: str, image):
