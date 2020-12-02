@@ -72,7 +72,7 @@ def init_dataset(config: dict):
         torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
     target_transform = torchvision.transforms.Compose([
-        torchvision.transforms.Resize(config['image_size']),
+        torchvision.transforms.Resize(config['image_size'], interpolation=0),
         torchvision.transforms.ToTensor(),
     ])
     trainset = utils.dataset.Cityscapes(root='../../data/cityscapes',
