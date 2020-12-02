@@ -94,7 +94,7 @@ class ResidualBlock(nn.Module):
 class ResidualBlockDown(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(ResidualBlockDown, self).__init__()
-        self.downsample = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=2, padding=1, bias=False)
+        self.downsample = nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=2, bias=False)
 
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=2, padding=1, bias=False)
         self.relu1 = nn.ReLU(inplace=True)
@@ -123,12 +123,16 @@ class Proposed(nn.Module):
         self.encode3 = self._make_layer(128, 256, 4)
         self.encode4 = self._make_layer(256, 512, 6)
         self.encode5 = self._make_layer(512, 1024, 3)
-        self.aspp = ASPP(1024, 512)
 
         self.decode4 = self._double_conv(1024, 512)
-        self.decode3 = self._double_conv(768, 256)
-        self.decode2 = self._double_conv(384, 128)
-        self.decode1 = self._double_conv(192, 64)
+        self.decode3 = self._double_conv(512, 256)
+        self.decode2 = self._double_conv(256, 128)
+        self.decode1 = self._double_conv(128, 64)
+
+        self.upconv4 = nn.ConvTranspose2d(1024, 512, kernel_size=2, stride=2)
+        self.upconv3 = nn.ConvTranspose2d(512, 256, kernel_size=2, stride=2)
+        self.upconv2 = nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2)
+        self.upconv1 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
 
         self.classifier = nn.Conv2d(64, num_classes, kernel_size=1)
 
@@ -164,21 +168,13 @@ class Proposed(nn.Module):
         encode2 = self.encode2(encode1)
         encode3 = self.encode3(encode2)
         encode4 = self.encode4(encode3)
-        encode_end = self.aspp(self.encode5(encode4))
+        encode_end = self.encode5(encode4)
 
         # Decoder
-        out = self.decode4(
-            torch.cat([F.interpolate(encode_end, scale_factor=2, mode='bilinear', align_corners=False), encode4], dim=1)
-        )
-        out = self.decode3(
-            torch.cat([F.interpolate(out, scale_factor=2, mode='bilinear', align_corners=False), encode3], dim=1)
-        )
-        out = self.decode2(
-            torch.cat([F.interpolate(out, scale_factor=2, mode='bilinear', align_corners=False), encode2], dim=1)
-        )
-        out = self.decode1(
-            torch.cat([F.interpolate(out, scale_factor=2, mode='bilinear', align_corners=False), encode1], dim=1)
-        )
+        out = self.decode4(torch.cat([self.upconv4(encode_end), encode4], dim=1))
+        out = self.decode3(torch.cat([self.upconv3(out), encode3], dim=1))
+        out = self.decode2(torch.cat([self.upconv2(out), encode2], dim=1))
+        out = self.decode1(torch.cat([self.upconv1(out), encode1], dim=1))
 
         # Classifier
         out = self.classifier(out)
