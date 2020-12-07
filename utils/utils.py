@@ -8,7 +8,7 @@ import torch.utils.data
 import torchvision
 import tqdm
 
-import utils
+import datasets
 
 
 def make_plt_subplot(nrows: int, ncols: int, index: int, title: str, image):
@@ -75,23 +75,23 @@ def init_dataset(config: dict):
         torchvision.transforms.Resize(config['image_size'], interpolation=0),
         torchvision.transforms.ToTensor(),
     ])
-    trainset = utils.dataset.Cityscapes(root='../../data/cityscapes',
-                                        split='train',
-                                        mode='fine',
-                                        target_type='semantic',
-                                        transform=transform,
-                                        target_transform=target_transform)
+    trainset = datasets.Cityscapes(root='../../data/cityscapes',
+                                   split='train',
+                                   mode='fine',
+                                   target_type='semantic',
+                                   transform=transform,
+                                   target_transform=target_transform)
     trainloader = torch.utils.data.DataLoader(trainset,
                                               batch_size=config['batch_size'],
                                               shuffle=True,
                                               num_workers=config['num_workers'],
                                               pin_memory=True)
-    testset = utils.dataset.Cityscapes(root='../../data/cityscapes',
-                                       split='val',
-                                       mode='fine',
-                                       target_type='semantic',
-                                       transform=transform,
-                                       target_transform=target_transform)
+    testset = datasets.Cityscapes(root='../../data/cityscapes',
+                                  split='val',
+                                  mode='fine',
+                                  target_type='semantic',
+                                  transform=transform,
+                                  target_transform=target_transform)
     testloader = torch.utils.data.DataLoader(testset,
                                              batch_size=config['batch_size'],
                                              shuffle=False,

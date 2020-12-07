@@ -153,7 +153,7 @@ if __name__ == '__main__':
 
         writer.writerow(['Class Number', 'Class Name', 'IoU'])
         for class_num, iou_value in enumerate(iou):
-            writer.writerow([class_num, utils.dataset.Cityscapes.class_names[class_num], iou_value])
+            writer.writerow([class_num, utils.datasets.Cityscapes.class_names[class_num], iou_value])
         writer.writerow(['mIoU', miou, ' '])
         writer.writerow(['Validation loss', val_loss, ' '])
         writer.writerow(['FPS', fps, ' '])
