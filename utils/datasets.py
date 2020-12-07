@@ -7,8 +7,6 @@ import torchvision.transforms.functional
 
 
 class Cityscapes(torchvision.datasets.Cityscapes):
-    class_names = ['flat', 'construction', 'object', 'nature', 'sky', 'human', 'vehicle']
-
     def __init__(self,
                  root: str,
                  split: str = "train",
