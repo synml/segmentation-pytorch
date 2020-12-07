@@ -91,43 +91,20 @@ class ResidualBlock(nn.Module):
         return out
 
 
-class ResidualBlockDown(nn.Module):
-    def __init__(self, in_channels, out_channels):
-        super(ResidualBlockDown, self).__init__()
-        self.downsample = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=2, padding=1, bias=False)
-
-        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=2, padding=1, bias=False)
-        self.relu1 = nn.ReLU(inplace=True)
-        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False)
-        self.relu2 = nn.ReLU(inplace=True)
-
-    def forward(self, x):
-        identity = self.downsample(x)
-
-        out = self.conv1(x)
-        out = self.relu1(out)
-        out = self.conv2(out)
-
-        out += identity
-        out = self.relu2(out)
-
-        return out
-
-
 class Proposed(nn.Module):
     def __init__(self, num_channels, num_classes):
         super(Proposed, self).__init__()
 
-        self.encode1 = self._double_conv(num_channels, 64)
-        self.encode2 = self._make_layer(64, 128, 3)
-        self.encode3 = self._make_layer(128, 256, 4)
-        self.encode4 = self._make_layer(256, 512, 6)
-        self.encode5 = self._make_layer(512, 1024, 3)
+        self.encode1 = self.double_conv(num_channels, 64)
+        self.encode2 = self.make_layer(64, 128, 2)
+        self.encode3 = self.make_layer(128, 256, 3)
+        self.encode4 = self.make_layer(256, 512, 5)
+        self.encode5 = self.make_layer(512, 1024, 2)
 
-        self.decode4 = self._double_conv(1024, 512)
-        self.decode3 = self._double_conv(512, 256)
-        self.decode2 = self._double_conv(256, 128)
-        self.decode1 = self._double_conv(128, 64)
+        self.decode4 = self.double_conv(1024, 512)
+        self.decode3 = self.double_conv(512, 256)
+        self.decode2 = self.double_conv(256, 128)
+        self.decode1 = self.double_conv(128, 64)
 
         self.upconv4 = nn.ConvTranspose2d(1024, 512, kernel_size=2, stride=2)
         self.upconv3 = nn.ConvTranspose2d(512, 256, kernel_size=2, stride=2)
@@ -136,28 +113,18 @@ class Proposed(nn.Module):
 
         self.classifier = nn.Conv2d(64, num_classes, kernel_size=1)
 
-    def _double_conv(self, in_channels, out_channels, batch_normalization=False):
-        if batch_normalization:
-            return nn.Sequential(
-                nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
-                nn.BatchNorm2d(out_channels),
-                nn.ReLU(inplace=True),
-                nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
-                nn.BatchNorm2d(out_channels),
-                nn.ReLU(inplace=True)
-            )
-        else:
-            return nn.Sequential(
-                nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
-                nn.ReLU(inplace=True),
-                nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
-                nn.ReLU(inplace=True)
-            )
+    def double_conv(self, in_channels, out_channels):
+        return nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(inplace=True)
+        )
 
-    def _make_layer(self, in_channels, out_channels, num_blocks):
-        layers = [ResidualBlockDown(in_channels, out_channels)]
+    def make_layer(self, in_channels, out_channels, num_blocks):
+        layers = [nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1)]
 
-        for _ in range(1, num_blocks):
+        for _ in range(num_blocks):
             layers.append(ResidualBlock(out_channels, out_channels))
 
         return nn.Sequential(*layers)
@@ -165,10 +132,10 @@ class Proposed(nn.Module):
     def forward(self, x):
         # Encoder
         encode1 = self.encode1(x)
-        encode2 = self.encode2(encode1)
-        encode3 = self.encode3(encode2)
-        encode4 = self.encode4(encode3)
-        encode_end = self.encode5(encode4)
+        encode2 = self.encode2(F.max_pool2d(encode1, 2))
+        encode3 = self.encode3(F.max_pool2d(encode2, 2))
+        encode4 = self.encode4(F.max_pool2d(encode3, 2))
+        encode_end = self.encode5(F.max_pool2d(encode4, 2))
 
         # Decoder
         out = self.decode4(torch.cat([self.upconv4(encode_end), encode4], dim=1))
