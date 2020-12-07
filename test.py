@@ -37,6 +37,7 @@ def calc_iou(gt_batch: torch.Tensor, pred_batch: torch.Tensor, num_classes: int,
 
         # 혼동 행렬 생성
         confusion_matrix = np.bincount(category, minlength=num_classes ** 2).reshape((num_classes, num_classes))
+        confusion_matrix = confusion_matrix[:-1, :-1]
 
         # 각 이미지의 IoU를 계산 (intersection / union = TP / (TP + FP + FN))
         for i in range(num_classes):
@@ -99,7 +100,6 @@ def evaluate(model, testloader, device, num_classes: int):
 
     # 데이터셋 전체의 IoU를 계산 (백분율 단위)
     iou = iou / len(testloader.dataset) * 100
-    iou = iou[:-1]
 
     # mIoU를 계산 (백분율 단위)
     miou = np.mean(iou)
