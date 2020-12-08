@@ -65,7 +65,7 @@ def load_config(ini_file: str):
 
 
 # 데이터셋 설정
-def init_dataset(config: dict):
+def init_cityscapes_dataset(config: dict):
     transform = torchvision.transforms.Compose([
         torchvision.transforms.Resize(config['image_size']),
         torchvision.transforms.ToTensor(),
