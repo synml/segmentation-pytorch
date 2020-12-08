@@ -102,7 +102,7 @@ class VOCSegmentation(torchvision.datasets.VOCSegmentation):
             target_transform: Optional[Callable] = None,
             transforms: Optional[Callable] = None,
     ):
-        super(VOCSegmentation, self).__init__(root, year, image_set, download, transforms, transform, target_transform)
+        super(VOCSegmentation, self).__init__(root, year, image_set, download, transform, target_transform, transforms)
 
     def __getitem__(self, index: int) -> Tuple[Any, Any]:
         """
