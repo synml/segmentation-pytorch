@@ -127,7 +127,7 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # 데이터셋 설정
-    _, _, testset, testloader = utils.utils.init_cityscapes_dataset(config)
+    _, _, testset, testloader = utils.utils.init_voc_dataset(config)
 
     # 모델 설정
     if section == 'unet':

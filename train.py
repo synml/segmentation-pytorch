@@ -19,15 +19,13 @@ print('{}를 불러왔습니다.'.format(ini_file.split('/')[-1]))
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # 데이터셋 설정
-trainset, trainloader, testset, testloader = utils.utils.init_cityscapes_dataset(config)
+trainset, trainloader, testset, testloader = utils.utils.init_voc_dataset(config)
 
 # 모델 설정
 if section == 'unet':
     model = model.unet.UNet(3, config['num_classes']).to(device)
-    model.apply(utils.utils.init_weights)
 elif section == 'proposed':
     model = model.proposed.Proposed(3, config['num_classes']).to(device)
-    model.apply(utils.utils.init_weights_proposed)
 
 # Loss Function, Optimizer 설정
 criterion = nn.CrossEntropyLoss()

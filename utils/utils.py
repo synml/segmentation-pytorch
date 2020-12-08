@@ -3,7 +3,6 @@ import os
 
 import matplotlib.pyplot as plt
 import torch
-import torch.nn as nn
 import torch.utils.data
 import torchvision
 import tqdm
@@ -26,24 +25,6 @@ def load_config(ini_file: str):
         'pretrained_weights': parser[section]['pretrained_weights'],
     }
     return config, section
-
-
-# 가중치 초기화
-def init_weights(m):
-    if type(m) == nn.Conv2d:
-        nn.init.kaiming_uniform_(m.weight, nonlinearity='relu')
-        nn.init.normal_(m.bias)
-    elif type(m) == nn.BatchNorm2d:
-        nn.init.ones_(m.weight)
-        nn.init.zeros_(m.bias)
-
-
-# 가중치 초기화 (제안하는 방법)
-def init_weights_proposed(m):
-    if type(m) == nn.Conv2d:
-        nn.init.kaiming_uniform_(m.weight, nonlinearity='relu')
-    elif type(m) == nn.BatchNorm2d:
-        nn.init.zeros_(m.weight)
 
 
 # Cityscapes 데이터셋 설정
