@@ -4,8 +4,6 @@ import torch.nn.functional as F
 import torch.utils.tensorboard
 import torchsummary
 
-import utils.utils
-
 
 # ASPP(Atrous Spatial Pyramid Pooling) Module
 class ASPP(nn.Module):
@@ -73,9 +71,9 @@ class ASPP(nn.Module):
 class ResidualBlock(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(ResidualBlock, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False)
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1)
         self.relu1 = nn.ReLU(inplace=True)
-        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False)
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1)
         self.relu2 = nn.ReLU(inplace=True)
 
     def forward(self, x):
@@ -96,10 +94,10 @@ class Proposed(nn.Module):
         super(Proposed, self).__init__()
 
         self.encode1 = self.double_conv(num_channels, 64)
-        self.encode2 = self.make_layer(64, 128, 2)
-        self.encode3 = self.make_layer(128, 256, 3)
-        self.encode4 = self.make_layer(256, 512, 5)
-        self.encode5 = self.make_layer(512, 1024, 2)
+        self.encode2 = self.make_layer(64, 128, 3)
+        self.encode3 = self.make_layer(128, 256, 4)
+        self.encode4 = self.make_layer(256, 512, 6)
+        self.encode5 = self.make_layer(512, 1024, 3)
 
         self.decode4 = self.double_conv(1024, 512)
         self.decode3 = self.double_conv(512, 256)

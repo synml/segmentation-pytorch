@@ -4,8 +4,6 @@ import torch.nn.functional as F
 import torch.utils.tensorboard
 import torchsummary
 
-import utils.utils
-
 
 class UNet(nn.Module):
     def __init__(self, num_channels, num_classes):
