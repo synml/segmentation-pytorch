@@ -11,22 +11,21 @@ import tqdm
 import utils.datasets
 
 
-def make_plt_subplot(nrows: int, ncols: int, index: int, title: str, image):
-    plt.subplot(nrows, ncols, index)
-    plt.title(title)
-    plt.imshow(image)
-    plt.xticks([])
-    plt.yticks([])
-
-
-# 데이터셋 불러오는 코드 검증
-def show_dataset(images: torch.Tensor, masks: torch.Tensor):
-    to_pil_image = torchvision.transforms.ToPILImage()
-
-    for i in range(images.shape[0]):
-        make_plt_subplot(1, 2, 1, 'Input image', to_pil_image(images[i].squeeze().cpu()))
-        make_plt_subplot(1, 2, 2, 'Groundtruth', to_pil_image(masks[i].squeeze().cpu()))
-        plt.show()
+# 설정 불러오기
+def load_config(ini_file: str):
+    section = ini_file.replace('\\', '/').split('/')[-1].split('.')[0]
+    parser = configparser.ConfigParser()
+    parser.read(ini_file, encoding='utf-8')
+    config = {
+        'batch_size': parser.getint(section, 'batch_size'),
+        'epoch': parser.getint(section, 'epoch'),
+        'image_size': parser.getint(section, 'image_size'),
+        'lr': parser.getfloat(section, 'lr'),
+        'num_classes': parser.getint(section, 'num_classes'),
+        'num_workers': parser.getint(section, 'num_workers'),
+        'pretrained_weights': parser[section]['pretrained_weights'],
+    }
+    return config, section
 
 
 # 가중치 초기화
@@ -45,23 +44,6 @@ def init_weights_proposed(m):
         nn.init.kaiming_uniform_(m.weight, nonlinearity='relu')
     elif type(m) == nn.BatchNorm2d:
         nn.init.zeros_(m.weight)
-
-
-# 설정 불러오기
-def load_config(ini_file: str):
-    section = ini_file.replace('\\', '/').split('/')[-1].split('.')[0]
-    parser = configparser.ConfigParser()
-    parser.read(ini_file, encoding='utf-8')
-    config = {
-        'batch_size': parser.getint(section, 'batch_size'),
-        'epoch': parser.getint(section, 'epoch'),
-        'image_size': parser.getint(section, 'image_size'),
-        'lr': parser.getfloat(section, 'lr'),
-        'num_classes': parser.getint(section, 'num_classes'),
-        'num_workers': parser.getint(section, 'num_workers'),
-        'pretrained_weights': parser[section]['pretrained_weights'],
-    }
-    return config, section
 
 
 # Cityscapes 데이터셋 설정
@@ -149,3 +131,21 @@ def save_groundtruth(testset):
     os.makedirs(result_dir, exist_ok=True)
     for i, (_, mask) in enumerate(tqdm.tqdm(testloader, desc='GroundTruth')):
         plt.imsave(os.path.join(result_dir, image_names[i]), mask.squeeze())
+
+
+def make_plt_subplot(nrows: int, ncols: int, index: int, title: str, image):
+    plt.subplot(nrows, ncols, index)
+    plt.title(title)
+    plt.imshow(image)
+    plt.xticks([])
+    plt.yticks([])
+
+
+# 데이터셋 불러오는 코드 검증
+def show_dataset(images: torch.Tensor, masks: torch.Tensor):
+    to_pil_image = torchvision.transforms.ToPILImage()
+
+    for i in range(images.shape[0]):
+        make_plt_subplot(1, 2, 1, 'Input image', to_pil_image(images[i].squeeze().cpu()))
+        make_plt_subplot(1, 2, 2, 'Groundtruth', to_pil_image(masks[i].squeeze().cpu()))
+        plt.show()
