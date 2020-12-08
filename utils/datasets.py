@@ -1,7 +1,8 @@
+from collections import namedtuple
 import random
 from typing import Any, Callable, List, Optional, Union, Tuple
-from PIL import Image
 
+from PIL import Image
 import torchvision
 import torchvision.transforms.functional
 
@@ -63,3 +64,63 @@ class Cityscapes(torchvision.datasets.Cityscapes):
             return '{}_color.png'.format(mode)
         else:
             return '{}_polygons.json'.format(mode)
+
+
+class VOCSegmentation(torchvision.datasets.VOCSegmentation):
+    VOCClasses = namedtuple('VOCClasses', ['name', 'classId', 'color'])
+    classes = [
+        VOCClasses('__background__', 0, (0, 0, 0)),
+        VOCClasses('aeroplane', 1, (128, 0, 0)),
+        VOCClasses('bicycle', 2, (0, 128, 0)),
+        VOCClasses('bird', 3, (128, 128, 0)),
+        VOCClasses('boat', 4, (0, 0, 128)),
+        VOCClasses('bottle', 5, (128, 0, 128)),
+        VOCClasses('bus', 6, (0, 128, 128)),
+        VOCClasses('car', 7, (128, 128, 128)),
+        VOCClasses('cat', 8, (64, 0, 0)),
+        VOCClasses('chair', 9, (192, 0, 0)),
+        VOCClasses('cow', 10, (64, 128, 0)),
+        VOCClasses('diningtable', 11, (192, 128, 0)),
+        VOCClasses('dog', 12, (64, 0, 128)),
+        VOCClasses('horse', 13, (192, 0, 128)),
+        VOCClasses('motorbike', 14, (64, 128, 128)),
+        VOCClasses('person', 15, (192, 128, 128)),
+        VOCClasses('pottedplant', 16, (0, 64, 0)),
+        VOCClasses('sheep', 17, (128, 64, 0)),
+        VOCClasses('sofa', 18, (0, 192, 0)),
+        VOCClasses('train', 19, (128, 192, 0)),
+        VOCClasses('tvmonitor', 20, (0, 64, 128)),
+    ]
+
+    def __init__(
+            self,
+            root: str,
+            year: str = "2012",
+            image_set: str = "train",
+            download: bool = False,
+            transform: Optional[Callable] = None,
+            target_transform: Optional[Callable] = None,
+            transforms: Optional[Callable] = None,
+    ):
+        super(VOCSegmentation, self).__init__(root, year, image_set, download, transforms, transform, target_transform)
+
+    def __getitem__(self, index: int) -> Tuple[Any, Any]:
+        """
+        Args:
+            index (int): Index
+
+        Returns:
+            tuple: (image, target) where target is the image segmentation.
+        """
+        img = Image.open(self.images[index]).convert('RGB')
+        target = Image.open(self.masks[index])
+
+        if self.transforms is not None:
+            img, target = self.transforms(img, target)
+
+        # Random horizontal flip
+        if self.image_set == 'trainval' and random.random() > 0.5:
+            img = torchvision.transforms.functional.hflip(img)
+            target = torchvision.transforms.functional.hflip(target)
+
+        return img, target
