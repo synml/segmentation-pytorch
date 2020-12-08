@@ -1,5 +1,6 @@
 import configparser
 import os
+import platform
 
 import matplotlib.pyplot as plt
 import torch
@@ -24,6 +25,11 @@ def load_config(ini_file: str):
         'num_workers': parser.getint(section, 'num_workers'),
         'pretrained_weights': parser[section]['pretrained_weights'],
     }
+
+    # 윈도우는 멀티스레딩 적용 안함
+    if platform.system() == 'Windows':
+        config['num_workers'] = 0
+
     return config, section
 
 
@@ -67,12 +73,12 @@ def init_cityscapes_dataset(config: dict):
 # VOC 데이터셋 설정
 def init_voc_dataset(config: dict):
     transform = torchvision.transforms.Compose([
-        torchvision.transforms.Resize(config['image_size']),
+        torchvision.transforms.Resize((config['image_size'], config['image_size'])),
         torchvision.transforms.ToTensor(),
-        torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        #torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
     target_transform = torchvision.transforms.Compose([
-        torchvision.transforms.Resize(config['image_size'], interpolation=0),
+        torchvision.transforms.Resize((config['image_size'], config['image_size']), interpolation=0),
         torchvision.transforms.ToTensor(),
     ])
     trainset = utils.datasets.VOCSegmentation(root='../../data/voc',

@@ -10,6 +10,7 @@ import model.proposed
 import utils.utils
 import test
 
+
 # 설정 불러오기
 ini_file = 'model/unet.ini'
 config, section = utils.utils.load_config(ini_file)
