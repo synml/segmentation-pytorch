@@ -49,7 +49,7 @@ def init_weights_proposed(m):
 
 # 설정 불러오기
 def load_config(ini_file: str):
-    section = ini_file.split('/')[-1].split('.')[0]
+    section = ini_file.replace('\\', '/').split('/')[-1].split('.')[0]
     parser = configparser.ConfigParser()
     parser.read(ini_file, encoding='utf-8')
     config = {
@@ -64,7 +64,7 @@ def load_config(ini_file: str):
     return config, section
 
 
-# 데이터셋 설정
+# Cityscapes 데이터셋 설정
 def init_cityscapes_dataset(config: dict):
     transform = torchvision.transforms.Compose([
         torchvision.transforms.Resize(config['image_size']),
@@ -76,22 +76,22 @@ def init_cityscapes_dataset(config: dict):
         torchvision.transforms.ToTensor(),
     ])
     trainset = utils.datasets.Cityscapes(root='../../data/cityscapes',
-                                   split='train',
-                                   mode='fine',
-                                   target_type='semantic',
-                                   transform=transform,
-                                   target_transform=target_transform)
+                                         split='train',
+                                         mode='fine',
+                                         target_type='semantic',
+                                         transform=transform,
+                                         target_transform=target_transform)
     trainloader = torch.utils.data.DataLoader(trainset,
                                               batch_size=config['batch_size'],
                                               shuffle=True,
                                               num_workers=config['num_workers'],
                                               pin_memory=True)
     testset = utils.datasets.Cityscapes(root='../../data/cityscapes',
-                                  split='val',
-                                  mode='fine',
-                                  target_type='semantic',
-                                  transform=transform,
-                                  target_transform=target_transform)
+                                        split='val',
+                                        mode='fine',
+                                        target_type='semantic',
+                                        transform=transform,
+                                        target_transform=target_transform)
     testloader = torch.utils.data.DataLoader(testset,
                                              batch_size=config['batch_size'],
                                              shuffle=False,
@@ -101,6 +101,42 @@ def init_cityscapes_dataset(config: dict):
     return trainset, trainloader, testset, testloader
 
 
+# VOC 데이터셋 설정
+def init_voc_dataset(config: dict):
+    transform = torchvision.transforms.Compose([
+        torchvision.transforms.Resize(config['image_size']),
+        torchvision.transforms.ToTensor(),
+        torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ])
+    target_transform = torchvision.transforms.Compose([
+        torchvision.transforms.Resize(config['image_size'], interpolation=0),
+        torchvision.transforms.ToTensor(),
+    ])
+    trainset = utils.datasets.VOCSegmentation(root='../../data/voc',
+                                              year='2012',
+                                              image_set='trainval',
+                                              transform=transform,
+                                              target_transform=target_transform)
+    trainloader = torch.utils.data.DataLoader(trainset,
+                                              batch_size=config['batch_size'],
+                                              shuffle=True,
+                                              num_workers=config['num_workers'],
+                                              pin_memory=True)
+    testset = utils.datasets.VOCSegmentation(root='../../data/voc',
+                                             year='2007',
+                                             image_set='test',
+                                             transform=transform,
+                                             target_transform=target_transform)
+    testloader = torch.utils.data.DataLoader(testset,
+                                             batch_size=config['batch_size'],
+                                             shuffle=False,
+                                             num_workers=config['num_workers'],
+                                             pin_memory=True)
+
+    return trainset, trainloader, testset, testloader
+
+
+# GroundTruth 저장
 def save_groundtruth(testset):
     testloader = torch.utils.data.DataLoader(testset)
 
