@@ -19,7 +19,7 @@ print('{}를 불러왔습니다.'.format(ini_file.split('/')[-1]))
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # 데이터셋 설정
-_, _, testset, testloader = utils.utils.init_voc_dataset(config)
+_, _, testset, testloader = utils.utils.init_cityscapes_dataset(config)
 
 # 모델 설정
 if section == 'unet':
