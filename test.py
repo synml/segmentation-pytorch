@@ -20,7 +20,7 @@ def calc_iou(gt_batch: torch.Tensor, pred_batch: torch.Tensor, num_classes: int,
     assert reduction == 'mean' or reduction == 'sum'
 
     # 1batch의 이미지에 대한 iou를 합하여 저장
-    iou = np.zeros(num_classes - 1)
+    iou = np.zeros(num_classes)
 
     # 1batch에 포함된 각 이미지의 iou를 계산
     for idx in range(gt_batch.shape[0]):
@@ -37,15 +37,14 @@ def calc_iou(gt_batch: torch.Tensor, pred_batch: torch.Tensor, num_classes: int,
 
         # 혼동 행렬 생성
         confusion_matrix = np.bincount(category, minlength=num_classes ** 2).reshape((num_classes, num_classes))
-        confusion_matrix = confusion_matrix[:-1, :-1]
 
         # 각 이미지의 IoU를 계산 (intersection / union = TP / (TP + FP + FN))
-        for i in range(num_classes - 1):
+        for i in range(1, num_classes):
             intersection = 0
             union = 0
 
             # intersection과 union을 계산
-            for k in range(num_classes - 1):
+            for k in range(1, num_classes):
                 union += confusion_matrix[i][k]  # 횡으로 덧셈
                 # 같은 원소를 가리킬 때, intersection을 구함
                 if i == k:
@@ -68,7 +67,7 @@ def evaluate(model, testloader, device, num_classes: int):
     model.eval()
 
     # Evaluate
-    iou = np.zeros(num_classes - 1)
+    iou = np.zeros(num_classes)
     total_loss = 0
     entire_time = 0
     for images, masks in tqdm.tqdm(testloader, desc='Eval', leave=False):
@@ -95,7 +94,7 @@ def evaluate(model, testloader, device, num_classes: int):
 
         # 각 batch의 IoU를 계산
         iou_batch = calc_iou(masks, masks_pred, num_classes, reduction='sum')
-        for i in range(num_classes - 1):
+        for i in range(1, num_classes):
             iou[i] += iou_batch[i]
 
     # 데이터셋 전체의 IoU를 계산 (백분율 단위)
