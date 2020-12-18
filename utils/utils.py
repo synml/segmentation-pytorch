@@ -120,16 +120,16 @@ def save_groundtruth(testset):
         plt.imsave(os.path.join(result_dir, image_names[i]), mask.squeeze())
 
 
-def make_plt_subplot(nrows: int, ncols: int, index: int, title: str, image):
-    plt.subplot(nrows, ncols, index)
-    plt.title(title)
-    plt.imshow(image)
-    plt.xticks([])
-    plt.yticks([])
-
-
 # 데이터셋 불러오는 코드 검증
 def show_dataset(images: torch.Tensor, masks: torch.Tensor):
+
+    def make_plt_subplot(nrows: int, ncols: int, index: int, title: str, image):
+        plt.subplot(nrows, ncols, index)
+        plt.title(title)
+        plt.imshow(image)
+        plt.xticks([])
+        plt.yticks([])
+
     to_pil_image = torchvision.transforms.ToPILImage()
 
     for i in range(images.shape[0]):
