@@ -3,6 +3,7 @@ import os
 import time
 
 import numpy as np
+from sklearn.metrics import confusion_matrix
 import torch.nn.functional as F
 import torch.utils.data
 import tqdm
@@ -11,6 +12,65 @@ import model.unet
 import model.proposed
 import utils.datasets
 import utils.utils
+
+
+class ComputeConfusionMatrix:
+    """
+    Attributes
+    ----------
+    labels : list[int]
+        List that contains int values that represent classes.
+    overall_confusion_matrix : sklean.confusion_matrix object
+        Container of the sum of all confusion matrices. Used to compute MIOU at the end.
+    ignore_label : int
+        A label representing parts that should be ignored during
+        computation of metrics
+    """
+
+    def __init__(self, labels: list, ignore_label: int):
+        self.labels = labels
+        self.ignore_label = ignore_label
+        self.overall_confusion_matrix = None
+
+    def update_matrix(self, groundtruth, prediction):
+        """Updates overall confusion matrix statistics.
+        If you are working with 2D data, just .flatten() it before running this
+        function.
+
+        Parameters
+        ----------
+        groundtruth : array, shape = [n_samples]
+            An array with groundtruth values
+        prediction : array, shape = [n_samples]
+            An array with predictions
+        """
+
+        # Mask-out value is ignored by default in the sklearn
+        # read sources to see how that was handled
+        # But sometimes all the elements in the groundtruth can
+        # be equal to ignore value which will cause the crush
+        # of scikit_learn.confusion_matrix(), this is why we check it here
+        if (groundtruth == self.ignore_label).all():
+            return
+
+        current_confusion_matrix = confusion_matrix(y_true=groundtruth,
+                                                    y_pred=prediction,
+                                                    labels=self.labels)
+
+        if self.overall_confusion_matrix is not None:
+            self.overall_confusion_matrix += current_confusion_matrix
+        else:
+            self.overall_confusion_matrix = current_confusion_matrix
+
+    def compute_current_mean_intersection_over_union(self):
+        intersection = np.diag(self.overall_confusion_matrix)
+        ground_truth_set = self.overall_confusion_matrix.sum(axis=1)
+        predicted_set = self.overall_confusion_matrix.sum(axis=0)
+        union = ground_truth_set + predicted_set - intersection
+
+        iou = intersection / union.astype(np.float32)
+        miou = np.mean(iou)
+        return miou
 
 
 # IoU (Intersection over Union)를 계산한다.
