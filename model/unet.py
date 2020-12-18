@@ -15,15 +15,17 @@ class UNet(nn.Module):
         self.encode4 = self.double_conv(256, 512)
         self.encode5 = self.double_conv(512, 1024)
 
-        self.decode4 = self.double_conv(1024, 512)
-        self.decode3 = self.double_conv(512, 256)
-        self.decode2 = self.double_conv(256, 128)
-        self.decode1 = self.double_conv(128, 64)
-
         self.upconv4 = nn.ConvTranspose2d(1024, 512, kernel_size=2, stride=2)
+        self.decode4 = self.double_conv(1024, 512)
+
         self.upconv3 = nn.ConvTranspose2d(512, 256, kernel_size=2, stride=2)
+        self.decode3 = self.double_conv(512, 256)
+
         self.upconv2 = nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2)
+        self.decode2 = self.double_conv(256, 128)
+
         self.upconv1 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
+        self.decode1 = self.double_conv(128, 64)
 
         self.classifier = nn.Conv2d(64, num_classes, kernel_size=1)
 
