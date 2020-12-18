@@ -13,7 +13,7 @@ class UNet(nn.Module):
         self.encode2 = self.double_conv(64, 128)
         self.encode3 = self.double_conv(128, 256)
         self.encode4 = self.double_conv(256, 512)
-        self.encode5 = self.double_conv(512, 1024)
+        self.encode_end = self.double_conv(512, 1024)
 
         self.upconv4 = nn.ConvTranspose2d(1024, 512, kernel_size=2, stride=2)
         self.decode4 = self.double_conv(1024, 512)
@@ -43,7 +43,7 @@ class UNet(nn.Module):
         encode2 = self.encode2(F.max_pool2d(encode1, 2))
         encode3 = self.encode3(F.max_pool2d(encode2, 2))
         encode4 = self.encode4(F.max_pool2d(encode3, 2))
-        encode_end = self.encode5(F.max_pool2d(encode4, 2))
+        encode_end = self.encode_end(F.max_pool2d(encode4, 2))
 
         # Decoder
         out = self.decode4(torch.cat([self.upconv4(encode_end), encode4], dim=1))
