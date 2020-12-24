@@ -1,6 +1,5 @@
 import configparser
 import os
-import platform
 
 import matplotlib.pyplot as plt
 import torch
