@@ -13,9 +13,9 @@ import utils.datasets
 
 # 설정 불러오기
 def load_config(ini_file: str):
-    section = ini_file.replace('\\', '/').split('/')[-1].split('.')[0]
     parser = configparser.ConfigParser()
     parser.read(ini_file, encoding='utf-8')
+    section = ini_file.replace('\\', '/').split('/')[-1].split('.')[0]
     config = {
         'batch_size': parser.getint(section, 'batch_size'),
         'epoch': parser.getint(section, 'epoch'),
@@ -25,11 +25,6 @@ def load_config(ini_file: str):
         'num_workers': parser.getint(section, 'num_workers'),
         'pretrained_weights': parser[section]['pretrained_weights'],
     }
-
-    # 윈도우는 멀티스레딩 적용 안함
-    if platform.system() == 'Windows':
-        config['num_workers'] = 0
-
     return config, section
 
 
