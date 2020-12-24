@@ -1,6 +1,7 @@
 import csv
 import os
 import time
+from typing import List
 
 import numpy as np
 from sklearn.metrics import confusion_matrix
@@ -15,21 +16,15 @@ import utils.utils
 
 
 class ComputeConfusionMatrix:
-    """
-    Attributes
-    ----------
-    labels : list[int]
-        List that contains int values that represent classes.
-    overall_confusion_matrix : sklean.confusion_matrix object
-        Container of the sum of all confusion matrices. Used to compute MIOU at the end.
-    ignore_label : int
-        A label representing parts that should be ignored during
-        computation of metrics
-    """
-
-    def __init__(self, labels: list, ignore_label: int):
+    def __init__(self, labels: List[int], ignore_label: int):
+        # List that contains int values that represent classes.
         self.labels = labels
+
+        # Container of the sum of all confusion matrices. Used to compute MIOU at the end.
         self.ignore_label = ignore_label
+
+        # sklean.confusion_matrix object
+        # A label representing parts that should be ignored during computation of metrics.
         self.overall_confusion_matrix = None
 
     def update_matrix(self, groundtruth, prediction):
@@ -62,7 +57,7 @@ class ComputeConfusionMatrix:
         else:
             self.overall_confusion_matrix = current_confusion_matrix
 
-    def compute_current_mean_intersection_over_union(self):
+    def compute_iou_miou(self):
         intersection = np.diag(self.overall_confusion_matrix)
         ground_truth_set = self.overall_confusion_matrix.sum(axis=1)
         predicted_set = self.overall_confusion_matrix.sum(axis=0)
@@ -70,7 +65,7 @@ class ComputeConfusionMatrix:
 
         iou = intersection / union.astype(np.float32)
         miou = np.mean(iou)
-        return miou
+        return iou, miou
 
 
 # IoU (Intersection over Union)를 계산한다.
