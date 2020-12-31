@@ -49,8 +49,8 @@ def evaluate(model, testloader, device, num_classes: int):
 
     # Evaluate
     metrics = EvaluationMetrics(list(range(num_classes)))
-    total_loss = 0
-    entire_time = 0
+    val_loss = 0
+    inference_time = 0
     for images, masks in tqdm.tqdm(testloader, desc='Eval', leave=False):
         # mask에 255를 곱하여 0~1 사이의 값을 0~255 값으로 변경 + 채널 차원 제거
         masks = torch.mul(masks, 255)
@@ -64,10 +64,10 @@ def evaluate(model, testloader, device, num_classes: int):
         with torch.no_grad():
             start_time = time.time()
             masks_pred = model(images)
-            entire_time += time.time() - start_time
+            inference_time += time.time() - start_time
 
         # validation loss를 모두 합침
-        total_loss += F.cross_entropy(masks_pred, masks, reduction='sum').item()
+        val_loss += F.cross_entropy(masks_pred, masks, reduction='sum').item()
 
         # Segmentation map 만들기
         masks_pred = F.log_softmax(masks_pred, dim=1)
@@ -80,14 +80,11 @@ def evaluate(model, testloader, device, num_classes: int):
     iou, miou = metrics.get_scores(ignore_first_label=True)
 
     # 평균 validation loss 계산
-    val_loss = total_loss / len(testloader.dataset)
+    val_loss /= len(testloader.dataset)
 
-    # 추론 시간과 fps를 계산
-    inference_time = entire_time / len(testloader.dataset)
+    # 추론 시간과 fps를 계산 (추론 시간: ms)
+    inference_time /= len(testloader.dataset)
     fps = 1 / inference_time
-
-    # 추론 시간을 miliseconds 단위로 설정
-    inference_time *= 1000
 
     return iou, miou, val_loss, fps
 
