@@ -4,7 +4,7 @@ import time
 from typing import List
 
 import numpy as np
-import sklearn
+import sklearn.metrics
 import torch.nn.functional as F
 import torch.utils.data
 import tqdm
@@ -15,10 +15,9 @@ import utils.datasets
 import utils.utils
 
 
-class ConfusionMatrix:
-    def __init__(self, labels: List[int], ignore_label: int):
+class EvaluationMetrics:
+    def __init__(self, labels: List[int]):
         self.labels = labels
-        self.ignore_label = ignore_label
         self.confusion_matrix = np.zeros((len(labels), len(labels)))
 
     def update_matrix(self, gt_batch: torch.Tensor, pred_batch: torch.Tensor):
@@ -27,72 +26,29 @@ class ConfusionMatrix:
         gt = torch.flatten(gt_batch, start_dim=1).cpu().numpy()
         pred = torch.flatten(pred_batch, start_dim=1).cpu().numpy()
 
-        # 각 배치당 처리
+        # 1 배치단위 처리
         for i in range(gt_batch.shape[0]):
             self.confusion_matrix += sklearn.metrics.confusion_matrix(gt[i], pred[i], labels=self.labels)
 
-    def get_scores(self):
-        iou = np.diag(self.confusion_matrix) / (
-                self.confusion_matrix.sum(axis=0) + self.confusion_matrix.sum(axis=1) - np.diag(self.confusion_matrix))
+    def get_scores(self, ignore_first_label=False, ignore_last_label=False):
+        if ignore_first_label:
+            self.confusion_matrix = self.confusion_matrix[1:, 1:]
+        if ignore_last_label:
+            last_label = self.confusion_matrix.shape[0] - 1
+            self.confusion_matrix = self.confusion_matrix[:last_label, :last_label]
+
+        iou = np.diag(self.confusion_matrix) / (self.confusion_matrix.sum(axis=0) +
+                                                self.confusion_matrix.sum(axis=1) -
+                                                np.diag(self.confusion_matrix)) * 100
         miou = np.mean(iou)
         return iou, miou
-
-
-# IoU (Intersection over Union)를 계산한다.
-# reduction='mean': IoU는 batch에 대한 산술평균 값
-# reduction='sum': IoU는 batch의 각 이미지에서 계산된 IoU 값의 합
-def calc_iou(gt_batch: torch.Tensor, pred_batch: torch.Tensor, num_classes: int, reduction='mean'):
-    assert reduction == 'mean' or reduction == 'sum'
-
-    # 1batch의 이미지에 대한 iou를 합하여 저장
-    iou = np.zeros(num_classes)
-
-    # 1batch에 포함된 각 이미지의 iou를 계산
-    for idx in range(gt_batch.shape[0]):
-        # 채널 차원 제거, ndarrary로 변환
-        gt = gt_batch[idx].squeeze().cpu().numpy()
-        pred = pred_batch[idx].squeeze().cpu().numpy()
-
-        # 2차원 행렬을 1차원 벡터로 변환
-        gt_count = gt.reshape(-1)
-        pred_count = pred.reshape(-1)
-
-        # 카테고리 행렬 생성
-        category = gt_count * num_classes + pred_count
-
-        # 혼동 행렬 생성
-        confusion_matrix = np.bincount(category, minlength=num_classes ** 2).reshape((num_classes, num_classes))
-
-        # 각 이미지의 IoU를 계산 (intersection / union = TP / (TP + FP + FN))
-        for i in range(1, num_classes):
-            intersection = 0
-            union = 0
-
-            # intersection과 union을 계산
-            for k in range(1, num_classes):
-                union += confusion_matrix[i][k]  # 횡으로 덧셈
-                # 같은 원소를 가리킬 때, intersection을 구함
-                if i == k:
-                    intersection = confusion_matrix[i][k]
-                    continue
-                union += confusion_matrix[k][i]  # 종으로 덧셈
-
-            # IoU = intersection / union (ZeroDivisionError 방지)
-            if union != 0:
-                iou[i] += intersection / union
-
-    # reduction이 mean이면 batch에 대한 산술평균을 수행
-    if reduction == 'mean':
-        return iou / gt_batch.shape[0]
-
-    return iou
 
 
 def evaluate(model, testloader, device, num_classes: int):
     model.eval()
 
     # Evaluate
-    iou = np.zeros(num_classes)
+    metrics = EvaluationMetrics(list(range(num_classes)))
     total_loss = 0
     entire_time = 0
     for images, masks in tqdm.tqdm(testloader, desc='Eval', leave=False):
@@ -105,31 +61,26 @@ def evaluate(model, testloader, device, num_classes: int):
         masks = masks.to(device, dtype=torch.long)
 
         # 예측
-        start_time = time.time()
         with torch.no_grad():
+            start_time = time.time()
             masks_pred = model(images)
-        entire_time += time.time() - start_time
+            entire_time += time.time() - start_time
 
         # validation loss를 모두 합침
-        total_loss += F.cross_entropy(masks_pred, masks).item()
+        total_loss += F.cross_entropy(masks_pred, masks, reduction='sum').item()
 
         # Segmentation map 만들기
         masks_pred = F.log_softmax(masks_pred, dim=1)
         masks_pred = torch.argmax(masks_pred, dim=1, keepdim=True)
 
-        # 각 batch의 IoU를 계산
-        iou_batch = calc_iou(masks, masks_pred, num_classes, reduction='sum')
-        for i in range(1, num_classes):
-            iou[i] += iou_batch[i]
+        # 혼동행렬 업데이트
+        metrics.update_matrix(masks, masks_pred)
 
-    # 데이터셋 전체의 IoU를 계산 (백분율 단위)
-    iou = iou / len(testloader.dataset) * 100
-
-    # mIoU를 계산 (백분율 단위)
-    miou = np.mean(iou)
+    # 평가 점수 가져오기
+    iou, miou = metrics.get_scores(ignore_first_label=True)
 
     # 평균 validation loss 계산
-    val_loss = total_loss / len(testloader)
+    val_loss = total_loss / len(testloader.dataset)
 
     # 추론 시간과 fps를 계산
     inference_time = entire_time / len(testloader.dataset)
@@ -138,7 +89,7 @@ def evaluate(model, testloader, device, num_classes: int):
     # 추론 시간을 miliseconds 단위로 설정
     inference_time *= 1000
 
-    return miou, iou, val_loss, fps
+    return iou, miou, val_loss, fps
 
 
 if __name__ == '__main__':
@@ -161,10 +112,10 @@ if __name__ == '__main__':
     model.load_state_dict(torch.load(config['pretrained_weights']))
 
     # 모델 평가
-    miou, iou, val_loss, fps = evaluate(model, testloader, device, config['num_classes'])
+    iou, miou, val_loss, fps = evaluate(model, testloader, device, config['num_classes'])
 
     # 평가 결과를 csv 파일로 저장
-    result_dir = 'csv'
+    result_dir = 'result'
     os.makedirs(result_dir, exist_ok=True)
     filename = '{}.csv'.format(model.__module__.split('.')[-1])
     with open(os.path.join(result_dir, filename), mode='w') as f:

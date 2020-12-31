@@ -1,8 +1,8 @@
 # Project ignores
 .idea/
 checkpoints/
-csv/
 demo/
+result/
 runs/
 weights/
 debug.py
