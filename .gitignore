@@ -5,6 +5,7 @@ csv/
 demo/
 runs/
 weights/
+debug.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
