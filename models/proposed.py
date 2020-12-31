@@ -154,15 +154,11 @@ class Proposed(nn.Module):
 
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-    model = Proposed(3, 20).to(device)
+    model = Proposed(3, 8).to(device)
     model.eval()
 
     torchsummary.torchsummary.summary(model, (3, 256, 512))
 
-    input_image = torch.rand(1, 3, 256, 512).to(device)
-    model(input_image)
-
     writer = torch.utils.tensorboard.SummaryWriter('../runs')
-    writer.add_graph(model, input_image)
+    writer.add_graph(model, torch.rand(1, 3, 256, 512).to(device))
     writer.close()
