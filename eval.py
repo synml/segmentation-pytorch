@@ -119,7 +119,7 @@ if __name__ == '__main__':
         writer = csv.writer(f, delimiter=',', lineterminator='\n')
 
         writer.writerow(['Class Number', 'Class Name', 'IoU'])
-        for class_num, iou_value in enumerate(iou):
+        for class_num, iou_value in enumerate(iou, start=1):
             writer.writerow([class_num, utils.datasets.Cityscapes.class_names_short[class_num], iou_value])
         writer.writerow(['mIoU', miou, ' '])
         writer.writerow(['Validation loss', val_loss, ' '])
