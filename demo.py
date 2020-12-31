@@ -16,13 +16,11 @@ if __name__ == '__main__':
     config, section = utils.utils.load_config(ini_file)
     print('{}를 불러왔습니다.'.format(ini_file.split('/')[-1]))
 
-    # 장치 설정
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-    # 데이터셋 설정
+    # 1. Dataset
     _, _, testset, testloader = utils.utils.init_cityscapes_dataset(config)
 
-    # 모델 설정
+    # 2. Model
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     if section == 'unet':
         model = model.unet.UNet(3, config['num_classes']).to(device)
     elif section == 'proposed':
