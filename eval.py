@@ -44,7 +44,7 @@ class EvaluationMetrics:
         return iou, miou
 
 
-def evaluate(model, testloader, device, num_classes: int):
+def evaluate(model, testloader, num_classes: int, device):
     model.eval()
 
     # Evaluate
@@ -57,8 +57,7 @@ def evaluate(model, testloader, device, num_classes: int):
         masks = torch.squeeze(masks, dim=1)
 
         # 이미지와 정답 정보를 GPU로 복사
-        images = images.to(device)
-        masks = masks.to(device, dtype=torch.long)
+        images, masks = images.to(device), masks.to(device, dtype=torch.long)
 
         # 예측
         with torch.no_grad():
@@ -95,13 +94,11 @@ if __name__ == '__main__':
     config, section = utils.utils.load_config(ini_file)
     print('{}를 불러왔습니다.'.format(ini_file.split('/')[-1]))
 
-    # 장치 설정
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-    # 데이터셋 설정
+    # 1. Dataset
     _, _, testset, testloader = utils.utils.init_cityscapes_dataset(config)
 
-    # 모델 설정
+    # 2. Model
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     if section == 'unet':
         model = model.unet.UNet(3, config['num_classes']).to(device)
     elif section == 'proposed':
@@ -109,13 +106,11 @@ if __name__ == '__main__':
     model.load_state_dict(torch.load(config['pretrained_weights']))
 
     # 모델 평가
-    val_loss, iou, miou, fps = evaluate(model, testloader, device, config['num_classes'])
+    val_loss, iou, miou, fps = evaluate(model, testloader, config['num_classes'], device)
 
     # 평가 결과를 csv 파일로 저장
-    result_dir = 'result'
-    os.makedirs(result_dir, exist_ok=True)
-    filename = '{}.csv'.format(model.__module__.split('.')[-1])
-    with open(os.path.join(result_dir, filename), mode='w') as f:
+    os.makedirs('result', exist_ok=True)
+    with open(os.path.join('result', '{}.csv'.format(model.__module__.split('.')[-1])), mode='w') as f:
         writer = csv.writer(f, delimiter=',', lineterminator='\n')
 
         writer.writerow(['Class Number', 'Class Name', 'IoU'])

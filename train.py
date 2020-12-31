@@ -64,7 +64,7 @@ if __name__ == '__main__':
             writer.add_scalar('Train Loss', loss.item(), len(trainloader) * epoch + batch_idx)
 
         # 모델을 평가
-        val_loss, _, miou, _ = eval.evaluate(model, testloader, device, config['num_classes'])
+        val_loss, _, miou, _ = eval.evaluate(model, testloader, config['num_classes'], device)
 
         # Tensorboard에 값 기록
         writer.add_scalar('Validation Loss', val_loss, epoch)
