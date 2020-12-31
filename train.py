@@ -13,19 +13,20 @@ import eval
 
 if __name__ == '__main__':
     # 설정 불러오기
-    ini_file = 'models/unet.ini'
-    config, section = utils.utils.load_config(ini_file)
-    print('{}를 불러왔습니다.'.format(ini_file.split('/')[-1]))
+    model_name, config = utils.utils.load_config()
+    print('Activated model: {}'.format(model_name))
 
     # 1. Dataset
     trainset, trainloader, testset, testloader = utils.utils.init_cityscapes_dataset(config)
 
     # 2. Model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    if section == 'unet':
-        models = models.unet.UNet(3, config['num_classes']).to(device)
-    elif section == 'proposed':
-        models = models.proposed.Proposed(3, config['num_classes']).to(device)
+    if model_name == 'unet':
+        model = models.unet.UNet(3, config['num_classes']).to(device)
+    else:
+        model = models.proposed.Proposed(3, config['num_classes']).to(device)
+    if os.path.exists(config['pretrained_weights']):
+        model.load_state_dict(torch.load(config['pretrained_weights']))
 
     # 3. Loss function, optimizer, lr scheduler
     criterion = nn.CrossEntropyLoss()
@@ -33,7 +34,7 @@ if __name__ == '__main__':
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, min_lr=0.0001)
 
     # 4. Tensorboard
-    writer = torch.utils.tensorboard.SummaryWriter(os.path.join('runs', section))
+    writer = torch.utils.tensorboard.SummaryWriter(os.path.join('runs', model_name))
     writer.add_graph(model, trainloader.__iter__().__next__()[0].to(device))
 
     # 5. Train and test
@@ -78,6 +79,6 @@ if __name__ == '__main__':
         if miou > prev_miou:
             os.makedirs('checkpoints', exist_ok=True)
             torch.save(model.state_dict(),
-                       os.path.join('checkpoints', '{}_best.pth'.format(model.__module__.split('.')[-1])))
+                       os.path.join('checkpoints', '{}_best.pth'.format(model_name)))
             prev_miou = miou
     writer.close()

@@ -1,30 +1,30 @@
 import configparser
-import os
 
 import matplotlib.pyplot as plt
 import torch
 import torch.utils.data
 import torchvision
-import tqdm
 
 import utils.datasets
 
 
 # 설정 불러오기
-def load_config(ini_file: str):
+def load_config():
+    config_file = 'models/models.ini'
     parser = configparser.ConfigParser()
-    parser.read(ini_file, encoding='utf-8')
-    section = ini_file.replace('\\', '/').split('/')[-1].split('.')[0]
+    parser.read(config_file, encoding='utf-8')
+
+    model_name = parser['model']['activate_model']
     config = {
-        'batch_size': parser.getint(section, 'batch_size'),
-        'epoch': parser.getint(section, 'epoch'),
-        'image_size': parser.getint(section, 'image_size'),
-        'lr': parser.getfloat(section, 'lr'),
-        'num_classes': parser.getint(section, 'num_classes'),
-        'num_workers': parser.getint(section, 'num_workers'),
-        'pretrained_weights': parser[section]['pretrained_weights'],
+        'batch_size': parser.getint(model_name, 'batch_size'),
+        'epoch': parser.getint(model_name, 'epoch'),
+        'image_size': parser.getint(model_name, 'image_size'),
+        'lr': parser.getfloat(model_name, 'lr'),
+        'num_classes': parser.getint(model_name, 'num_classes'),
+        'num_workers': parser.getint(model_name, 'num_workers'),
+        'pretrained_weights': parser[model_name]['pretrained_weights'],
     }
-    return config, section
+    return model_name, config
 
 
 # Cityscapes 데이터셋 설정
