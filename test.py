@@ -4,7 +4,7 @@ import time
 from typing import List
 
 import numpy as np
-from sklearn.metrics import confusion_matrix
+import sklearn
 import torch.nn.functional as F
 import torch.utils.data
 import tqdm
@@ -15,55 +15,25 @@ import utils.datasets
 import utils.utils
 
 
-class ComputeConfusionMatrix:
+class ConfusionMatrix:
     def __init__(self, labels: List[int], ignore_label: int):
-        # List that contains int values that represent classes.
         self.labels = labels
-
-        # Container of the sum of all confusion matrices. Used to compute MIOU at the end.
         self.ignore_label = ignore_label
+        self.confusion_matrix = np.zeros((len(labels), len(labels)))
 
-        # sklean.confusion_matrix object
-        # A label representing parts that should be ignored during computation of metrics.
-        self.overall_confusion_matrix = None
+    def update_matrix(self, gt_batch: torch.Tensor, pred_batch: torch.Tensor):
+        assert gt_batch.shape[0] == pred_batch.shape[0]
 
-    def update_matrix(self, groundtruth, prediction):
-        """Updates overall confusion matrix statistics.
-        If you are working with 2D data, just .flatten() it before running this
-        function.
+        gt = torch.flatten(gt_batch, start_dim=1).cpu().numpy()
+        pred = torch.flatten(pred_batch, start_dim=1).cpu().numpy()
 
-        Parameters
-        ----------
-        groundtruth : array, shape = [n_samples]
-            An array with groundtruth values
-        prediction : array, shape = [n_samples]
-            An array with predictions
-        """
+        # 각 배치당 처리
+        for i in range(gt_batch.shape[0]):
+            self.confusion_matrix += sklearn.metrics.confusion_matrix(gt[i], pred[i], labels=self.labels)
 
-        # Mask-out value is ignored by default in the sklearn
-        # read sources to see how that was handled
-        # But sometimes all the elements in the groundtruth can
-        # be equal to ignore value which will cause the crush
-        # of scikit_learn.confusion_matrix(), this is why we check it here
-        if (groundtruth == self.ignore_label).all():
-            return
-
-        current_confusion_matrix = confusion_matrix(y_true=groundtruth,
-                                                    y_pred=prediction,
-                                                    labels=self.labels)
-
-        if self.overall_confusion_matrix is not None:
-            self.overall_confusion_matrix += current_confusion_matrix
-        else:
-            self.overall_confusion_matrix = current_confusion_matrix
-
-    def compute_iou_miou(self):
-        intersection = np.diag(self.overall_confusion_matrix)
-        ground_truth_set = self.overall_confusion_matrix.sum(axis=1)
-        predicted_set = self.overall_confusion_matrix.sum(axis=0)
-        union = ground_truth_set + predicted_set - intersection
-
-        iou = intersection / union.astype(np.float32)
+    def get_scores(self):
+        iou = np.diag(self.confusion_matrix) / (
+                self.confusion_matrix.sum(axis=0) + self.confusion_matrix.sum(axis=1) - np.diag(self.confusion_matrix))
         miou = np.mean(iou)
         return iou, miou
 
