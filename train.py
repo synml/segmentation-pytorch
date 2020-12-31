@@ -42,22 +42,16 @@ if __name__ == '__main__':
     for epoch in tqdm.tqdm(range(config['epoch']), desc='Epoch'):
         model.train()
 
-        # 1 epoch의 각 배치에서 처리하는 코드
         for batch_idx, (images, masks) in enumerate(tqdm.tqdm(trainloader, desc='Train', leave=False)):
-            step = len(trainloader) * epoch + batch_idx
-
             # mask에 255를 곱하여 0~1 사이의 값을 0~255 값으로 변경 + 채널 차원 제거
             masks = torch.mul(masks, 255)
             masks = torch.squeeze(masks, dim=1)
 
             # 이미지와 정답 정보를 GPU로 복사
-            images = images.to(device)
-            masks = masks.to(device, dtype=torch.long)
-
-            # 변화도(Gradient) 매개변수를 0으로 만들기
-            optimizer.zero_grad()
+            images, masks = images.to(device), masks.to(device, dtype=torch.long)
 
             # 순전파 + 역전파 + 최적화
+            optimizer.zero_grad()
             masks_pred = model(images)
             loss = criterion(masks_pred, masks)
             loss.backward()
@@ -67,7 +61,7 @@ if __name__ == '__main__':
             log_loss.set_description_str('Loss: {:.4f}'.format(loss.item()))
 
             # Tensorboard에 학습 과정 기록
-            writer.add_scalar('Train Loss', loss.item(), step)
+            writer.add_scalar('Train Loss', loss.item(), len(trainloader) * epoch + batch_idx)
 
         # 모델을 평가
         val_loss, _, miou, _ = eval.evaluate(model, testloader, device, config['num_classes'])
