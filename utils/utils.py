@@ -92,8 +92,7 @@ def init_voc_dataset(config: dict):
     testloader = torch.utils.data.DataLoader(testset,
                                              batch_size=config['batch_size'],
                                              shuffle=False,
-                                             num_workers=config['num_workers'],
-                                             pin_memory=True)
+                                             num_workers=config['num_workers'])
 
     return trainset, trainloader, testset, testloader
 
