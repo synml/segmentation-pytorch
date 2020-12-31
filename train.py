@@ -8,7 +8,7 @@ import tqdm
 import model.unet
 import model.proposed
 import utils.utils
-import test
+import evaluate
 
 
 if __name__ == '__main__':
@@ -83,7 +83,7 @@ if __name__ == '__main__':
             writer.add_scalar('Train loss', loss.item(), step)
 
         # 모델을 평가
-        miou, _, val_loss, _ = test.evaluate(model, testloader, device, config['num_classes'])
+        miou, _, val_loss, _ = evaluate.evaluate(model, testloader, device, config['num_classes'])
 
         # Tensorboard에 값 기록
         writer.add_scalar('mIoU', miou, epoch)
