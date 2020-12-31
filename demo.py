@@ -11,7 +11,7 @@ import utils.utils
 
 
 if __name__ == '__main__':
-    # 설정 불러오기
+    # 0. Load config
     model_name, config = utils.utils.load_config()
     print('Activated model: {}'.format(model_name))
 
@@ -27,7 +27,7 @@ if __name__ == '__main__':
     if os.path.exists(config['pretrained_weights']):
         model.load_state_dict(torch.load(config['pretrained_weights']))
 
-    # 이미지 이름 저장
+    # 이미지 이름 불러오기
     image_names = []
     for image_path in testset.images:
         image_name = image_path.replace('\\', '/').split('/')[-1]
@@ -40,7 +40,6 @@ if __name__ == '__main__':
     os.makedirs(result_dir, exist_ok=True)
     os.makedirs(groundtruth_dir, exist_ok=True)
     for images, masks in tqdm.tqdm(testloader, desc='Demo'):
-        # 이미지와 정답 정보를 GPU로 복사
         images = images.to(device)
 
         # 예측

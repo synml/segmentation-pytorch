@@ -12,7 +12,7 @@ import eval
 
 
 if __name__ == '__main__':
-    # 설정 불러오기
+    # 0. Load config
     model_name, config = utils.utils.load_config()
     print('Activated model: {}'.format(model_name))
 
@@ -37,7 +37,7 @@ if __name__ == '__main__':
     writer = torch.utils.tensorboard.SummaryWriter(os.path.join('runs', model_name))
     writer.add_graph(model, trainloader.__iter__().__next__()[0].to(device))
 
-    # 5. Train and test
+    # 5. Train and evaluate
     log_loss = tqdm.tqdm(total=0, position=2, bar_format='{desc}', leave=False)
     prev_miou = 0.0
     for epoch in tqdm.tqdm(range(config['epoch']), desc='Epoch'):
@@ -64,13 +64,13 @@ if __name__ == '__main__':
             # Tensorboard에 학습 과정 기록
             writer.add_scalar('Train Loss', loss.item(), len(trainloader) * epoch + batch_idx)
 
-        # 모델을 평가
+        # 모델 평가
         val_loss, _, miou, _ = eval.evaluate(model, testloader, config['num_classes'], device)
 
-        # Tensorboard에 값 기록
+        # Tensorboard에 평가 결과와 lr 기록
         writer.add_scalar('Validation Loss', val_loss, epoch)
         writer.add_scalar('mIoU', miou, epoch)
-        writer.add_text('lr', 'lr changed: {}'.format(optimizer.param_groups[0]['lr']), epoch)
+        writer.add_text('lr', optimizer.param_groups[0]['lr'], epoch)
 
         # lr scheduler의 step을 진행
         scheduler.step(val_loss)

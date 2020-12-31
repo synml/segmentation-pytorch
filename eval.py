@@ -89,7 +89,7 @@ def evaluate(model, testloader, num_classes: int, device):
 
 
 if __name__ == '__main__':
-    # 설정 불러오기
+    # 0. Load config
     model_name, config = utils.utils.load_config()
     print('Activated model: {}'.format(model_name))
 
@@ -119,4 +119,4 @@ if __name__ == '__main__':
         writer.writerow(['mIoU', miou, ' '])
         writer.writerow(['Validation loss', val_loss, ' '])
         writer.writerow(['FPS', fps, ' '])
-    print('평가 결과를 csv 파일로 저장했습니다.')
+    print('Saved evaluation result')
