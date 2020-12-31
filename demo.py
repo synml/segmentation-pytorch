@@ -36,7 +36,9 @@ if __name__ == '__main__':
     # 예측 결과 저장
     step = 0
     result_dir = os.path.join('demo', section)
+    groundtruth_dir = os.path.join('demo', 'groundtruth')
     os.makedirs(result_dir, exist_ok=True)
+    os.makedirs(groundtruth_dir)
     for images, _ in tqdm.tqdm(testloader, desc='Demo'):
         # 이미지와 정답 정보를 GPU로 복사
         images = images.to(device)
@@ -47,7 +49,8 @@ if __name__ == '__main__':
             masks_pred = F.log_softmax(masks_pred, dim=1)
             masks_pred = torch.argmax(masks_pred, dim=1, keepdim=True)
 
-        # 배치 단위의 mask를 1개씩 분해
+        # 1 배치단위 처리
         for mask in masks_pred:
             plt.imsave(os.path.join(result_dir, image_names[step]), mask.cpu().squeeze())
+            plt.imsave(os.path.join(groundtruth_dir, image_names[step]), mask.squeeze())
             step += 1

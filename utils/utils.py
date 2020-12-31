@@ -98,21 +98,6 @@ def init_voc_dataset(config: dict):
     return trainset, trainloader, testset, testloader
 
 
-# GroundTruth 저장
-def save_groundtruth(testset):
-    testloader = torch.utils.data.DataLoader(testset)
-
-    image_names = []
-    for image_path in testset.images:
-        image_name = image_path.replace('\\', '/').split('/')[-1]
-        image_names.append(image_name)
-
-    result_dir = os.path.join('demo', 'groundtruth')
-    os.makedirs(result_dir, exist_ok=True)
-    for i, (_, mask) in enumerate(tqdm.tqdm(testloader, desc='GroundTruth')):
-        plt.imsave(os.path.join(result_dir, image_names[i]), mask.squeeze())
-
-
 # 데이터셋 불러오는 코드 검증
 def show_dataset(images: torch.Tensor, masks: torch.Tensor):
 
