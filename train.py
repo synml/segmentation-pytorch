@@ -66,8 +66,6 @@ if __name__ == '__main__':
 
         # 모델 평가
         val_loss, _, miou, _ = eval.evaluate(model, testloader, config['num_classes'], device)
-
-        # Tensorboard에 평가 결과와 lr 기록
         writer.add_scalar('Validation Loss', val_loss, epoch)
         writer.add_scalar('mIoU', miou, epoch)
         writer.add_text('lr', optimizer.param_groups[0]['lr'], epoch)
