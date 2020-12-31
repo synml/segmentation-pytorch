@@ -5,15 +5,15 @@ import torch.utils.data
 import torch.utils.tensorboard
 import tqdm
 
-import model.unet
-import model.proposed
+import models.unet
+import models.proposed
 import utils.utils
 import eval
 
 
 if __name__ == '__main__':
     # 설정 불러오기
-    ini_file = 'model/unet.ini'
+    ini_file = 'models/unet.ini'
     config, section = utils.utils.load_config(ini_file)
     print('{}를 불러왔습니다.'.format(ini_file.split('/')[-1]))
 
@@ -23,9 +23,9 @@ if __name__ == '__main__':
     # 2. Model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     if section == 'unet':
-        model = model.unet.UNet(3, config['num_classes']).to(device)
+        models = models.unet.UNet(3, config['num_classes']).to(device)
     elif section == 'proposed':
-        model = model.proposed.Proposed(3, config['num_classes']).to(device)
+        models = models.proposed.Proposed(3, config['num_classes']).to(device)
 
     # 3. Loss function, optimizer, lr scheduler
     criterion = nn.CrossEntropyLoss()
