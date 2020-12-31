@@ -86,7 +86,7 @@ def evaluate(model, testloader, device, num_classes: int):
     inference_time /= len(testloader.dataset)
     fps = 1 / inference_time
 
-    return iou, miou, val_loss, fps
+    return val_loss, iou, miou, fps
 
 
 if __name__ == '__main__':
@@ -109,7 +109,7 @@ if __name__ == '__main__':
     model.load_state_dict(torch.load(config['pretrained_weights']))
 
     # 모델 평가
-    iou, miou, val_loss, fps = evaluate(model, testloader, device, config['num_classes'])
+    val_loss, iou, miou, fps = evaluate(model, testloader, device, config['num_classes'])
 
     # 평가 결과를 csv 파일로 저장
     result_dir = 'result'

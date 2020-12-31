@@ -17,41 +17,28 @@ if __name__ == '__main__':
     config, section = utils.utils.load_config(ini_file)
     print('{}를 불러왔습니다.'.format(ini_file.split('/')[-1]))
 
-    # 장치, 시각 설정
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-    # 데이터셋 설정
+    # 1. Dataset
     trainset, trainloader, testset, testloader = utils.utils.init_cityscapes_dataset(config)
 
-    # 모델 설정
+    # 2. Model
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     if section == 'unet':
         model = model.unet.UNet(3, config['num_classes']).to(device)
     elif section == 'proposed':
         model = model.proposed.Proposed(3, config['num_classes']).to(device)
 
-    # Loss Function, Optimizer 설정
+    # 3. Loss function, optimizer, lr scheduler
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=config['lr'])
-
-    # learning rate scheduler 설정
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, min_lr=0.0001)
 
-    # Tensorboard 설정
+    # 4. Tensorboard
     writer = torch.utils.tensorboard.SummaryWriter(os.path.join('runs', section))
-
-    # 모델 그래프를 Tensorboard에 저장
     writer.add_graph(model, trainloader.__iter__().__next__()[0].to(device))
 
-    # 현재 배치 손실값을 출력하는 tqdm 설정
+    # 5. Train and test
     log_loss = tqdm.tqdm(total=0, position=2, bar_format='{desc}', leave=False)
-
-    # Train에 필요한 변수들을 설정
     prev_miou = 0.0
-    save_dir = 'checkpoints'
-    os.makedirs(save_dir, exist_ok=True)
-    model_name = model.__module__.split('.')[-1]
-
-    # Train
     for epoch in tqdm.tqdm(range(config['epoch']), desc='Epoch'):
         model.train()
 
@@ -83,22 +70,20 @@ if __name__ == '__main__':
             writer.add_scalar('Train Loss', loss.item(), step)
 
         # 모델을 평가
-        _, miou, val_loss, _ = eval.evaluate(model, testloader, device, config['num_classes'])
+        val_loss, _, miou, _ = eval.evaluate(model, testloader, device, config['num_classes'])
 
         # Tensorboard에 값 기록
-        writer.add_scalar('mIoU', miou, epoch)
         writer.add_scalar('Validation Loss', val_loss, epoch)
-        writer.add_scalar('lr', optimizer.param_groups[0]['lr'], epoch)
+        writer.add_scalar('mIoU', miou, epoch)
+        writer.add_text('lr', 'lr changed: {}'.format(optimizer.param_groups[0]['lr']), epoch)
 
         # lr scheduler의 step을 진행
         scheduler.step(val_loss)
 
-        # checkpoint file 저장
-        torch.save(model.state_dict(), os.path.join(save_dir, '{}_{}.pth'.format(model_name, epoch)))
-
         # Best mIoU를 가진 모델을 저장
         if miou > prev_miou:
-            torch.save(model.state_dict(), os.path.join(save_dir, '{}_best.pth'.format(model_name)))
+            os.makedirs('checkpoints', exist_ok=True)
+            torch.save(model.state_dict(),
+                       os.path.join('checkpoints', '{}_best.pth'.format(model.__module__.split('.')[-1])))
             prev_miou = miou
-
     writer.close()
