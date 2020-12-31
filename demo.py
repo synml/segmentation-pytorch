@@ -46,7 +46,7 @@ if __name__ == '__main__':
         # 예측
         with torch.no_grad():
             masks_pred = model(images)
-            masks_pred = F.softmax(masks_pred, dim=1)
+            masks_pred = F.log_softmax(masks_pred, dim=1)
             masks_pred = torch.argmax(masks_pred, dim=1, keepdim=True)
 
         # 배치 단위의 mask를 1개씩 분해

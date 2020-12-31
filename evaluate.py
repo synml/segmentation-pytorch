@@ -114,7 +114,7 @@ def evaluate(model, testloader, device, num_classes: int):
         total_loss += F.cross_entropy(masks_pred, masks).item()
 
         # Segmentation map 만들기
-        masks_pred = F.softmax(masks_pred, dim=1)
+        masks_pred = F.log_softmax(masks_pred, dim=1)
         masks_pred = torch.argmax(masks_pred, dim=1, keepdim=True)
 
         # 각 batch의 IoU를 계산
