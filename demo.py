@@ -25,7 +25,8 @@ if __name__ == '__main__':
         model = model.unet.UNet(3, config['num_classes']).to(device)
     elif section == 'proposed':
         model = model.proposed.Proposed(3, config['num_classes']).to(device)
-    model.load_state_dict(torch.load(config['pretrained_weights']))
+    if os.path.exists(config['pretrained_weights']):
+        model.load_state_dict(torch.load(config['pretrained_weights']))
 
     # 이미지 이름 저장
     image_names = []
@@ -38,8 +39,8 @@ if __name__ == '__main__':
     result_dir = os.path.join('demo', section)
     groundtruth_dir = os.path.join('demo', 'groundtruth')
     os.makedirs(result_dir, exist_ok=True)
-    os.makedirs(groundtruth_dir)
-    for images, _ in tqdm.tqdm(testloader, desc='Demo'):
+    os.makedirs(groundtruth_dir, exist_ok=True)
+    for images, masks in tqdm.tqdm(testloader, desc='Demo'):
         # 이미지와 정답 정보를 GPU로 복사
         images = images.to(device)
 
@@ -50,7 +51,7 @@ if __name__ == '__main__':
             masks_pred = torch.argmax(masks_pred, dim=1, keepdim=True)
 
         # 1 배치단위 처리
-        for mask in masks_pred:
-            plt.imsave(os.path.join(result_dir, image_names[step]), mask.cpu().squeeze())
-            plt.imsave(os.path.join(groundtruth_dir, image_names[step]), mask.squeeze())
+        for i in range(masks.shape[0]):
+            plt.imsave(os.path.join(result_dir, image_names[step]), masks_pred[i].cpu().squeeze())
+            plt.imsave(os.path.join(groundtruth_dir, image_names[step]), masks[i].squeeze())
             step += 1

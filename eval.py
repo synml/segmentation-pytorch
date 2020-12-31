@@ -103,7 +103,8 @@ if __name__ == '__main__':
         model = model.unet.UNet(3, config['num_classes']).to(device)
     elif section == 'proposed':
         model = model.proposed.Proposed(3, config['num_classes']).to(device)
-    model.load_state_dict(torch.load(config['pretrained_weights']))
+    if os.path.exists(config['pretrained_weights']):
+        model.load_state_dict(torch.load(config['pretrained_weights']))
 
     # 모델 평가
     val_loss, iou, miou, fps = evaluate(model, testloader, config['num_classes'], device)
