@@ -163,12 +163,7 @@ if __name__ == '__main__':
     # 모델 평가
     miou, iou, val_loss, fps = evaluate(model, testloader, device, config['num_classes'])
 
-    # mIoU, Validation loss, Inference time, FPS 출력
-    print('mIoU: {:.4f}'.format(miou))
-    print('Validation loss: {:.4f}'.format(val_loss))
-    print('FPS: {:.02f}'.format(fps))
-
-    # Validation loss, Inference time, FPS를 csv 파일로 저장
+    # 평가 결과를 csv 파일로 저장
     result_dir = 'csv'
     os.makedirs(result_dir, exist_ok=True)
     filename = '{}.csv'.format(model.__module__.split('.')[-1])

@@ -56,7 +56,7 @@ if __name__ == '__main__':
         model.train()
 
         # 1 epoch의 각 배치에서 처리하는 코드
-        for batch_idx, (images, masks) in enumerate(tqdm.tqdm(trainloader, desc='Batch', leave=False)):
+        for batch_idx, (images, masks) in enumerate(tqdm.tqdm(trainloader, desc='Train', leave=False)):
             step = len(trainloader) * epoch + batch_idx
 
             # mask에 255를 곱하여 0~1 사이의 값을 0~255 값으로 변경 + 채널 차원 제거
@@ -80,14 +80,14 @@ if __name__ == '__main__':
             log_loss.set_description_str('Loss: {:.4f}'.format(loss.item()))
 
             # Tensorboard에 학습 과정 기록
-            writer.add_scalar('Train loss', loss.item(), step)
+            writer.add_scalar('Train Loss', loss.item(), step)
 
         # 모델을 평가
         miou, _, val_loss, _ = evaluate.evaluate(model, testloader, device, config['num_classes'])
 
         # Tensorboard에 값 기록
         writer.add_scalar('mIoU', miou, epoch)
-        writer.add_scalar('Val loss', val_loss, epoch)
+        writer.add_scalar('Validation Loss', val_loss, epoch)
         writer.add_scalar('lr', optimizer.param_groups[0]['lr'], epoch)
 
         # lr scheduler의 step을 진행
