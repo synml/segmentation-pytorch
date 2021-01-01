@@ -39,10 +39,11 @@ if __name__ == '__main__':
         with torch.no_grad():
             masks_pred = model(images)
             masks_pred = F.log_softmax(masks_pred, dim=1)
-            masks_pred = torch.argmax(masks_pred, dim=1, keepdim=True)
+            masks_pred = torch.argmax(masks_pred, dim=1)
 
         # 1 배치단위 처리
+        assert masks.shape[0] == masks_pred.shape[0]
         for i in range(masks.shape[0]):
-            plt.imsave(os.path.join(result_dir, image_names[step]), masks_pred[i].cpu().squeeze())
+            plt.imsave(os.path.join(result_dir, image_names[step]), masks_pred[i].cpu())
             plt.imsave(os.path.join(groundtruth_dir, image_names[step]), masks[i].squeeze())
             step += 1
