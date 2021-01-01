@@ -21,7 +21,7 @@ if __name__ == '__main__':
 
     # 2. Model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    if model_name == 'unet':
+    if model_name == 'UNet':
         model = models.unet.UNet(3, config['num_classes']).to(device)
     else:
         model = models.proposed.Proposed(3, config['num_classes']).to(device)
