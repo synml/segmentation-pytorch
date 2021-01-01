@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
     # 예측 결과 저장
     step = 0
-    result_dir = os.path.join('demo', model_name)
+    result_dir = os.path.join('demo', model_name.lower())
     groundtruth_dir = os.path.join('demo', 'groundtruth')
     os.makedirs(result_dir, exist_ok=True)
     os.makedirs(groundtruth_dir, exist_ok=True)
