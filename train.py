@@ -38,11 +38,10 @@ if __name__ == '__main__':
 
         for batch_idx, (images, masks) in enumerate(tqdm.tqdm(trainloader, desc='Train', leave=False)):
             # mask에 255를 곱하여 0~1 사이의 값을 0~255 값으로 변경 + 채널 차원 제거
-            masks = torch.mul(masks, 255)
-            masks = torch.squeeze(masks, dim=1)
+            masks.mul_(255).squeeze_(dim=1)
 
             # 이미지와 정답 정보를 GPU로 복사
-            images, masks = images.to(device), masks.to(device, dtype=torch.long)
+            images, masks = images.to(device), masks.to(device, dtype=torch.int64)
 
             # 순전파 + 역전파 + 최적화
             optimizer.zero_grad()

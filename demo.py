@@ -33,7 +33,11 @@ if __name__ == '__main__':
     os.makedirs(result_dir, exist_ok=True)
     os.makedirs(groundtruth_dir, exist_ok=True)
     for images, masks in tqdm.tqdm(testloader, desc='Demo'):
-        images = images.to(device)
+        # mask에 255를 곱하여 0~1 사이의 값을 0~255 값으로 변경 + 채널 차원 제거
+        masks.mul_(255).squeeze_(dim=1)
+
+        # 이미지와 정답 정보를 GPU로 복사
+        images, masks = images.to(device), masks.type(torch.LongTensor)
 
         # 예측
         with torch.no_grad():
@@ -45,5 +49,5 @@ if __name__ == '__main__':
         assert masks.shape[0] == masks_pred.shape[0]
         for i in range(masks.shape[0]):
             plt.imsave(os.path.join(result_dir, image_names[step]), masks_pred[i].cpu())
-            plt.imsave(os.path.join(groundtruth_dir, image_names[step]), masks[i].squeeze())
+            plt.imsave(os.path.join(groundtruth_dir, image_names[step]), masks[i])
             step += 1
