@@ -5,7 +5,7 @@ import torch.utils.data
 import torch.utils.tensorboard
 import tqdm
 
-import utils.utils
+import utils
 import eval
 
 

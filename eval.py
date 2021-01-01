@@ -9,8 +9,7 @@ import torch.nn.functional as F
 import torch.utils.data
 import tqdm
 
-import utils.datasets
-import utils.utils
+import utils
 
 
 class EvaluationMetrics:

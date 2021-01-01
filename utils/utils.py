@@ -30,7 +30,7 @@ def load_config():
     return model_name, config
 
 
-def get_model(model_name: str, num_channels: int, num_classes: int, pretrained: str = None):
+def get_model(model_name: str, num_channels: int, num_classes: int, pretrained: str = None) -> torch.nn.Module:
     if model_name == 'UNet':
         model = models.unet.UNet(num_channels, num_classes)
     elif model_name == 'Proposed':

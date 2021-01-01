@@ -5,9 +5,7 @@ import torch.nn.functional as F
 import torch.utils.data
 import tqdm
 
-import models.unet
-import models.proposed
-import utils.utils
+import utils
 
 
 if __name__ == '__main__':
