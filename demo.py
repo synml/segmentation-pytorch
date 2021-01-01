@@ -18,7 +18,7 @@ if __name__ == '__main__':
 
     # 2. Model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = utils.utils.get_model(model_name, 3, config['num_classes'], config['pretrained_weights']).to(device)
+    model = utils.utils.get_model(model_name, config['num_classes'], config['pretrained_weights']).to(device)
 
     # 이미지 이름 불러오기
     image_names = []

@@ -91,11 +91,11 @@ class ResidualBlock(nn.Module):
 
 
 class Proposed(nn.Module):
-    def __init__(self, num_channels: int, num_classes: int):
+    def __init__(self, num_classes: int):
         super(Proposed, self).__init__()
         resnet50 = torchvision.models.resnet50(pretrained=True)
 
-        self.encode1 = self.double_conv(num_channels, 64)
+        self.encode1 = self.double_conv(3, 64)
         self.encode2 = resnet50.layer1  # 256
         self.encode3 = resnet50.layer2  # 512
         self.encode4 = resnet50.layer3  # 1024
@@ -154,7 +154,7 @@ class Proposed(nn.Module):
 
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = Proposed(3, 8).to(device)
+    model = Proposed(8).to(device)
     model.eval()
 
     torchsummary.torchsummary.summary(model, (3, 256, 512))

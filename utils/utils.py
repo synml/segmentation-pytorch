@@ -31,11 +31,11 @@ def load_config():
     return model_name, config
 
 
-def get_model(model_name: str, num_channels: int, num_classes: int, pretrained: str = None) -> torch.nn.Module:
+def get_model(model_name: str, num_classes: int, pretrained: str = None) -> torch.nn.Module:
     if model_name == 'UNet':
-        model = models.unet.UNet(num_channels, num_classes)
+        model = models.unet.UNet(num_classes)
     elif model_name == 'Proposed':
-        model = models.proposed.Proposed(num_channels, num_classes)
+        model = models.proposed.Proposed(num_classes)
     else:
         raise NameError('Wrong model_name.')
 
