@@ -6,7 +6,7 @@ import torchsummary
 
 
 class UNet(nn.Module):
-    def __init__(self, num_channels, num_classes):
+    def __init__(self, num_channels: int, num_classes: int):
         super(UNet, self).__init__()
 
         self.encode1 = self.double_conv(num_channels, 64)
@@ -29,7 +29,7 @@ class UNet(nn.Module):
 
         self.classifier = nn.Conv2d(64, num_classes, kernel_size=1)
 
-    def double_conv(self, in_channels, out_channels):
+    def double_conv(self, in_channels: int, out_channels: int):
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
             nn.ReLU(inplace=True),

@@ -5,8 +5,6 @@ import torch.utils.data
 import torch.utils.tensorboard
 import tqdm
 
-import models.unet
-import models.proposed
 import utils.utils
 import eval
 
@@ -21,12 +19,7 @@ if __name__ == '__main__':
 
     # 2. Model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    if model_name == 'UNet':
-        model = models.unet.UNet(3, config['num_classes']).to(device)
-    else:
-        model = models.proposed.Proposed(3, config['num_classes']).to(device)
-    if os.path.exists(config['pretrained_weights']):
-        model.load_state_dict(torch.load(config['pretrained_weights']))
+    model = utils.utils.get_model(model_name, 3, config['num_classes'])
 
     # 3. Loss function, optimizer, lr scheduler
     criterion = nn.CrossEntropyLoss()

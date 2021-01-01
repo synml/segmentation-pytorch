@@ -8,7 +8,7 @@ import torchsummary
 
 # ASPP(Atrous Spatial Pyramid Pooling) Module
 class ASPP(nn.Module):
-    def __init__(self, in_channels, out_channels):
+    def __init__(self, in_channels: int, out_channels: int):
         super(ASPP, self).__init__()
 
         # 1번 branch = 1x1 convolution → BatchNorm → ReLu
@@ -70,7 +70,7 @@ class ASPP(nn.Module):
 
 
 class ResidualBlock(nn.Module):
-    def __init__(self, in_channels, out_channels):
+    def __init__(self, in_channels: int, out_channels: int):
         super(ResidualBlock, self).__init__()
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1)
         self.relu1 = nn.ReLU(inplace=True)
@@ -91,7 +91,7 @@ class ResidualBlock(nn.Module):
 
 
 class Proposed(nn.Module):
-    def __init__(self, num_channels, num_classes):
+    def __init__(self, num_channels: int, num_classes: int):
         super(Proposed, self).__init__()
         resnet50 = torchvision.models.resnet50(pretrained=True)
 
@@ -115,7 +115,7 @@ class Proposed(nn.Module):
 
         self.classifier = nn.Conv2d(64, num_classes, kernel_size=1)
 
-    def double_conv(self, in_channels, out_channels):
+    def double_conv(self, in_channels: int, out_channels: int):
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(out_channels),
