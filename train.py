@@ -68,8 +68,8 @@ if __name__ == '__main__':
 
         # Best mIoU를 가진 모델을 저장
         if miou > prev_miou:
-            os.makedirs('checkpoints', exist_ok=True)
+            os.makedirs('weights', exist_ok=True)
             torch.save(model.state_dict(),
-                       os.path.join('checkpoints', '{}_best.pth'.format(model_name)))
+                       os.path.join('weights', '{}_best.pth'.format(model_name)))
             prev_miou = miou
     writer.close()

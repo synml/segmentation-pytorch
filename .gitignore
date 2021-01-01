@@ -1,6 +1,6 @@
 # Project ignores
 .idea/
-checkpoints/
+backup/
 demo/
 result/
 runs/

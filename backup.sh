@@ -1,6 +1,5 @@
 #!/bin/bash
 
-mkdir ../../backup
-mkdir ../../backup/rename
-mv checkpoints/* ../../backup/rename
-mv runs ../../backup/rename
+mkdir -p backup/rename
+mv weights/* backup/rename
+mv runs backup/rename
