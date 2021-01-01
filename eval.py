@@ -95,7 +95,7 @@ if __name__ == '__main__':
 
     # 2. Model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = utils.utils.get_model(model_name, 3, config['num_classes'], config['pretrained_weights'])
+    model = utils.utils.get_model(model_name, 3, config['num_classes'], config['pretrained_weights']).to(device)
 
     # 모델 평가
     val_loss, iou, miou, fps = evaluate(model, testloader, config['num_classes'], device)
