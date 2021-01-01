@@ -21,8 +21,8 @@ def load_config():
     config = {
         'batch_size': parser.getint(model_name, 'batch_size'),
         'epoch': parser.getint(model_name, 'epoch'),
-        'image_size': (int(parser[model_name]['image_size'].split('x')[0]),
-                       int(parser[model_name]['image_size'].split('x')[1])),
+        'image_size': (int(parser[model_name]['image_size'].split('x')[1]),
+                       int(parser[model_name]['image_size'].split('x')[0])),
         'lr': parser.getfloat(model_name, 'lr'),
         'num_classes': parser.getint(model_name, 'num_classes'),
         'num_workers': parser.getint(model_name, 'num_workers'),
