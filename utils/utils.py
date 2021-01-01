@@ -6,7 +6,8 @@ import torch
 import torch.utils.data
 import torchvision
 
-import models
+import models.unet
+import models.proposed
 import utils.datasets
 
 
