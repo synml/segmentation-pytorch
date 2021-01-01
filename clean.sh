@@ -1,5 +1,6 @@
 #!/bin/bash
 
+rm -r demo
 rm -r result
 rm -r runs
 rm -r weights
