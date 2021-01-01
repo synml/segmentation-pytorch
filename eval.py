@@ -68,7 +68,7 @@ def evaluate(model, testloader, num_classes: int, device):
 
         # Segmentation map 만들기
         masks_pred = F.log_softmax(masks_pred, dim=1)
-        masks_pred = torch.argmax(masks_pred, dim=1, keepdim=True)
+        masks_pred = torch.argmax(masks_pred, dim=1)
 
         # 혼동행렬 업데이트
         metrics.update_matrix(masks, masks_pred)
@@ -79,7 +79,7 @@ def evaluate(model, testloader, num_classes: int, device):
     # 평균 validation loss 계산
     val_loss /= len(testloader.dataset)
 
-    # 추론 시간과 fps를 계산 (추론 시간: ms)
+    # 추론 시간과 fps를 계산 (추론 시간 단위: sec)
     inference_time /= len(testloader.dataset)
     fps = 1 / inference_time
 
