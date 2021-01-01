@@ -61,9 +61,9 @@ if __name__ == '__main__':
         val_loss, _, miou, _ = eval.evaluate(model, testloader, config['num_classes'], device)
         writer.add_scalar('Validation Loss', val_loss, epoch)
         writer.add_scalar('mIoU', miou, epoch)
-        writer.add_text('lr', optimizer.param_groups[0]['lr'], epoch)
 
         # lr scheduler의 step을 진행
+        writer.add_scalar('lr', optimizer.param_groups[0]['lr'], epoch)
         scheduler.step(val_loss)
 
         # Best mIoU를 가진 모델을 저장
