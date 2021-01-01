@@ -10,6 +10,7 @@ import torch.utils.data
 import tqdm
 
 import utils.utils
+import utils.datasets
 
 
 class EvaluationMetrics:
