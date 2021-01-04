@@ -84,26 +84,26 @@ class ResidualBlock(nn.Module):
 class Proposed(nn.Module):
     def __init__(self, num_classes: int):
         super(Proposed, self).__init__()
-        resnet50 = torchvision.models.resnet50(pretrained=True)
+        resnet34 = torchvision.models.resnet34(pretrained=True)
 
         self.encode1 = self.double_conv(3, 64)
-        self.encode2 = resnet50.layer1  # 256
-        self.encode3 = resnet50.layer2  # 512
-        self.encode4 = resnet50.layer3  # 1024
-        self.encode_end = resnet50.layer4  # 2048
-        self.aspp = ASPP(2048, 2048)
+        self.encode2 = resnet34.layer1  # 64
+        self.encode3 = resnet34.layer2  # 128
+        self.encode4 = resnet34.layer3  # 256
+        self.encode_end = resnet34.layer4  # 512
+        self.aspp = ASPP(512, 1024)
 
-        self.upconv4 = nn.ConvTranspose2d(2048, 1024, kernel_size=2, stride=2)
-        self.decode4 = self.double_conv(2048, 1024)
+        self.upconv4 = nn.ConvTranspose2d(1024, 512, kernel_size=2, stride=2)
+        self.decode4 = self.double_conv(512 + 256, 512)
 
-        self.upconv3 = nn.ConvTranspose2d(1024, 512, kernel_size=2, stride=2)
-        self.decode3 = self.double_conv(1024, 512)
+        self.upconv3 = nn.ConvTranspose2d(512, 256, kernel_size=2, stride=2)
+        self.decode3 = self.double_conv(256 + 128, 256)
 
-        self.upconv2 = nn.ConvTranspose2d(512, 256, kernel_size=2, stride=2)
-        self.decode2 = self.double_conv(512, 256)
+        self.upconv2 = nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2)
+        self.decode2 = self.double_conv(128 + 64, 128)
 
-        self.upconv1 = nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2)
-        self.decode1 = self.double_conv(128 + 64, 64)
+        self.upconv1 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
+        self.decode1 = self.double_conv(128, 64)
 
         self.classifier = nn.Conv2d(64, num_classes, kernel_size=1)
 
