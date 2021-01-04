@@ -100,6 +100,7 @@ class Proposed(nn.Module):
         self.encode3 = resnet50.layer2  # 512
         self.encode4 = resnet50.layer3  # 1024
         self.encode_end = resnet50.layer4  # 2048
+        self.aspp = ASPP(2048, 2048)
 
         self.upconv4 = nn.ConvTranspose2d(2048, 1024, kernel_size=2, stride=2)
         self.decode4 = self.double_conv(2048, 1024)
@@ -118,10 +119,8 @@ class Proposed(nn.Module):
     def double_conv(self, in_channels: int, out_channels: int):
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
             nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True)
         )
 
@@ -140,6 +139,7 @@ class Proposed(nn.Module):
         encode3 = self.encode3(encode2)
         encode4 = self.encode4(encode3)
         encode_end = self.encode_end(encode4)
+        encode_end = self.aspp(encode_end)
 
         # Decoder
         out = self.decode4(torch.cat([self.upconv4(encode_end), encode4], dim=1))
