@@ -12,60 +12,51 @@ class ASPP(nn.Module):
         super(ASPP, self).__init__()
 
         # 1번 branch = 1x1 convolution → BatchNorm → ReLu
-        self.conv_1x1_1 = nn.Conv2d(in_channels, out_channels, kernel_size=1)
-        self.bn_conv_1x1_1 = nn.BatchNorm2d(out_channels)
-
-        # 2번 branch = 3x3 convolution w/ rate=6 (or 12) → BatchNorm → ReLu
-        self.conv_3x3_1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=6, dilation=6)
-        self.bn_conv_3x3_1 = nn.BatchNorm2d(out_channels)
-
-        # 3번 branch = 3x3 convolution w/ rate=12 (or 24) → BatchNorm → ReLu
-        self.conv_3x3_2 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=12, dilation=12)
-        self.bn_conv_3x3_2 = nn.BatchNorm2d(out_channels)
-
-        # 4번 branch = 3x3 convolution w/ rate=18 (or 36) → BatchNorm → ReLu
-        self.conv_3x3_3 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=18, dilation=18)
-        self.bn_conv_3x3_3 = nn.BatchNorm2d(out_channels)
-
+        self.branch1 = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=1),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True)
+        )
+        # 2번 branch = 3x3 atrous convolution → BatchNorm → ReLu
+        self.branch2 = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=3, dilation=3),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True)
+        )
+        # 3번 branch = 3x3 atrous convolution → BatchNorm → ReLu
+        self.branch3 = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=6, dilation=6),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True)
+        )
+        # 4번 branch = 3x3 atrous convolution → BatchNorm → ReLu
+        self.branch4 = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=9, dilation=9),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True)
+        )
         # 5번 branch = AdaptiveAvgPool2d → 1x1 convolution → BatchNorm → ReLu
-        self.avg_pool = nn.AdaptiveAvgPool2d(1)
-        self.conv_1x1_2 = nn.Conv2d(in_channels, out_channels, kernel_size=1)
-        self.bn_conv_1x1_2 = nn.BatchNorm2d(out_channels)
-
-        self.conv_1x1_3 = nn.Conv2d(out_channels * 5, out_channels, kernel_size=1)  # (1280 = 5*256)
-        self.bn_conv_1x1_3 = nn.BatchNorm2d(out_channels)
+        self.branch5 = nn.Sequential(
+            nn.AdaptiveAvgPool2d(1),
+            nn.Conv2d(in_channels, out_channels, kernel_size=1),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True)
+        )
+        # 최종 출력 convolution
+        self.outconv = nn.Sequential(
+            nn.Conv2d(out_channels * 5, out_channels, kernel_size=1),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True)
+        )
 
     def forward(self, x):
-        # feature map의 shape은 (batch_size, in_channels, height/output_stride, width/output_stride)
-        feature_map_h = x.size()[2]  # (== h/16)
-        feature_map_w = x.size()[3]  # (== w/16)
+        branch1 = self.branch1(x)
+        branch2 = self.branch2(x)
+        branch3 = self.branch3(x)
+        branch4 = self.branch4(x)
+        branch5 = F.interpolate(self.branch5(x), size=(x.size()[2], x.size()[3]), mode="bilinear", align_corners=False)
 
-        # 1번 branch = 1x1 convolution → BatchNorm → ReLu
-        # shape: (batch_size, out_channels, height/output_stride, width/output_stride)
-        out_1x1 = F.relu(self.bn_conv_1x1_1(self.conv_1x1_1(x)))
-        # 2번 branch = 3x3 convolution w/ rate=6 (or 12) → BatchNorm → ReLu
-        # shape: (batch_size, out_channels, height/output_stride, width/output_stride)
-        out_3x3_1 = F.relu(self.bn_conv_3x3_1(self.conv_3x3_1(x)))
-        # 3번 branch = 3x3 convolution w/ rate=12 (or 24) → BatchNorm → ReLu
-        # shape: (batch_size, out_channels, height/output_stride, width/output_stride)
-        out_3x3_2 = F.relu(self.bn_conv_3x3_2(self.conv_3x3_2(x)))
-        # 4번 branch = 3x3 convolution w/ rate=18 (or 36) → BatchNorm → ReLu
-        # shape: (batch_size, out_channels, height/output_stride, width/output_stride)
-        out_3x3_3 = F.relu(self.bn_conv_3x3_3(self.conv_3x3_3(x)))
-
-        # 5번 branch = AdaptiveAvgPool2d → 1x1 convolution → BatchNorm → ReLu
-        # shape: (batch_size, in_channels, 1, 1)
-        out_img = self.avg_pool(x)
-        # shape: (batch_size, out_channels, 1, 1)
-        out_img = F.relu(self.bn_conv_1x1_2(self.conv_1x1_2(out_img)))
-        # shape: (batch_size, out_channels, height/output_stride, width/output_stride)
-        out_img = F.interpolate(out_img, size=(feature_map_h, feature_map_w), mode="bilinear", align_corners=False)
-
-        # shape: (batch_size, out_channels * 5, height/output_stride, width/output_stride)
-        out = torch.cat([out_1x1, out_3x3_1, out_3x3_2, out_3x3_3, out_img], 1)
-        # shape: (batch_size, out_channels, height/output_stride, width/output_stride)
-        out = F.relu(self.bn_conv_1x1_3(self.conv_1x1_3(out)))
-
+        out = self.outconv(torch.cat([branch1, branch2, branch3, branch4, branch5], dim=1))
         return out
 
 
