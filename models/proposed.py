@@ -86,21 +86,18 @@ class Proposed(nn.Module):
         super(Proposed, self).__init__()
         resnet34 = torchvision.models.resnet34(pretrained=True)
 
-        self.encode1 = self.double_conv(3, 64)
-        self.encode2 = resnet34.layer1  # 64
-        self.encode3 = resnet34.layer2  # 128
-        self.encode4 = resnet34.layer3  # 256
-        self.encode_end = resnet34.layer4  # 512
-        self.aspp = ASPP(512, 1024)
-
-        self.upconv4 = nn.ConvTranspose2d(1024, 512, kernel_size=2, stride=2)
-        self.decode4 = self.double_conv(512 + 256, 512)
+        self.encode0 = self.double_conv(3, 64)
+        self.encode1 = resnet34.layer1  # 64
+        self.encode2 = resnet34.layer2  # 128
+        self.encode3 = resnet34.layer3  # 256
+        self.encode4 = resnet34.layer4  # 512
+        self.encode_end = ASPP(512, 512)
 
         self.upconv3 = nn.ConvTranspose2d(512, 256, kernel_size=2, stride=2)
-        self.decode3 = self.double_conv(256 + 128, 256)
+        self.decode3 = self.double_conv(512, 256)
 
         self.upconv2 = nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2)
-        self.decode2 = self.double_conv(128 + 64, 128)
+        self.decode2 = self.double_conv(256, 128)
 
         self.upconv1 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
         self.decode1 = self.double_conv(128, 64)
@@ -125,16 +122,14 @@ class Proposed(nn.Module):
 
     def forward(self, x):
         # Encoder
-        encode1 = self.encode1(x)
-        encode2 = self.encode2(F.max_pool2d(encode1, 2))
+        encode1 = self.encode1(self.encode0(x))
+        encode2 = self.encode2(encode1)
         encode3 = self.encode3(encode2)
         encode4 = self.encode4(encode3)
         encode_end = self.encode_end(encode4)
-        encode_end = self.aspp(encode_end)
 
         # Decoder
-        out = self.decode4(torch.cat([self.upconv4(encode_end), encode4], dim=1))
-        out = self.decode3(torch.cat([self.upconv3(out), encode3], dim=1))
+        out = self.decode3(torch.cat([self.upconv3(encode_end), encode3], dim=1))
         out = self.decode2(torch.cat([self.upconv2(out), encode2], dim=1))
         out = self.decode1(torch.cat([self.upconv1(out), encode1], dim=1))
 
