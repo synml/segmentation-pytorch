@@ -39,8 +39,11 @@ def get_model(model_name: str, num_classes: int, pretrained: str = None) -> torc
     else:
         raise NameError('Wrong model_name.')
 
-    if pretrained is not None and os.path.exists(pretrained):
-        model.load_state_dict(torch.load(pretrained))
+    if pretrained is not None:
+        if os.path.exists(pretrained):
+            model.load_state_dict(torch.load(pretrained))
+        else:
+            print('FileNotFound: pretrained_weights')
     return model
 
 
