@@ -125,8 +125,7 @@ class Proposed(nn.Module):
         encode1 = self.encode1(self.encode0(x))
         encode2 = self.encode2(encode1)
         encode3 = self.encode3(encode2)
-        encode4 = self.encode4(encode3)
-        encode_end = self.encode_end(encode4)
+        encode_end = self.encode_end(self.encode4(encode3))
 
         # Decoder
         out = self.decode3(torch.cat([self.upconv3(encode_end), encode3], dim=1))
