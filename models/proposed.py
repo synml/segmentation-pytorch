@@ -86,12 +86,12 @@ class Proposed(nn.Module):
         super(Proposed, self).__init__()
         resnet34 = torchvision.models.resnet34(pretrained=True)
 
-        self.encode0 = self.double_conv(3, 64)
+        self.initial_conv = self.double_conv(3, 64)
         self.encode1 = resnet34.layer1  # 64
         self.encode2 = resnet34.layer2  # 128
         self.encode3 = resnet34.layer3  # 256
         self.encode4 = resnet34.layer4  # 512
-        self.encode_end = ASPP(512, 512)
+        self.aspp = ASPP(512, 512)
 
         self.upconv3 = nn.ConvTranspose2d(512, 256, kernel_size=2, stride=2)
         self.decode3 = self.double_conv(512, 256)
@@ -107,8 +107,10 @@ class Proposed(nn.Module):
     def double_conv(self, in_channels: int, out_channels: int):
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
             nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True)
         )
 
@@ -122,10 +124,10 @@ class Proposed(nn.Module):
 
     def forward(self, x):
         # Encoder
-        encode1 = self.encode1(self.encode0(x))
+        encode1 = self.encode1(self.initial_conv(x))
         encode2 = self.encode2(encode1)
         encode3 = self.encode3(encode2)
-        encode_end = self.encode_end(self.encode4(encode3))
+        encode_end = self.aspp(self.encode4(encode3))
 
         # Decoder
         out = self.decode3(torch.cat([self.upconv3(encode_end), encode3], dim=1))
