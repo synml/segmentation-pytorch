@@ -56,8 +56,7 @@ class ASPP(nn.Module):
         branch4 = self.branch4(x)
         branch5 = F.interpolate(self.branch5(x), size=(x.size()[2], x.size()[3]), mode="bilinear", align_corners=False)
 
-        out = self.outconv(torch.cat([branch1, branch2, branch3, branch4, branch5], dim=1))
-        return out
+        return self.outconv(torch.cat([branch1, branch2, branch3, branch4, branch5], dim=1))
 
 
 class ResidualBlock(nn.Module):
