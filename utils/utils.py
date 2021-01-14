@@ -1,7 +1,9 @@
 import configparser
 import os
 
+import matplotlib.colors
 import matplotlib.pyplot as plt
+import numpy as np
 import torch
 import torch.utils.data
 import torchvision
@@ -31,6 +33,7 @@ def load_config():
     return model_name, config
 
 
+# 모델 불러오기
 def get_model(model_name: str, num_classes: int, pretrained: str = None) -> torch.nn.Module:
     if model_name == 'UNet':
         model = models.unet.UNet(num_classes)
@@ -45,6 +48,43 @@ def get_model(model_name: str, num_classes: int, pretrained: str = None) -> torc
         else:
             print('FileNotFound: pretrained_weights')
     return model
+
+
+# Cityscapes 데이터셋 라벨 색상 불러오기
+def get_cityscapes_label_colormap(short=False):
+    colormap = np.zeros((20, 3), dtype=np.uint8)
+    if not short:
+        colormap[0] = [0, 0, 0]
+        colormap[1] = [128, 64, 128]
+        colormap[2] = [244, 35, 232]
+        colormap[3] = [70, 70, 70]
+        colormap[4] = [102, 102, 156]
+        colormap[5] = [190, 153, 153]
+        colormap[6] = [153, 153, 153]
+        colormap[7] = [250, 170, 30]
+        colormap[8] = [220, 220, 0]
+        colormap[9] = [107, 142, 35]
+        colormap[10] = [152, 251, 152]
+        colormap[11] = [70, 130, 180]
+        colormap[12] = [220, 20, 60]
+        colormap[13] = [255, 0, 0]
+        colormap[14] = [0, 0, 142]
+        colormap[15] = [0, 0, 70]
+        colormap[16] = [0, 60, 100]
+        colormap[17] = [0, 80, 100]
+        colormap[18] = [0, 0, 230]
+        colormap[19] = [119, 11, 32]
+    else:
+        colormap[0] = [0, 0, 0]
+        colormap[1] = [128, 64, 128]
+        colormap[2] = [70, 70, 70]
+        colormap[3] = [250, 170, 30]
+        colormap[4] = [107, 142, 35]
+        colormap[5] = [70, 130, 180]
+        colormap[6] = [220, 20, 60]
+        colormap[7] = [0, 0, 142]
+
+    matplotlib.colors.ListedColormap(colormap)
 
 
 # Cityscapes 데이터셋 설정
