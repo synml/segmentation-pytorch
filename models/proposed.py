@@ -64,7 +64,7 @@ class Proposed(nn.Module):
         super(Proposed, self).__init__()
         resnet34 = torchvision.models.resnet34(pretrained=True)
 
-        self.initial_conv = self.double_conv(3, 64, batch_norm=False)
+        self.initial_conv = self.double_conv(3, 64)
         self.encode1 = resnet34.layer1  # 64
         self.encode2 = resnet34.layer2  # 128
         self.encode3 = resnet34.layer3  # 256
@@ -82,23 +82,15 @@ class Proposed(nn.Module):
 
         self.classifier = nn.Conv2d(64, num_classes, kernel_size=1)
 
-    def double_conv(self, in_channels: int, out_channels: int, batch_norm=True):
-        if batch_norm:
-            return nn.Sequential(
-                nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
-                nn.BatchNorm2d(out_channels),
-                nn.ReLU(inplace=True),
-                nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
-                nn.BatchNorm2d(out_channels),
-                nn.ReLU(inplace=True)
-            )
-        else:
-            return nn.Sequential(
-                nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
-                nn.ReLU(inplace=True),
-                nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
-                nn.ReLU(inplace=True)
-            )
+    def double_conv(self, in_channels: int, out_channels: int):
+        return nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True)
+        )
 
     def forward(self, x):
         # Encoder
