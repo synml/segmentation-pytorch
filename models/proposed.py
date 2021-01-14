@@ -59,27 +59,6 @@ class ASPP(nn.Module):
         return self.outconv(torch.cat([branch1, branch2, branch3, branch4, branch5], dim=1))
 
 
-class ResidualBlock(nn.Module):
-    def __init__(self, in_channels: int, out_channels: int):
-        super(ResidualBlock, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1)
-        self.relu1 = nn.ReLU(inplace=True)
-        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1)
-        self.relu2 = nn.ReLU(inplace=True)
-
-    def forward(self, x):
-        identity = x
-
-        out = self.conv1(x)
-        out = self.relu1(out)
-        out = self.conv2(out)
-
-        out += identity
-        out = self.relu2(out)
-
-        return out
-
-
 class Proposed(nn.Module):
     def __init__(self, num_classes: int):
         super(Proposed, self).__init__()
@@ -120,14 +99,6 @@ class Proposed(nn.Module):
                 nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
                 nn.ReLU(inplace=True)
             )
-
-    def make_layer(self, in_channels, out_channels, num_blocks):
-        layers = [nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1)]
-
-        for _ in range(num_blocks):
-            layers.append(ResidualBlock(out_channels, out_channels))
-
-        return nn.Sequential(*layers)
 
     def forward(self, x):
         # Encoder
