@@ -1,5 +1,6 @@
 import os
 
+import matplotlib.colors
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
 import torch.utils.data
@@ -26,6 +27,9 @@ if __name__ == '__main__':
         image_name = image_path.replace('\\', '/').split('/')[-1]
         image_names.append(image_name)
 
+    # label colormap 설정
+    cmap = matplotlib.colors.ListedColormap(utils.utils.get_cityscapes_label_colormap(short=True))
+
     # 예측 결과 저장
     step = 0
     result_dir = os.path.join('demo', model_name.lower())
@@ -48,6 +52,6 @@ if __name__ == '__main__':
         # 1 배치단위 처리
         assert masks.shape[0] == masks_pred.shape[0]
         for i in range(masks.shape[0]):
-            plt.imsave(os.path.join(result_dir, image_names[step]), masks_pred[i].cpu())
-            plt.imsave(os.path.join(groundtruth_dir, image_names[step]), masks[i])
+            plt.imsave(os.path.join(result_dir, image_names[step]), masks_pred[i].cpu(), cmap=cmap)
+            plt.imsave(os.path.join(groundtruth_dir, image_names[step]), masks[i], cmap=cmap)
             step += 1
