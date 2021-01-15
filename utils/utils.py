@@ -1,7 +1,6 @@
 import configparser
 import os
 
-import matplotlib.colors
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
@@ -52,8 +51,8 @@ def get_model(model_name: str, num_classes: int, pretrained: str = None) -> torc
 
 # Cityscapes 데이터셋 라벨 색상 불러오기
 def get_cityscapes_label_colormap(short=False):
-    colormap = np.zeros((20, 3), dtype=np.uint8)
     if not short:
+        colormap = np.zeros((20, 3), dtype=np.uint8)
         colormap[0] = [0, 0, 0]
         colormap[1] = [128, 64, 128]
         colormap[2] = [244, 35, 232]
@@ -75,6 +74,7 @@ def get_cityscapes_label_colormap(short=False):
         colormap[18] = [0, 0, 230]
         colormap[19] = [119, 11, 32]
     else:
+        colormap = np.zeros((8, 3), dtype=np.uint8)
         colormap[0] = [0, 0, 0]
         colormap[1] = [128, 64, 128]
         colormap[2] = [70, 70, 70]
@@ -84,7 +84,7 @@ def get_cityscapes_label_colormap(short=False):
         colormap[6] = [220, 20, 60]
         colormap[7] = [0, 0, 142]
 
-    matplotlib.colors.ListedColormap(colormap)
+    return np.divide(colormap, 255).tolist()
 
 
 # Cityscapes 데이터셋 설정
