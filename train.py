@@ -11,15 +11,15 @@ import eval
 
 if __name__ == '__main__':
     # 0. Load config
-    model_name, config = utils.utils.load_config()
-    print('Activated model: {}'.format(model_name))
+    config = utils.utils.load_config()
+    print('Activated model: {}'.format(config['model_name']))
 
     # 1. Dataset
     trainset, trainloader, testset, testloader = utils.utils.init_cityscapes_dataset(config)
 
     # 2. Model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = utils.utils.get_model(model_name, config['num_classes']).to(device)
+    model = utils.utils.get_model(config['model_name'], config['num_classes']).to(device)
 
     # 3. Loss function, optimizer, lr scheduler
     criterion = nn.CrossEntropyLoss()
@@ -27,7 +27,7 @@ if __name__ == '__main__':
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, min_lr=0.0001)
 
     # 4. Tensorboard
-    writer = torch.utils.tensorboard.SummaryWriter(os.path.join('runs', model_name))
+    writer = torch.utils.tensorboard.SummaryWriter(os.path.join('runs', config['model_name']))
     writer.add_graph(model, trainloader.__iter__().__next__()[0].to(device))
 
     # 5. Train and evaluate
@@ -69,6 +69,6 @@ if __name__ == '__main__':
         if miou > prev_miou:
             os.makedirs('weights', exist_ok=True)
             torch.save(model.state_dict(),
-                       os.path.join('weights', '{}_best.pth'.format(model_name)))
+                       os.path.join('weights', '{}_best.pth'.format(config['model_name'])))
             prev_miou = miou
     writer.close()

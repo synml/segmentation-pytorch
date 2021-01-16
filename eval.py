@@ -87,22 +87,22 @@ def evaluate(model, testloader, num_classes: int, device):
 
 if __name__ == '__main__':
     # 0. Load config
-    model_name, config = utils.utils.load_config()
-    print('Activated model: {}'.format(model_name))
+    config = utils.utils.load_config()
+    print('Activated model: {}'.format(config['model_name']))
 
     # 1. Dataset
     _, _, testset, testloader = utils.utils.init_cityscapes_dataset(config)
 
     # 2. Model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = utils.utils.get_model(model_name, config['num_classes'], config['pretrained_weights']).to(device)
+    model = utils.utils.get_model(config['model_name'], config['num_classes'], config['pretrained_weights']).to(device)
 
     # 모델 평가
     val_loss, iou, miou, fps = evaluate(model, testloader, config['num_classes'], device)
 
     # 평가 결과를 csv 파일로 저장
     os.makedirs('result', exist_ok=True)
-    with open(os.path.join('result', '{}.csv'.format(model_name)), mode='w') as f:
+    with open(os.path.join('result', '{}.csv'.format(config['model_name'])), mode='w') as f:
         writer = csv.writer(f, delimiter=',', lineterminator='\n')
 
         writer.writerow(['Class Number', 'Class Name', 'IoU'])

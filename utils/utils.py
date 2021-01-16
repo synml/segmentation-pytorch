@@ -20,6 +20,8 @@ def load_config():
 
     model_name = parser['model']['activate_model']
     config = {
+        'dataset_root': parser['dataset']['root'],
+        'model_name': model_name,
         'batch_size': parser.getint(model_name, 'batch_size'),
         'epoch': parser.getint(model_name, 'epoch'),
         'image_size': (int(parser[model_name]['image_size'].split('x')[1]),
@@ -29,7 +31,7 @@ def load_config():
         'num_workers': parser.getint(model_name, 'num_workers'),
         'pretrained_weights': parser[model_name]['pretrained_weights'],
     }
-    return model_name, config
+    return config
 
 
 # 모델 불러오기
@@ -98,7 +100,7 @@ def init_cityscapes_dataset(config: dict):
         torchvision.transforms.Resize(config['image_size'], interpolation=0),
         torchvision.transforms.ToTensor(),
     ])
-    trainset = utils.datasets.Cityscapes(root='../../data/cityscapes',
+    trainset = utils.datasets.Cityscapes(root=config['dataset_root'],
                                          split='train',
                                          mode='fine',
                                          target_type='semantic',
@@ -109,7 +111,7 @@ def init_cityscapes_dataset(config: dict):
                                               shuffle=True,
                                               num_workers=config['num_workers'],
                                               pin_memory=True)
-    testset = utils.datasets.Cityscapes(root='../../data/cityscapes',
+    testset = utils.datasets.Cityscapes(root=config['dataset_root'],
                                         split='val',
                                         mode='fine',
                                         target_type='semantic',

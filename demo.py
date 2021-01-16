@@ -11,15 +11,15 @@ import utils.utils
 
 if __name__ == '__main__':
     # 0. Load config
-    model_name, config = utils.utils.load_config()
-    print('Activated model: {}'.format(model_name))
+    config = utils.utils.load_config()
+    print('Activated model: {}'.format(config['model_name']))
 
     # 1. Dataset
     _, _, testset, testloader = utils.utils.init_cityscapes_dataset(config)
 
     # 2. Model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = utils.utils.get_model(model_name, config['num_classes'], config['pretrained_weights']).to(device)
+    model = utils.utils.get_model(config['model_name'], config['num_classes'], config['pretrained_weights']).to(device)
 
     # 이미지 이름 불러오기
     image_names = []
@@ -32,7 +32,7 @@ if __name__ == '__main__':
 
     # 예측 결과 저장
     step = 0
-    result_dir = os.path.join('demo', model_name.lower())
+    result_dir = os.path.join('demo', config['model_name'].lower())
     groundtruth_dir = os.path.join('demo', 'groundtruth')
     os.makedirs(result_dir, exist_ok=True)
     os.makedirs(groundtruth_dir, exist_ok=True)
