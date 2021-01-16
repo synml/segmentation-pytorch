@@ -65,10 +65,12 @@ if __name__ == '__main__':
         writer.add_scalar('lr', optimizer.param_groups[0]['lr'], epoch)
         scheduler.step(val_loss)
 
+        # 가장 마지막 epoch의 모델을 저장
+        os.makedirs('weights', exist_ok=True)
+        torch.save(model.state_dict(), os.path.join('weights', '{}_last.pth'.format(config['model_name'])))
+
         # Best mIoU를 가진 모델을 저장
         if miou > prev_miou:
-            os.makedirs('weights', exist_ok=True)
-            torch.save(model.state_dict(),
-                       os.path.join('weights', '{}_best.pth'.format(config['model_name'])))
+            torch.save(model.state_dict(), os.path.join('weights', '{}_best.pth'.format(config['model_name'])))
             prev_miou = miou
     writer.close()
