@@ -123,40 +123,6 @@ def init_cityscapes_dataset(config: dict):
     return trainset, trainloader, testset, testloader
 
 
-# VOC 데이터셋 설정
-def init_voc_dataset(config: dict):
-    transform = torchvision.transforms.Compose([
-        torchvision.transforms.Resize(config['image_size']),
-        torchvision.transforms.ToTensor(),
-        torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-    ])
-    target_transform = torchvision.transforms.Compose([
-        torchvision.transforms.Resize(config['image_size'], interpolation=0),
-        torchvision.transforms.ToTensor(),
-    ])
-    trainset = utils.datasets.VOCSegmentation(root='../../data/voc',
-                                              year='2012',
-                                              image_set='trainval',
-                                              transform=transform,
-                                              target_transform=target_transform)
-    trainloader = torch.utils.data.DataLoader(trainset,
-                                              batch_size=config['batch_size'],
-                                              shuffle=True,
-                                              num_workers=config['num_workers'],
-                                              pin_memory=True)
-    testset = utils.datasets.VOCSegmentation(root='../../data/voc',
-                                             year='2007',
-                                             image_set='test',
-                                             transform=transform,
-                                             target_transform=target_transform)
-    testloader = torch.utils.data.DataLoader(testset,
-                                             batch_size=config['batch_size'],
-                                             shuffle=False,
-                                             num_workers=config['num_workers'])
-
-    return trainset, trainloader, testset, testloader
-
-
 # 데이터셋 불러오는 코드 검증
 def show_dataset(images: torch.Tensor, masks: torch.Tensor):
     def make_plt_subplot(nrows: int, ncols: int, index: int, title: str, image):
