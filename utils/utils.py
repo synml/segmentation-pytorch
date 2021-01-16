@@ -14,7 +14,7 @@ import utils.datasets
 
 # 설정 불러오기
 def load_config():
-    config_file = 'models/models.ini'
+    config_file = 'config.ini'
     parser = configparser.ConfigParser()
     parser.read(config_file, encoding='utf-8')
 
