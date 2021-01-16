@@ -38,13 +38,13 @@ class ASPP(nn.Module):
         # 5번 branch = AdaptiveAvgPool2d → 1x1 convolution → BatchNorm → ReLu
         self.branch5 = nn.Sequential(
             nn.AdaptiveAvgPool2d(1),
-            nn.Conv2d(in_channels, in_channels // 2, kernel_size=1),
-            nn.BatchNorm2d(in_channels // 2),
+            nn.Conv2d(in_channels, out_channels, kernel_size=1),
+            nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True)
         )
         # 최종 출력 convolution
         self.outconv = nn.Sequential(
-            nn.Conv2d(out_channels * 4 + in_channels // 2, out_channels, kernel_size=1),
+            nn.Conv2d(out_channels * 5, out_channels, kernel_size=1),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True)
         )
