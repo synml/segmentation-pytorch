@@ -9,12 +9,14 @@ class UNet(nn.Module):
     def __init__(self, num_classes: int):
         super(UNet, self).__init__()
 
+        # Encoder
         self.encode1 = self.double_conv(3, 64)
         self.encode2 = self.double_conv(64, 128)
         self.encode3 = self.double_conv(128, 256)
         self.encode4 = self.double_conv(256, 512)
         self.encode_end = self.double_conv(512, 1024)
 
+        # Decoder
         self.upconv4 = nn.ConvTranspose2d(1024, 512, kernel_size=2, stride=2)
         self.decode4 = self.double_conv(1024, 512)
 
@@ -27,15 +29,8 @@ class UNet(nn.Module):
         self.upconv1 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
         self.decode1 = self.double_conv(128, 64)
 
+        # Classifier
         self.classifier = nn.Conv2d(64, num_classes, kernel_size=1)
-
-    def double_conv(self, in_channels: int, out_channels: int):
-        return nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(inplace=True)
-        )
 
     def forward(self, x):
         # Encoder
@@ -54,6 +49,14 @@ class UNet(nn.Module):
         # Classifier
         out = self.classifier(out)
         return out
+
+    def double_conv(self, in_channels: int, out_channels: int):
+        return nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(inplace=True)
+        )
 
 
 if __name__ == '__main__':
