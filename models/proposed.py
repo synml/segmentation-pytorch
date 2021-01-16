@@ -35,7 +35,7 @@ class ASPP(nn.Module):
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True)
         )
-        # 5번 branch = AdaptiveAvgPool2d → 1x1 convolution → BatchNorm → ReLu
+        # 5번 branch = Global Average Pooling → 1x1 convolution → BatchNorm → ReLu
         self.branch5 = nn.Sequential(
             nn.AdaptiveAvgPool2d(1),
             nn.Conv2d(in_channels, out_channels, kernel_size=1),
@@ -62,15 +62,18 @@ class ASPP(nn.Module):
 class Proposed(nn.Module):
     def __init__(self, num_classes: int):
         super(Proposed, self).__init__()
+        # Backbone
         resnet34 = torchvision.models.resnet34(pretrained=True)
-
         self.initial_conv = self.double_conv(3, 64)
         self.encode1 = resnet34.layer1  # 64
-        self.encode2 = resnet34.layer2  # 128
-        self.encode3 = resnet34.layer3  # 256
-        self.encode4 = resnet34.layer4  # 512
+        self.encode2 = resnet34.layer2  # 128, 1/2
+        self.encode3 = resnet34.layer3  # 256, 1/4
+        self.encode4 = resnet34.layer4  # 512, 1/8
+
+        # ASPP
         self.aspp = ASPP(512, 512)
 
+        # Decoder
         self.upconv3 = nn.ConvTranspose2d(512, 256, kernel_size=2, stride=2)
         self.decode3 = self.double_conv(512, 256)
 
@@ -80,17 +83,8 @@ class Proposed(nn.Module):
         self.upconv1 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
         self.decode1 = self.double_conv(128, 64)
 
+        # Classifier
         self.classifier = nn.Conv2d(64, num_classes, kernel_size=1)
-
-    def double_conv(self, in_channels: int, out_channels: int):
-        return nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True)
-        )
 
     def forward(self, x):
         # Encoder
@@ -107,6 +101,22 @@ class Proposed(nn.Module):
         # Classifier
         out = self.classifier(out)
         return out
+
+    def double_conv(self, in_channels: int, out_channels: int):
+        return nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True)
+        )
+
+    def make_channel_adjuster(self, in_channels: int, out_channels: int):
+        return nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=1),
+            nn.Conv2d(out_channels, out_channels, kernel_size=1)
+        )
 
 
 if __name__ == '__main__':
