@@ -2,8 +2,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.tensorboard
-import torchvision
 import torchsummary
+
+import models.backbone
 
 
 # ASPP(Atrous Spatial Pyramid Pooling) Module
@@ -63,25 +64,25 @@ class Proposed(nn.Module):
     def __init__(self, num_classes: int):
         super(Proposed, self).__init__()
         # Backbone
-        resnet34 = torchvision.models.resnet34(pretrained=True)
-        self.initial_conv = self.double_conv(3, 64)
-        self.encode1 = resnet34.layer1  # 64
-        self.encode2 = resnet34.layer2  # 128, 1/2
-        self.encode3 = resnet34.layer3  # 256, 1/4
-        self.encode4 = resnet34.layer4  # 512, 1/8
+        backbone = models.backbone.backbone(num_classes)
+        self.initial_conv = backbone.initial_conv
+        self.encode1 = backbone.layer1  # 64
+        self.encode2 = backbone.layer2  # 128, 1/2
+        self.encode3 = backbone.layer3  # 256, 1/4
+        self.encode4 = backbone.layer4  # 512, 1/8
 
         # ASPP
         self.aspp = ASPP(512, 512)
 
         # Decoder
         self.upconv3 = nn.ConvTranspose2d(512, 256, kernel_size=2, stride=2)
-        self.decode3 = self.double_conv(512, 256)
+        self.decode3 = self.make_decoder(512, 256)
 
         self.upconv2 = nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2)
-        self.decode2 = self.double_conv(256, 128)
+        self.decode2 = self.make_decoder(256, 128)
 
         self.upconv1 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
-        self.decode1 = self.double_conv(128, 64)
+        self.decode1 = self.make_decoder(128, 64)
 
         # Classifier
         self.classifier = nn.Conv2d(64, num_classes, kernel_size=1)
@@ -102,7 +103,7 @@ class Proposed(nn.Module):
         out = self.classifier(out)
         return out
 
-    def double_conv(self, in_channels: int, out_channels: int):
+    def make_decoder(self, in_channels: int, out_channels: int):
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(out_channels),
