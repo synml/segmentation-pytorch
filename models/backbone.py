@@ -50,14 +50,6 @@ class Backbone(nn.Module):
         )
 
 
-def backbone(num_classes: int, pretrained=None):
-    model = Backbone(num_classes)
-    if pretrained is not None:
-        assert isinstance(pretrained, str)
-        model.load_state_dict(torch.load(pretrained))
-    return model
-
-
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = Backbone(8).to(device)
