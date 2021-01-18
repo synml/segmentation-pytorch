@@ -8,7 +8,6 @@ import torchsummary
 class UNet(nn.Module):
     def __init__(self, num_classes: int):
         super(UNet, self).__init__()
-
         # Encoder
         self.encode1 = self.double_conv(3, 64)
         self.encode2 = self.double_conv(64, 128)
