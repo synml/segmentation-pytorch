@@ -9,6 +9,7 @@ import torchvision
 
 import models.unet
 import models.proposed
+import models.backbone
 import utils.datasets
 
 
@@ -40,10 +41,13 @@ def get_model(model_name: str, num_classes: int, pretrained: str = None) -> torc
         model = models.unet.UNet(num_classes)
     elif model_name == 'Proposed':
         model = models.proposed.Proposed(num_classes)
+    elif model_name == 'Backbone':
+        model = models.backbone.Backbone(num_classes)
     else:
         raise NameError('Wrong model_name.')
 
     if pretrained is not None:
+        assert isinstance(pretrained, str)
         if os.path.exists(pretrained):
             model.load_state_dict(torch.load(pretrained))
         else:
