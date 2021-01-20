@@ -38,7 +38,7 @@ def load_config():
 
 # 모델 불러오기
 def get_model(model_name: str, num_classes: int, pretrained: str = None) -> torch.nn.Module:
-    assert isinstance(model_name, str) and isinstance(num_classes, int) and isinstance(pretrained, str)
+    assert isinstance(model_name, str) and isinstance(num_classes, int)
 
     if model_name == 'UNet':
         model = models.unet.UNet(num_classes)
@@ -50,6 +50,7 @@ def get_model(model_name: str, num_classes: int, pretrained: str = None) -> torc
         raise NameError('Wrong model_name.')
 
     if pretrained is not None:
+        assert isinstance(pretrained, str)
         if os.path.exists(pretrained):
             model.load_state_dict(torch.load(pretrained))
         else:
