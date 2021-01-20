@@ -33,6 +33,7 @@ if __name__ == '__main__':
     # 5. Train and evaluate
     log_loss = tqdm.tqdm(total=0, position=2, bar_format='{desc}', leave=False)
     prev_miou = 0.0
+    prev_val_loss = 0.0
     for epoch in tqdm.tqdm(range(config['epoch']), desc='Epoch'):
         model.train()
 
@@ -73,4 +74,9 @@ if __name__ == '__main__':
         if miou > prev_miou:
             torch.save(model.state_dict(), os.path.join('weights', '{}_best.pth'.format(config['model_name'])))
             prev_miou = miou
+
+        # Best val_loss를 가진 모델을 저장
+        if val_loss > prev_val_loss:
+            torch.save(model.state_dict(), os.path.join('weights', '{}_val_best.pth'.format(config['model_name'])))
+            prev_val_loss = val_loss
     writer.close()
