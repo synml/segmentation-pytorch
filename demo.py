@@ -15,7 +15,8 @@ if __name__ == '__main__':
     print('Activated model: {}'.format(config['model_name']))
 
     # 1. Dataset
-    _, _, testset, testloader = utils.utils.init_cityscapes_dataset(config)
+    dataset = utils.utils.Cityscapes(config)
+    _, _, testset, testloader = dataset.set_cityscapes()
 
     # 2. Model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -28,7 +29,7 @@ if __name__ == '__main__':
         image_names.append(image_name)
 
     # label colormap 설정
-    cmap = matplotlib.colors.ListedColormap(utils.utils.get_cityscapes_label_colormap(short=True))
+    cmap = matplotlib.colors.ListedColormap(dataset.get_cityscapes_colormap(short=True))
 
     # 예측 결과 저장
     step = 0

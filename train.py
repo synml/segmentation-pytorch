@@ -15,7 +15,8 @@ if __name__ == '__main__':
     print('Activated model: {}'.format(config['model_name']))
 
     # 1. Dataset
-    trainset, trainloader, testset, testloader = utils.utils.init_cityscapes_dataset(config)
+    dataset = utils.utils.Cityscapes(config)
+    trainset, trainloader, testset, testloader = dataset.set_cityscapes()
 
     # 2. Model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

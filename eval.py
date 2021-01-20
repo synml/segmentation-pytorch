@@ -10,7 +10,6 @@ import torch.utils.data
 import tqdm
 
 import utils.utils
-import utils.datasets
 
 
 class EvaluationMetrics:
@@ -91,7 +90,8 @@ if __name__ == '__main__':
     print('Activated model: {}'.format(config['model_name']))
 
     # 1. Dataset
-    _, _, testset, testloader = utils.utils.init_cityscapes_dataset(config)
+    dataset = utils.utils.Cityscapes(config)
+    _, _, testset, testloader = dataset.set_cityscapes()
 
     # 2. Model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -107,7 +107,7 @@ if __name__ == '__main__':
 
         writer.writerow(['Class Number', 'Class Name', 'IoU'])
         for class_num, iou_value in enumerate(iou, start=1):
-            writer.writerow([class_num, utils.datasets.Cityscapes.class_names_short[class_num], iou_value])
+            writer.writerow([class_num, dataset.class_names_short[class_num], iou_value])
         writer.writerow(['mIoU', miou, ' '])
         writer.writerow(['Validation loss', val_loss, ' '])
         writer.writerow(['FPS', fps, ' '])
