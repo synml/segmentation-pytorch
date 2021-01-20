@@ -178,7 +178,8 @@ def show_dataset(images: torch.Tensor, masks: torch.Tensor):
 
     to_pil_image = torchvision.transforms.ToPILImage()
 
+    assert images.shape[0] == masks.shape[0]
     for i in range(images.shape[0]):
         make_plt_subplot(1, 2, 1, 'Input image', to_pil_image(images[i].squeeze().cpu()))
-        make_plt_subplot(1, 2, 2, 'Groundtruth', to_pil_image(masks[i].squeeze().cpu()))
+        make_plt_subplot(1, 2, 2, 'Groundtruth', to_pil_image(masks[i].cpu()))
         plt.show()
