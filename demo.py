@@ -6,21 +6,20 @@ import torch.nn.functional as F
 import torch.utils.data
 import tqdm
 
-import utils.utils
-
+import utils
 
 if __name__ == '__main__':
     # 0. Load config
-    config = utils.utils.load_config()
+    config = utils.load_config()
     print('Activated model: {}'.format(config['model_name']))
 
     # 1. Dataset
-    dataset = utils.utils.Cityscapes(config)
+    dataset = utils.Cityscapes(config)
     _, _, testset, testloader = dataset.set_cityscapes()
 
     # 2. Model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = utils.utils.get_model(config['model_name'], config['num_classes'], config['pretrained_weights']).to(device)
+    model = utils.get_model(config['model_name'], config['num_classes'], config['pretrained_weights']).to(device)
 
     # 이미지 이름 불러오기
     image_names = []

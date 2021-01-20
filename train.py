@@ -5,22 +5,21 @@ import torch.utils.data
 import torch.utils.tensorboard
 import tqdm
 
-import utils.utils
+import utils
 import eval
-
 
 if __name__ == '__main__':
     # 0. Load config
-    config = utils.utils.load_config()
+    config = utils.load_config()
     print('Activated model: {}'.format(config['model_name']))
 
     # 1. Dataset
-    dataset = utils.utils.Cityscapes(config)
+    dataset = utils.Cityscapes(config)
     trainset, trainloader, testset, testloader = dataset.set_cityscapes()
 
     # 2. Model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = utils.utils.get_model(config['model_name'], config['num_classes']).to(device)
+    model = utils.get_model(config['model_name'], config['num_classes']).to(device)
 
     # 3. Loss function, optimizer, lr scheduler
     criterion = nn.CrossEntropyLoss()
