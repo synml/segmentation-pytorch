@@ -12,39 +12,33 @@ class ASPP(nn.Module):
     def __init__(self, in_channels: int, out_channels: int):
         super(ASPP, self).__init__()
 
-        # 1번 branch = 1x1 convolution → BatchNorm → ReLu
         self.branch1 = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=1),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True)
         )
-        # 2번 branch = 3x3 atrous convolution → BatchNorm → ReLu
         self.branch2 = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=3, dilation=3),
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=3, dilation=3),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True)
         )
-        # 3번 branch = 3x3 atrous convolution → BatchNorm → ReLu
         self.branch3 = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=6, dilation=6),
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=6, dilation=6),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True)
         )
-        # 4번 branch = 3x3 atrous convolution → BatchNorm → ReLu
         self.branch4 = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=9, dilation=9),
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=9, dilation=9),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True)
         )
-        # 5번 branch = Global Average Pooling → 1x1 convolution → BatchNorm → ReLu
         self.branch5 = nn.Sequential(
             nn.AdaptiveAvgPool2d(1),
             nn.Conv2d(in_channels, out_channels, kernel_size=1),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True)
         )
-        # 최종 출력 convolution
-        self.outconv = nn.Sequential(
+        self.final_conv = nn.Sequential(
             nn.Conv2d(out_channels * 5, out_channels, kernel_size=1),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True)
@@ -57,7 +51,8 @@ class ASPP(nn.Module):
         branch4 = self.branch4(x)
         branch5 = F.interpolate(self.branch5(x), size=(x.size()[2], x.size()[3]), mode="bilinear", align_corners=False)
 
-        return self.outconv(torch.cat([branch1, branch2, branch3, branch4, branch5], dim=1))
+        out = self.final_conv(torch.cat([branch1, branch2, branch3, branch4, branch5], dim=1))
+        return out
 
 
 class Proposed(nn.Module):
@@ -89,7 +84,8 @@ class Proposed(nn.Module):
 
     def forward(self, x):
         # Encoder
-        encode1 = self.encode1(self.initial_conv(x))
+        initial_conv = self.initial_conv(x)
+        encode1 = self.encode1(initial_conv)
         encode2 = self.encode2(encode1)
         encode3 = self.encode3(encode2)
         encode_end = self.aspp(self.encode4(encode3))

@@ -23,7 +23,8 @@ class Backbone(nn.Module):
 
     def forward(self, x):
         # Encoder
-        layer1 = self.layer1(self.initial_conv(x))
+        initial_conv = self.initial_conv(x)
+        layer1 = self.layer1(initial_conv)
         layer2 = self.layer2(layer1)
         layer3 = self.layer3(layer2)
         layer4 = self.layer4(layer3)
