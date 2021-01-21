@@ -54,7 +54,7 @@ def get_model(model_name: str, num_classes: int, pretrained: str = None) -> torc
         if os.path.exists(pretrained):
             model.load_state_dict(torch.load(pretrained))
         else:
-            print('FileNotFound: ' + model_name + ' pretrained_weights')
+            print('FileNotFound: pretrained_weights (' + model_name + ')')
     return model
 
 
