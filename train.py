@@ -5,8 +5,8 @@ import torch.utils.data
 import torch.utils.tensorboard
 import tqdm
 
-import utils
 import eval
+import utils
 
 if __name__ == '__main__':
     # 0. Load config

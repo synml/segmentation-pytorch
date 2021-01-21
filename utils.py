@@ -9,9 +9,9 @@ import torch.utils.data
 import torchvision
 import torchvision.transforms.functional
 
-import models.unet
-import models.proposed
 import models.backbone
+import models.proposed
+import models.unet
 
 
 # 설정 불러오기
