@@ -41,7 +41,7 @@ if __name__ == '__main__':
         masks.mul_(255).squeeze_(dim=1)
 
         # 이미지와 정답 정보를 GPU로 복사
-        images, masks = images.to(device), masks.type(torch.ByteTensor)
+        images, masks = images.to(device), masks.type(torch.LongTensor)
 
         # 예측
         with torch.no_grad():

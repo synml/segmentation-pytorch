@@ -42,7 +42,7 @@ if __name__ == '__main__':
             masks.mul_(255).squeeze_(dim=1)
 
             # 이미지와 정답 정보를 GPU로 복사
-            images, masks = images.to(device), masks.to(device, dtype=torch.uint8)
+            images, masks = images.to(device), masks.to(device, dtype=torch.int64)
 
             # 순전파 + 역전파 + 최적화
             optimizer.zero_grad()
