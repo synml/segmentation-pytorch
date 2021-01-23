@@ -84,8 +84,7 @@ class Proposed(nn.Module):
 
     def forward(self, x):
         # Encoder
-        initial_conv = self.initial_conv(x)
-        encode1 = self.encode1(initial_conv)
+        encode1 = self.encode1(self.initial_conv(x))
         encode2 = self.encode2(encode1)
         encode3 = self.encode3(encode2)
         encode_end = self.aspp(self.encode4(encode3))
