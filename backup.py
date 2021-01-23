@@ -22,6 +22,7 @@ except FileExistsError as e:
 
 # Backup
 move_directory('demo', backup_dir)
+move_directory('feature_maps', backup_dir)
 move_directory('runs', backup_dir)
 move_directory('weights', backup_dir)
 for file in glob.glob('result/*'):
