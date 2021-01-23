@@ -27,11 +27,16 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = utils.get_model(config['model_name'], config['num_classes'], config['pretrained_weights']).to(device)
 
-    # 이미지 가져오기
-    image, _ = testset[0]
+    # 이미지 불러오기
+    image_number = input('Enter the image number of the dataset>>> ')
+    if image_number == '':
+        image_number = 0
+    else:
+        image_number = int(image_number)
+    image, _ = testset[image_number]
     image = image.unsqueeze(0).to(device)
 
-    # 모델의 각 레이어에 있는 특징맵을 받아오기
+    # 모델의 각 계층에 특징맵을 받아오는 hook을 등록
     feature_maps = {}
     model.encode1.register_forward_hook(get_feature_maps(feature_maps, 'encode1'))
     model.encode2.register_forward_hook(get_feature_maps(feature_maps, 'encode2'))
@@ -42,23 +47,19 @@ if __name__ == '__main__':
     model.decode3.register_forward_hook(get_feature_maps(feature_maps, 'decode3'))
     model.decode2.register_forward_hook(get_feature_maps(feature_maps, 'decode2'))
     model.decode1.register_forward_hook(get_feature_maps(feature_maps, 'decode1'))
+    model.classifier.register_forward_hook(get_feature_maps(feature_maps, 'classifier'))
 
     # 예측
     with torch.no_grad():
         mask_pred = model(image)
-        mask_pred = F.log_softmax(mask_pred, dim=1)
-        mask_pred = mask_pred.detach().squeeze().cpu()
 
     # 각 계층의 feature maps 저장
     for layer in tqdm.tqdm(feature_maps.keys(), desc='Saving'):
         result_dir = os.path.join('feature_maps', config['model_name'], layer)
         os.makedirs(result_dir, exist_ok=True)
         feature_map = feature_maps[layer].squeeze().cpu()
+        if layer == 'classifier':
+            feature_map = F.log_softmax(feature_map, dim=0)
+
         for i in tqdm.tqdm(range(feature_map.size()[0]), desc='Channels', leave=False):
             plt.imsave(os.path.join(result_dir, '{}.png'.format(i + 1)), feature_map[i])
-
-    # Classifier feature map 저장
-    result_dir = os.path.join('feature_maps', config['model_name'], 'classifier')
-    os.makedirs(result_dir, exist_ok=True)
-    for i in range(mask_pred.size()[0]):
-        plt.imsave(os.path.join(result_dir, '{}.png'.format(i + 1)), mask_pred[i])
