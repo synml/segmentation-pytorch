@@ -6,8 +6,8 @@ import shutil
 def move_directory(src: str, dst):
     try:
         shutil.move(src, dst)
-    except FileNotFoundError as e:
-        print(e)
+    except FileNotFoundError:
+        pass
 
 
 # Set backup directory
@@ -24,6 +24,7 @@ except FileExistsError as e:
 move_directory('demo', backup_dir)
 move_directory('feature_maps', backup_dir)
 move_directory('runs', backup_dir)
-move_directory('weights', backup_dir)
 for file in glob.glob('result/*'):
+    shutil.move(file, backup_dir)
+for file in glob.glob('weights/*'):
     shutil.move(file, backup_dir)
