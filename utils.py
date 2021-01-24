@@ -37,24 +37,23 @@ def load_config():
 
 
 # 모델 불러오기
-def get_model(model_name: str, num_classes: int, pretrained: str = None) -> torch.nn.Module:
-    assert isinstance(model_name, str) and isinstance(num_classes, int)
+def get_model(config: dict, pretrained=False) -> torch.nn.Module:
+    assert isinstance(pretrained, bool)
 
-    if model_name == 'UNet':
-        model = models.unet.UNet(num_classes)
-    elif model_name == 'Proposed':
-        model = models.proposed.Proposed(num_classes)
-    elif model_name == 'Backbone':
-        model = models.backbone.Backbone(num_classes)
+    if config['model_name'] == 'UNet':
+        model = models.unet.UNet(config['num_classes'])
+    elif config['model_name'] == 'Proposed':
+        model = models.proposed.Proposed(config['num_classes'])
+    elif config['model_name'] == 'Backbone':
+        model = models.backbone.Backbone(config['num_classes'])
     else:
         raise NameError('Wrong model_name.')
 
-    if pretrained is not None:
-        assert isinstance(pretrained, str)
-        if os.path.exists(pretrained):
-            model.load_state_dict(torch.load(pretrained))
+    if pretrained:
+        if os.path.exists(config['pretrained_weights']):
+            model.load_state_dict(torch.load(config['pretrained_weights']))
         else:
-            print('FileNotFound: pretrained_weights (' + model_name + ')')
+            print('FileNotFound: pretrained_weights (' + config['model_name'] + ')')
     return model
 
 
@@ -108,6 +107,7 @@ class Cityscapes:
 
     # Cityscapes 데이터셋 라벨 색상 불러오기
     def get_cityscapes_colormap(self, short=False):
+        assert isinstance(short, bool)
         if not short:
             colormap = np.zeros((20, 3), dtype=np.uint8)
             colormap[0] = [0, 0, 0]
