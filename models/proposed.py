@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import torch.utils.tensorboard
 import torchsummary
 
-import utils
+import models.backbone
 
 
 # ASPP(Atrous Spatial Pyramid Pooling) Module
@@ -59,7 +59,7 @@ class Proposed(nn.Module):
     def __init__(self, num_classes: int):
         super(Proposed, self).__init__()
         # Backbone
-        backbone = utils.get_model('Backbone', num_classes, 'weights/Backbone_best.pth')
+        backbone = models.backbone.load_backbone(num_classes, pretrained=True)
         self.initial_conv = backbone.initial_conv
         self.encode1 = backbone.layer1  # 64
         self.encode2 = backbone.layer2  # 128, 1/2

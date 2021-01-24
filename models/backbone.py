@@ -1,3 +1,5 @@
+import os
+
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.tensorboard
@@ -49,6 +51,16 @@ class Backbone(nn.Module):
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True)
         )
+
+
+def load_backbone(num_classes: int, pretrained=False):
+    model = Backbone(num_classes)
+    if pretrained:
+        if os.path.exists('weights/Backbone_best.pth'):
+            model.load_state_dict(torch.load('weights/Backbone_best.pth'))
+        else:
+            print('FileNotFound: pretrained_weights (Backbone)')
+    return model
 
 
 if __name__ == '__main__':
