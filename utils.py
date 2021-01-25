@@ -14,7 +14,6 @@ import models.proposed
 import models.unet
 
 
-# 설정 불러오기
 def load_config():
     with open('config.yaml') as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
@@ -25,7 +24,6 @@ def load_config():
     return config
 
 
-# 모델 불러오기
 def get_model(config: dict, pretrained=False) -> torch.nn.Module:
     assert isinstance(pretrained, bool)
 
@@ -36,7 +34,7 @@ def get_model(config: dict, pretrained=False) -> torch.nn.Module:
     elif config['model'] == 'Proposed':
         model = models.proposed.Proposed(config[config['model']]['num_classes'])
     else:
-        raise NameError('Wrong model_name.')
+        raise NameError('Wrong model name.')
 
     if pretrained:
         if os.path.exists(config[config['model']]['pretrained_weights']):
@@ -44,6 +42,20 @@ def get_model(config: dict, pretrained=False) -> torch.nn.Module:
         else:
             print('FileNotFound: pretrained_weights (' + config['model'] + ')')
     return model
+
+
+def get_optimizer(config: dict, model: torch.nn.Module):
+    cfg_optim: dict = config[config['model']]['optimizer']
+
+    if cfg_optim['name'] == 'SGD':
+        optimizer = torch.optim.SGD(model.parameters(), lr=cfg_optim['lr'],
+                                    momentum=cfg_optim['momentum'], weight_decay=cfg_optim['weight_decay'])
+    elif cfg_optim['name'] == 'Adam':
+        optimizer = torch.optim.Adam(model.parameters(), lr=cfg_optim['lr'], weight_decay=cfg_optim['weight_decay'])
+    else:
+        raise NameError('Wrong optimizer name.')
+
+    return optimizer
 
 
 class Cityscapes:

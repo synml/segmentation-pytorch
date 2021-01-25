@@ -26,6 +26,7 @@ Backbone:
   optimizer:
     name: Adam
     lr: 0.001
+    weight_decay: 0.00001
   scheduler:
     name: ReduceLROnPlateau
     min_lr: 0.0001
@@ -38,6 +39,7 @@ Proposed:
   optimizer:
     name: Adam
     lr: 0.001
+    weight_decay: 0.00001
   scheduler:
     name: ReduceLROnPlateau
     min_lr: 0.0001
