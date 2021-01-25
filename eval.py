@@ -115,4 +115,4 @@ if __name__ == '__main__':
         writer.writerow(['mIoU', miou, ' '])
         writer.writerow(['Validation loss', val_loss, ' '])
         writer.writerow(['FPS', fps, ' '])
-    print('Saved evaluation result')
+    print('Saved evaluation result.')
