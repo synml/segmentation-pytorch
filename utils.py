@@ -30,17 +30,17 @@ def get_model(config: dict, pretrained=False) -> torch.nn.Module:
     assert isinstance(pretrained, bool)
 
     if config['model'] == 'UNet':
-        model = models.unet.UNet(config['model']['num_classes'])
+        model = models.unet.UNet(config[config['model']]['num_classes'])
     elif config['model'] == 'Proposed':
-        model = models.proposed.Proposed(config['model']['num_classes'])
+        model = models.proposed.Proposed(config[config['model']]['num_classes'])
     elif config['model'] == 'Backbone':
-        model = models.backbone.Backbone(config['model']['num_classes'])
+        model = models.backbone.Backbone(config[config['model']]['num_classes'])
     else:
         raise NameError('Wrong model_name.')
 
     if pretrained:
-        if os.path.exists(config['model']['pretrained_weights']):
-            model.load_state_dict(torch.load(config['model']['pretrained_weights']))
+        if os.path.exists(config[config['model']]['pretrained_weights']):
+            model.load_state_dict(torch.load(config[config['model']]['pretrained_weights']))
         else:
             print('FileNotFound: pretrained_weights (' + config['model'] + ')')
     return model
@@ -77,7 +77,7 @@ class Cityscapes:
                                                    target_type='semantic',
                                                    transforms=self.transforms)
         trainloader = torch.utils.data.DataLoader(trainset,
-                                                  batch_size=self.config['model']['batch_size'],
+                                                  batch_size=self.config[self.config['model']]['batch_size'],
                                                   shuffle=True,
                                                   num_workers=self.config['dataset']['num_workers'],
                                                   pin_memory=True)
@@ -88,7 +88,7 @@ class Cityscapes:
                                                   transform=self.transform,
                                                   target_transform=self.target_transform)
         testloader = torch.utils.data.DataLoader(testset,
-                                                 batch_size=self.config['model']['batch_size'],
+                                                 batch_size=self.config[self.config['model']]['batch_size'],
                                                  shuffle=False,
                                                  num_workers=self.config['dataset']['num_workers'])
 

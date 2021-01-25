@@ -99,7 +99,7 @@ if __name__ == '__main__':
     model.eval()
 
     # 모델 평가
-    val_loss, iou, miou, fps = evaluate(model, testloader, config['model']['num_classes'], device)
+    val_loss, iou, miou, fps = evaluate(model, testloader, config[config['model']]['num_classes'], device)
 
     # 평가 결과를 csv 파일로 저장
     os.makedirs('result', exist_ok=True)

@@ -23,7 +23,7 @@ if __name__ == '__main__':
 
     # 3. Loss function, optimizer, lr scheduler
     criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=config['model']['lr'])
+    optimizer = torch.optim.Adam(model.parameters(), lr=config[config['model']]['lr'])
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, min_lr=0.0001)
 
     # 4. Tensorboard
@@ -34,7 +34,7 @@ if __name__ == '__main__':
     log_loss = tqdm.tqdm(total=0, position=2, bar_format='{desc}', leave=False)
     prev_miou = 0.0
     prev_val_loss = 0.0
-    for epoch in tqdm.tqdm(range(config['model']['epoch']), desc='Epoch'):
+    for epoch in tqdm.tqdm(range(config[config['model']]['epoch']), desc='Epoch'):
         model.train()
 
         for batch_idx, (images, masks) in enumerate(tqdm.tqdm(trainloader, desc='Train', leave=False)):
@@ -58,7 +58,7 @@ if __name__ == '__main__':
             writer.add_scalar('Train Loss', loss.item(), len(trainloader) * epoch + batch_idx)
 
         # 모델 평가
-        val_loss, _, miou, _ = eval.evaluate(model, testloader, config['model']['num_classes'], device)
+        val_loss, _, miou, _ = eval.evaluate(model, testloader, config[config['model']]['num_classes'], device)
         writer.add_scalar('Validation Loss', val_loss, epoch)
         writer.add_scalar('mIoU', miou, epoch)
 
