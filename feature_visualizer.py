@@ -39,7 +39,7 @@ if __name__ == '__main__':
 
     # 모델의 각 계층에 특징맵을 받아오는 hook을 등록
     feature_maps = {}
-    if config['model_name'] == 'UNet':
+    if config['model'] == 'UNet':
         model.encode1.register_forward_hook(get_feature_maps(feature_maps, 'encode1'))
         model.encode2.register_forward_hook(get_feature_maps(feature_maps, 'encode2'))
         model.encode3.register_forward_hook(get_feature_maps(feature_maps, 'encode3'))
@@ -50,7 +50,7 @@ if __name__ == '__main__':
         model.decode2.register_forward_hook(get_feature_maps(feature_maps, 'decode2'))
         model.decode1.register_forward_hook(get_feature_maps(feature_maps, 'decode1'))
         model.classifier.register_forward_hook(get_feature_maps(feature_maps, 'classifier'))
-    elif config['model_name'] == 'Proposed':
+    elif config['model'] == 'Proposed':
         model.initial_conv.register_forward_hook(get_feature_maps(feature_maps, 'initial_conv'))
         model.encode1.register_forward_hook(get_feature_maps(feature_maps, 'encode1'))
         model.encode2.register_forward_hook(get_feature_maps(feature_maps, 'encode2'))
@@ -61,7 +61,7 @@ if __name__ == '__main__':
         model.decode2.register_forward_hook(get_feature_maps(feature_maps, 'decode2'))
         model.decode1.register_forward_hook(get_feature_maps(feature_maps, 'decode1'))
         model.classifier.register_forward_hook(get_feature_maps(feature_maps, 'classifier'))
-    elif config['model_name'] == 'Backbone':
+    elif config['model'] == 'Backbone':
         model.initial_conv.register_forward_hook(get_feature_maps(feature_maps, 'initial_conv'))
         model.layer1.register_forward_hook(get_feature_maps(feature_maps, 'layer1'))
         model.layer2.register_forward_hook(get_feature_maps(feature_maps, 'layer2'))
