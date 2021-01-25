@@ -23,11 +23,11 @@ def load_config():
     model_name = parser['model']['activate_model']
     config = {
         'dataset_root': parser['dataset']['root'],
+        'image_size': (int(parser['dataset']['image_size'].split('x')[1]),
+                       int(parser['dataset']['image_size'].split('x')[0])),
         'model_name': model_name,
         'batch_size': parser.getint(model_name, 'batch_size'),
         'epoch': parser.getint(model_name, 'epoch'),
-        'image_size': (int(parser[model_name]['image_size'].split('x')[1]),
-                       int(parser[model_name]['image_size'].split('x')[0])),
         'lr': parser.getfloat(model_name, 'lr'),
         'num_classes': parser.getint(model_name, 'num_classes'),
         'num_workers': parser.getint(model_name, 'num_workers'),
