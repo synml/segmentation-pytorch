@@ -49,11 +49,10 @@ def evaluate(model, testloader, num_classes: int, device):
     val_loss = 0
     inference_time = 0
     for images, masks in tqdm.tqdm(testloader, desc='Eval', leave=False):
+        images, masks = images.to(device), masks.to(device, dtype=torch.int64)
+
         # mask에 255를 곱하여 0~1 사이의 값을 0~255 값으로 변경 + 채널 차원 제거
         masks.mul_(255).squeeze_(dim=1)
-
-        # 이미지와 정답 정보를 GPU로 복사
-        images, masks = images.to(device), masks.to(device, dtype=torch.int64)
 
         # 예측
         with torch.no_grad():
