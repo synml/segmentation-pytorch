@@ -38,10 +38,10 @@ if __name__ == '__main__':
     os.makedirs(result_dir, exist_ok=True)
     os.makedirs(groundtruth_dir, exist_ok=True)
     for images, masks in tqdm.tqdm(testloader, desc='Demo'):
-        images = images.to(device)
-
         # mask에 255를 곱하여 0~1 사이의 값을 0~255 값으로 변경 + 채널 차원 제거
-        masks.mul_(255).squeeze_(dim=1).type(torch.LongTensor)
+        masks.mul_(255).squeeze_(dim=1)
+
+        images, masks = images.to(device), masks.type(torch.LongTensor)
 
         # 예측
         with torch.no_grad():

@@ -38,10 +38,10 @@ if __name__ == '__main__':
         model.train()
 
         for batch_idx, (images, masks) in enumerate(tqdm.tqdm(trainloader, desc='Train', leave=False)):
-            images, masks = images.to(device), masks.to(device, dtype=torch.int64)
-
             # mask에 255를 곱하여 0~1 사이의 값을 0~255 값으로 변경 + 채널 차원 제거
             masks.mul_(255).squeeze_(dim=1)
+
+            images, masks = images.to(device), masks.to(device, dtype=torch.int64)
 
             # 순전파 + 역전파 + 최적화
             optimizer.zero_grad()
