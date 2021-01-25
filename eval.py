@@ -87,7 +87,7 @@ def evaluate(model, testloader, num_classes: int, device):
 if __name__ == '__main__':
     # 0. Load config
     config = utils.load_config()
-    print('Activated model: {}'.format(config['model_name']))
+    print('Activated model: {}'.format(config['model']))
 
     # 1. Dataset
     dataset = utils.Cityscapes(config)
@@ -99,11 +99,11 @@ if __name__ == '__main__':
     model.eval()
 
     # 모델 평가
-    val_loss, iou, miou, fps = evaluate(model, testloader, config['num_classes'], device)
+    val_loss, iou, miou, fps = evaluate(model, testloader, config['model']['num_classes'], device)
 
     # 평가 결과를 csv 파일로 저장
     os.makedirs('result', exist_ok=True)
-    with open(os.path.join('result', '{}.csv'.format(config['model_name'])), mode='w') as f:
+    with open(os.path.join('result', '{}.csv'.format(config['model'])), mode='w') as f:
         writer = csv.writer(f, delimiter=',', lineterminator='\n')
 
         writer.writerow(['Class Number', 'Class Name', 'IoU'])

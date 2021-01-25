@@ -1,0 +1,27 @@
+dataset:
+  image_size: 800x400
+  num_workers: 8
+  root: ../../data/cityscapes
+
+model: UNet
+
+UNet:
+  batch_size: 14
+  epoch: 100
+  lr: 0.001
+  num_classes: 8
+  pretrained_weights: weights/UNet_best.pth
+
+Backbone:
+  batch_size: 8
+  epoch: 100
+  lr: 0.001
+  num_classes: 8
+  pretrained_weights: weights/Backbone_best.pth
+
+Proposed:
+  batch_size: 4
+  epoch: 100
+  lr: 0.001
+  num_classes: 8
+  pretrained_weights: weights/Proposed_best.pth

@@ -1,4 +1,3 @@
-import configparser
 import os
 from typing import Callable, Optional
 
@@ -8,6 +7,7 @@ import torch
 import torch.utils.data
 import torchvision
 import torchvision.transforms.functional
+import yaml
 
 import models.backbone
 import models.proposed
@@ -16,23 +16,12 @@ import models.unet
 
 # 설정 불러오기
 def load_config():
-    config_file = 'config.ini'
-    parser = configparser.ConfigParser()
-    parser.read(config_file, encoding='utf-8')
+    with open('config.yaml') as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
 
-    model_name = parser['model']['activate_model']
-    config = {
-        'dataset_root': parser['dataset']['root'],
-        'image_size': (int(parser['dataset']['image_size'].split('x')[1]),
-                       int(parser['dataset']['image_size'].split('x')[0])),
-        'model_name': model_name,
-        'batch_size': parser.getint(model_name, 'batch_size'),
-        'epoch': parser.getint(model_name, 'epoch'),
-        'lr': parser.getfloat(model_name, 'lr'),
-        'num_classes': parser.getint(model_name, 'num_classes'),
-        'num_workers': parser.getint(model_name, 'num_workers'),
-        'pretrained_weights': parser[model_name]['pretrained_weights'],
-    }
+    config['dataset']['image_size'] = (int(config['dataset']['image_size'].split('x')[1]),
+                                       int(config['dataset']['image_size'].split('x')[0]))
+
     return config
 
 
@@ -40,20 +29,20 @@ def load_config():
 def get_model(config: dict, pretrained=False) -> torch.nn.Module:
     assert isinstance(pretrained, bool)
 
-    if config['model_name'] == 'UNet':
-        model = models.unet.UNet(config['num_classes'])
-    elif config['model_name'] == 'Proposed':
-        model = models.proposed.Proposed(config['num_classes'])
-    elif config['model_name'] == 'Backbone':
-        model = models.backbone.Backbone(config['num_classes'])
+    if config['model'] == 'UNet':
+        model = models.unet.UNet(config['model']['num_classes'])
+    elif config['model'] == 'Proposed':
+        model = models.proposed.Proposed(config['model']['num_classes'])
+    elif config['model'] == 'Backbone':
+        model = models.backbone.Backbone(config['model']['num_classes'])
     else:
         raise NameError('Wrong model_name.')
 
     if pretrained:
-        if os.path.exists(config['pretrained_weights']):
-            model.load_state_dict(torch.load(config['pretrained_weights']))
+        if os.path.exists(config['model']['pretrained_weights']):
+            model.load_state_dict(torch.load(config['model']['pretrained_weights']))
         else:
-            print('FileNotFound: pretrained_weights (' + config['model_name'] + ')')
+            print('FileNotFound: pretrained_weights (' + config['model'] + ')')
     return model
 
 
@@ -70,38 +59,38 @@ class Cityscapes:
                                   'nature', 'sky', 'human', 'vehicle']
 
         self.transform = torchvision.transforms.Compose([
-            torchvision.transforms.Resize(self.config['image_size']),
+            torchvision.transforms.Resize(self.config['dataset']['image_size']),
             torchvision.transforms.ToTensor(),
             torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ])
         self.target_transform = torchvision.transforms.Compose([
-            torchvision.transforms.Resize(self.config['image_size'], interpolation=0),
+            torchvision.transforms.Resize(self.config['dataset']['image_size'], interpolation=0),
             torchvision.transforms.ToTensor(),
         ])
         self.transforms = DataAugmentation(self.transform, self.target_transform)
 
     # Cityscapes 데이터셋 설정
     def set_cityscapes(self):
-        trainset = torchvision.datasets.Cityscapes(root=self.config['dataset_root'],
+        trainset = torchvision.datasets.Cityscapes(root=self.config['dataset']['root'],
                                                    split='train',
                                                    mode='fine',
                                                    target_type='semantic',
                                                    transforms=self.transforms)
         trainloader = torch.utils.data.DataLoader(trainset,
-                                                  batch_size=self.config['batch_size'],
+                                                  batch_size=self.config['model']['batch_size'],
                                                   shuffle=True,
-                                                  num_workers=self.config['num_workers'],
+                                                  num_workers=self.config['dataset']['num_workers'],
                                                   pin_memory=True)
-        testset = torchvision.datasets.Cityscapes(root=self.config['dataset_root'],
+        testset = torchvision.datasets.Cityscapes(root=self.config['dataset']['root'],
                                                   split='val',
                                                   mode='fine',
                                                   target_type='semantic',
                                                   transform=self.transform,
                                                   target_transform=self.target_transform)
         testloader = torch.utils.data.DataLoader(testset,
-                                                 batch_size=self.config['batch_size'],
+                                                 batch_size=self.config['model']['batch_size'],
                                                  shuffle=False,
-                                                 num_workers=self.config['num_workers'])
+                                                 num_workers=self.config['dataset']['num_workers'])
 
         trainset.images.sort()
         trainset.targets.sort()

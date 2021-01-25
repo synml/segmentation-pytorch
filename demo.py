@@ -11,7 +11,7 @@ import utils
 if __name__ == '__main__':
     # 0. Load config
     config = utils.load_config()
-    print('Activated model: {}'.format(config['model_name']))
+    print('Activated model: {}'.format(config['model']))
 
     # 1. Dataset
     dataset = utils.Cityscapes(config)
@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
     # 예측 결과 저장
     step = 0
-    result_dir = os.path.join('demo', config['model_name'])
+    result_dir = os.path.join('demo', config['model'])
     groundtruth_dir = os.path.join('demo', 'groundtruth')
     os.makedirs(result_dir, exist_ok=True)
     os.makedirs(groundtruth_dir, exist_ok=True)

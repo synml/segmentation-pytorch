@@ -17,7 +17,7 @@ def get_feature_maps(feature_maps: dict, name: str):
 if __name__ == '__main__':
     # 0. Load config
     config = utils.load_config()
-    print('Activated model: {}'.format(config['model_name']))
+    print('Activated model: {}'.format(config['model']))
 
     # 1. Dataset
     dataset = utils.Cityscapes(config)
@@ -74,7 +74,7 @@ if __name__ == '__main__':
 
     # 각 계층의 feature maps 저장
     for layer in tqdm.tqdm(feature_maps.keys(), desc='Saving'):
-        result_dir = os.path.join('feature_maps', config['model_name'], layer)
+        result_dir = os.path.join('feature_maps', config['model'], layer)
         os.makedirs(result_dir, exist_ok=True)
         feature_map = feature_maps[layer].squeeze().cpu()
         if layer == 'classifier':
