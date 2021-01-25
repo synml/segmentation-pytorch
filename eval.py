@@ -1,7 +1,6 @@
 import csv
 import os
 import time
-from typing import List
 
 import numpy as np
 import sklearn.metrics
@@ -14,9 +13,9 @@ import utils
 
 
 class EvaluationMetrics:
-    def __init__(self, labels: List[int]):
-        self.labels = labels
-        self.confusion_matrix = np.zeros((len(labels), len(labels)))
+    def __init__(self, num_classes: int):
+        self.labels = list(range(num_classes))
+        self.confusion_matrix = np.zeros((num_classes, num_classes))
 
     def update_matrix(self, gt_batch: torch.Tensor, pred_batch: torch.Tensor):
         assert gt_batch.shape[0] == pred_batch.shape[0]
@@ -46,7 +45,7 @@ def evaluate(model, testloader, criterion, num_classes: int, device):
     model.eval()
 
     # Evaluate
-    metrics = EvaluationMetrics(list(range(num_classes)))
+    metrics = EvaluationMetrics(num_classes)
     val_loss = 0
     inference_time = 0
     for images, masks in tqdm.tqdm(testloader, desc='Eval', leave=False):
