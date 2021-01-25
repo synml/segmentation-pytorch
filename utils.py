@@ -103,6 +103,11 @@ class Cityscapes:
                                                  shuffle=False,
                                                  num_workers=self.config['num_workers'])
 
+        trainset.images.sort()
+        trainset.targets.sort()
+        testset.images.sort()
+        testset.targets.sort()
+
         return trainset, trainloader, testset, testloader
 
     # Cityscapes 데이터셋 라벨 색상 불러오기
