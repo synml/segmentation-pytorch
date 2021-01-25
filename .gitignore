@@ -7,6 +7,7 @@ result/
 runs/
 weights/
 debug.py
+TODO.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
