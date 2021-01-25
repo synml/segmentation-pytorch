@@ -20,10 +20,7 @@ def move_files(src: str, dst: str):
 
 
 # Set backup directory
-backup_dir = input('Directory name: ')
-if backup_dir == '':
-    backup_dir = 'rename'
-backup_dir = os.path.join('backup', backup_dir)
+backup_dir = os.path.join('backup', 'rename')
 os.makedirs(backup_dir)
 
 # Backup
