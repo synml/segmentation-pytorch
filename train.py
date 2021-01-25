@@ -23,8 +23,8 @@ if __name__ == '__main__':
 
     # 3. Loss function, optimizer, lr scheduler
     criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=config[config['model']]['lr'])
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, min_lr=0.0001)
+    optimizer = utils.get_optimizer(config, model)
+    scheduler = utils.get_scheduler(config, optimizer)
 
     # 4. Tensorboard
     writer = torch.utils.tensorboard.SummaryWriter(os.path.join('runs', config['model']))

@@ -44,7 +44,7 @@ def get_model(config: dict, pretrained=False) -> torch.nn.Module:
     return model
 
 
-def get_optimizer(config: dict, model: torch.nn.Module):
+def get_optimizer(config: dict, model: torch.nn.Module) -> torch.optim.Optimizer:
     cfg_optim: dict = config[config['model']]['optimizer']
 
     if cfg_optim['name'] == 'SGD':
@@ -56,6 +56,18 @@ def get_optimizer(config: dict, model: torch.nn.Module):
         raise NameError('Wrong optimizer name.')
 
     return optimizer
+
+
+def get_scheduler(config: dict, optimizer: torch.optim.Optimizer):
+    cfg_scheduler: dict = config[config['model']]['scheduler']
+
+    if cfg_scheduler['name'] == 'ReduceLROnPlateau':
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=cfg_scheduler['patience'],
+                                                               min_lr=cfg_scheduler['min_lr'])
+    else:
+        raise NameError('Wrong scheduler name.')
+
+    return scheduler
 
 
 class Cityscapes:
