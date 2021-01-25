@@ -31,10 +31,10 @@ def get_model(config: dict, pretrained=False) -> torch.nn.Module:
 
     if config['model'] == 'UNet':
         model = models.unet.UNet(config[config['model']]['num_classes'])
-    elif config['model'] == 'Proposed':
-        model = models.proposed.Proposed(config[config['model']]['num_classes'])
     elif config['model'] == 'Backbone':
         model = models.backbone.Backbone(config[config['model']]['num_classes'])
+    elif config['model'] == 'Proposed':
+        model = models.proposed.Proposed(config[config['model']]['num_classes'])
     else:
         raise NameError('Wrong model_name.')
 
@@ -46,7 +46,6 @@ def get_model(config: dict, pretrained=False) -> torch.nn.Module:
     return model
 
 
-# Cityscapes 데이터셋
 class Cityscapes:
     def __init__(self, config: dict):
         self.config = config
