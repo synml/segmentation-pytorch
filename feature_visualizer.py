@@ -70,7 +70,7 @@ if __name__ == '__main__':
 
     # 예측
     with torch.no_grad():
-        mask_pred = model(image)
+        output = model(image)
 
     # 각 계층의 feature maps 저장
     for layer in tqdm.tqdm(feature_maps.keys(), desc='Saving'):

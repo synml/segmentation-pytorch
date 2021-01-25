@@ -37,21 +37,21 @@ if __name__ == '__main__':
     groundtruth_dir = os.path.join('demo', 'groundtruth')
     os.makedirs(result_dir, exist_ok=True)
     os.makedirs(groundtruth_dir, exist_ok=True)
-    for images, masks in tqdm.tqdm(testloader, desc='Demo'):
+    for image, target in tqdm.tqdm(testloader, desc='Demo'):
         # mask에 255를 곱하여 0~1 사이의 값을 0~255 값으로 변경 + 채널 차원 제거
-        masks.mul_(255).squeeze_(dim=1)
+        target.mul_(255).squeeze_(dim=1)
 
-        images, masks = images.to(device), masks.type(torch.LongTensor)
+        image, target = image.to(device), target.type(torch.LongTensor)
 
         # 예측
         with torch.no_grad():
-            masks_pred = model(images)
-            masks_pred = F.log_softmax(masks_pred, dim=1)
-            masks_pred = torch.argmax(masks_pred, dim=1)
+            output = model(image)
+            output = F.log_softmax(output, dim=1)
+            output = torch.argmax(output, dim=1)
 
         # 1 배치단위 처리
-        assert masks.shape[0] == masks_pred.shape[0]
-        for i in range(masks.shape[0]):
-            plt.imsave(os.path.join(result_dir, image_names[step]), masks_pred[i].cpu(), cmap=cmap)
-            plt.imsave(os.path.join(groundtruth_dir, image_names[step]), masks[i], cmap=cmap)
+        assert target.shape[0] == output.shape[0]
+        for i in range(target.shape[0]):
+            plt.imsave(os.path.join(result_dir, image_names[step]), output[i].cpu(), cmap=cmap)
+            plt.imsave(os.path.join(groundtruth_dir, image_names[step]), target[i], cmap=cmap)
             step += 1

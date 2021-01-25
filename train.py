@@ -37,16 +37,16 @@ if __name__ == '__main__':
     for epoch in tqdm.tqdm(range(config[config['model']]['epoch']), desc='Epoch'):
         model.train()
 
-        for batch_idx, (images, masks) in enumerate(tqdm.tqdm(trainloader, desc='Train', leave=False)):
+        for batch_idx, (image, target) in enumerate(tqdm.tqdm(trainloader, desc='Train', leave=False)):
             # mask에 255를 곱하여 0~1 사이의 값을 0~255 값으로 변경 + 채널 차원 제거
-            masks.mul_(255).squeeze_(dim=1)
+            target.mul_(255).squeeze_(dim=1)
 
-            images, masks = images.to(device), masks.to(device, dtype=torch.int64)
+            image, target = image.to(device), target.to(device, dtype=torch.int64)
 
             # 순전파 + 역전파 + 최적화
             optimizer.zero_grad()
-            masks_pred = model(images)
-            loss = criterion(masks_pred, masks)
+            output = model(image)
+            loss = criterion(output, target)
             loss.backward()
             optimizer.step()
 
