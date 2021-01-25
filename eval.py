@@ -5,6 +5,7 @@ from typing import List
 
 import numpy as np
 import sklearn.metrics
+import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.data
 import tqdm
@@ -41,7 +42,7 @@ class EvaluationMetrics:
         return iou, miou
 
 
-def evaluate(model, testloader, num_classes: int, device):
+def evaluate(model, testloader, criterion, num_classes: int, device):
     model.eval()
 
     # Evaluate
@@ -61,7 +62,7 @@ def evaluate(model, testloader, num_classes: int, device):
             inference_time += time.time() - start_time
 
         # validation loss를 모두 합침
-        val_loss += F.cross_entropy(masks_pred, masks, reduction='sum').item()
+        val_loss += criterion(masks_pred, masks).item()
 
         # Segmentation map 만들기
         masks_pred = F.log_softmax(masks_pred, dim=1)
@@ -74,7 +75,7 @@ def evaluate(model, testloader, num_classes: int, device):
     iou, miou = metrics.get_scores(ignore_first_label=True)
 
     # 평균 validation loss 계산
-    val_loss /= len(testloader.dataset)
+    val_loss /= len(testloader)
 
     # 추론 시간과 fps를 계산 (추론 시간 단위: sec)
     inference_time /= len(testloader.dataset)
@@ -97,8 +98,11 @@ if __name__ == '__main__':
     model = utils.get_model(config, pretrained=True).to(device)
     model.eval()
 
+    # 3. Loss function
+    criterion = nn.CrossEntropyLoss()
+
     # 모델 평가
-    val_loss, iou, miou, fps = evaluate(model, testloader, config[config['model']]['num_classes'], device)
+    val_loss, iou, miou, fps = evaluate(model, testloader, criterion, config[config['model']]['num_classes'], device)
 
     # 평가 결과를 csv 파일로 저장
     os.makedirs('result', exist_ok=True)
