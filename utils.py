@@ -16,7 +16,7 @@ import models.unet
 
 def load_config():
     with open('config.yaml') as f:
-        config = yaml.load(f, Loader=yaml.FullLoader)
+        config = yaml.safe_load(f)
 
     config['dataset']['image_size'] = (int(config['dataset']['image_size'].split('x')[1]),
                                        int(config['dataset']['image_size'].split('x')[0]))
