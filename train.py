@@ -44,11 +44,11 @@ if __name__ == '__main__':
             image, target = image.to(device), target.to(device, dtype=torch.int64)
 
             # 순전파 + 역전파 + 최적화
-            optimizer.zero_grad()
             output = model(image)
             loss = criterion(output, target)
             loss.backward()
             optimizer.step()
+            optimizer.zero_grad()
 
             # 손실값 출력
             log_loss.set_description_str('Loss: {:.4f}'.format(loss.item()))
