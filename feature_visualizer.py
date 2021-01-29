@@ -21,7 +21,7 @@ if __name__ == '__main__':
 
     # 1. Dataset
     dataset = utils.Cityscapes(config)
-    _, _, testset, testloader = dataset.set_cityscapes()
+    _, _, testset, _ = dataset.set_cityscapes()
 
     # 2. Model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
