@@ -41,7 +41,7 @@ class EvaluationMetrics:
         return iou, miou
 
 
-def evaluate(model, testloader, criterion, num_classes: int, device):
+def evaluate(model, testloader, criterion, num_classes: int, device, amp_enabled: bool):
     model.eval()
 
     # Evaluate
@@ -49,23 +49,25 @@ def evaluate(model, testloader, criterion, num_classes: int, device):
     val_loss = 0
     inference_time = 0
     for image, target in tqdm.tqdm(testloader, desc='Eval', leave=False):
-        # mask에 255를 곱하여 0~1 사이의 값을 0~255 값으로 변경 + 채널 차원 제거
+        # target의 정규화를 해제 (0~1 값을 0~255 값으로 변경) + 채널 차원 제거
         target.mul_(255).squeeze_(dim=1)
-
         image, target = image.to(device), target.to(device, dtype=torch.int64)
 
         # 예측
-        with torch.no_grad():
+        with torch.cuda.amp.autocast(enabled=amp_enabled):
+            torch.cuda.synchronize()
             start_time = time.time()
-            output = model(image)
+            with torch.no_grad():
+                output = model(image)
+            torch.cuda.synchronize()
             inference_time += time.time() - start_time
 
-        # validation loss를 모두 합침
-        val_loss += criterion(output, target).item()
+            # validation loss를 모두 합침
+            val_loss += criterion(output, target).item()
 
-        # Segmentation map 만들기
-        output = F.log_softmax(output, dim=1)
-        output = torch.argmax(output, dim=1)
+            # Segmentation map 만들기
+            output = F.log_softmax(output, dim=1)
+            output = torch.argmax(output, dim=1)
 
         # 혼동행렬 업데이트
         metrics.update_matrix(target, output)

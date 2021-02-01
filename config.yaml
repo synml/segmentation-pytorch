@@ -4,6 +4,7 @@ dataset:
   root: ../../data/cityscapes
 
 model: UNet
+amp_enabled: True
 
 UNet:
   batch_size: 14

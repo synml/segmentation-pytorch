@@ -21,10 +21,11 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = utils.get_model(config).to(device)
 
-    # 3. Loss function, optimizer, lr scheduler
+    # 3. Loss function, optimizer, lr scheduler, scaler
     criterion = nn.CrossEntropyLoss()
     optimizer = utils.get_optimizer(config, model)
     scheduler = utils.get_scheduler(config, optimizer)
+    scaler = torch.cuda.amp.GradScaler(enabled=config['amp_enabled'])
 
     # 4. Tensorboard
     writer = torch.utils.tensorboard.SummaryWriter(os.path.join('runs', config['model']))
@@ -38,17 +39,18 @@ if __name__ == '__main__':
         model.train()
 
         for batch_idx, (image, target) in enumerate(tqdm.tqdm(trainloader, desc='Train', leave=False)):
-            # mask에 255를 곱하여 0~1 사이의 값을 0~255 값으로 변경 + 채널 차원 제거
+            # target의 정규화를 해제 (0~1 값을 0~255 값으로 변경) + 채널 차원 제거
             target.mul_(255).squeeze_(dim=1)
-
             image, target = image.to(device), target.to(device, dtype=torch.int64)
 
             # 순전파 + 역전파 + 최적화
-            output = model(image)
-            loss = criterion(output, target)
-            loss.backward()
-            optimizer.step()
-            optimizer.zero_grad()
+            with torch.cuda.amp.autocast(enabled=config['amp_enabled']):
+                output = model(image)
+                loss = criterion(output, target)
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
+            optimizer.zero_grad(set_to_none=True)
 
             # 손실값 출력
             log_loss.set_description_str('Loss: {:.4f}'.format(loss.item()))
@@ -58,7 +60,7 @@ if __name__ == '__main__':
 
         # 모델 평가
         val_loss, _, miou, _ = eval.evaluate(model, testloader, criterion,
-                                             config[config['model']]['num_classes'], device)
+                                             config[config['model']]['num_classes'], device, config['amp_enabled'])
         writer.add_scalar('Validation Loss', val_loss, epoch)
         writer.add_scalar('mIoU', miou, epoch)
 

@@ -38,16 +38,16 @@ if __name__ == '__main__':
     os.makedirs(result_dir, exist_ok=True)
     os.makedirs(groundtruth_dir, exist_ok=True)
     for image, target in tqdm.tqdm(testloader, desc='Demo'):
-        # mask에 255를 곱하여 0~1 사이의 값을 0~255 값으로 변경 + 채널 차원 제거
+        # target의 정규화를 해제 (0~1 값을 0~255 값으로 변경) + 채널 차원 제거
         target.mul_(255).squeeze_(dim=1)
-
         image, target = image.to(device), target.type(torch.LongTensor)
 
         # 예측
-        with torch.no_grad():
-            output = model(image)
-            output = F.log_softmax(output, dim=1)
-            output = torch.argmax(output, dim=1)
+        with torch.cuda.amp.autocast(enabled=config['amp_enabled']):
+            with torch.no_grad():
+                output = model(image)
+                output = F.log_softmax(output, dim=1)
+                output = torch.argmax(output, dim=1)
 
         # 1 배치단위 처리
         assert target.shape[0] == output.shape[0]
