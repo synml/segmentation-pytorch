@@ -16,8 +16,9 @@ UNet:
     weight_decay: 0.00001
   scheduler:
     name: ReduceLROnPlateau
+    factor: 0.5
     patience: 5
-    min_lr: 0.0001
+    min_lr: 0.00001
   pretrained_weights: weights/UNet_best.pth
 
 Backbone:
@@ -30,8 +31,9 @@ Backbone:
     weight_decay: 0.00001
   scheduler:
     name: ReduceLROnPlateau
+    factor: 0.5
     patience: 5
-    min_lr: 0.0001
+    min_lr: 0.00001
   pretrained_weights: weights/Backbone_best.pth
 
 Proposed:
@@ -44,6 +46,7 @@ Proposed:
     weight_decay: 0.00001
   scheduler:
     name: ReduceLROnPlateau
+    factor: 0.5
     patience: 5
-    min_lr: 0.0001
+    min_lr: 0.00001
   pretrained_weights: weights/Proposed_best.pth
