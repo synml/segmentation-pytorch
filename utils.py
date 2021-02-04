@@ -28,11 +28,11 @@ def get_model(config: dict, pretrained=False) -> torch.nn.Module:
     assert isinstance(pretrained, bool)
 
     if config['model'] == 'UNet':
-        model = models.unet.UNet(config[config['model']]['num_classes'])
+        model = models.unet.UNet(config['dataset']['num_classes'])
     elif config['model'] == 'Backbone':
-        model = models.backbone.Backbone(config[config['model']]['num_classes'])
+        model = models.backbone.Backbone(config['dataset']['num_classes'])
     elif config['model'] == 'Proposed':
-        model = models.proposed.Proposed(config[config['model']]['num_classes'])
+        model = models.proposed.Proposed(config['dataset']['num_classes'])
     else:
         raise NameError('Wrong model name.')
 

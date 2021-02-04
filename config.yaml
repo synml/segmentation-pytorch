@@ -1,5 +1,6 @@
 dataset:
   image_size: 800x400
+  num_classes: 8
   num_workers: 8
   root: ../../data/cityscapes
 
@@ -9,7 +10,6 @@ amp_enabled: True
 UNet:
   batch_size: 14
   epoch: 100
-  num_classes: 8
   optimizer:
     name: SGD
     lr: 0.001
@@ -25,7 +25,6 @@ UNet:
 Backbone:
   batch_size: 8
   epoch: 100
-  num_classes: 8
   optimizer:
     name: Adam
     lr: 0.001
@@ -40,7 +39,6 @@ Backbone:
 Proposed:
   batch_size: 4
   epoch: 100
-  num_classes: 8
   optimizer:
     name: Adam
     lr: 0.001
