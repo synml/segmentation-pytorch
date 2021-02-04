@@ -8,7 +8,7 @@ model: UNet
 amp_enabled: True
 
 UNet:
-  batch_size: 14
+  batch_size: 16
   epoch: 100
   optimizer:
     name: SGD
