@@ -183,9 +183,6 @@ class DataAugmentation:
             target = torchvision.transforms.functional.hflip(target)
         return image, target
 
-    def __repr__(self):
-        return self.__class__.__name__ + '()'
-
 
 # 데이터셋 불러오는 코드 검증 (Shape: [batch, channel, height, width])
 def show_dataset(image: torch.Tensor, target: torch.Tensor):
