@@ -1,6 +1,6 @@
 dataset:
   image_size: 800x400
-  num_classes: 8
+  num_classes: 20
   num_workers: 8
   root: ../../data/cityscapes
 
