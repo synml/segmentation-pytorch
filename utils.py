@@ -26,6 +26,7 @@ def load_config():
 
 def get_model(config: dict, pretrained=False) -> torch.nn.Module:
     assert isinstance(pretrained, bool)
+    assert config['dataset']['num_classes'] == 20 or config['dataset']['num_classes'] == 8
 
     if config['model'] == 'UNet':
         model = models.unet.UNet(config['dataset']['num_classes'])
@@ -81,6 +82,7 @@ class Cityscapes:
 
         self.class_names_short = ['unlabeled', 'flat', 'construction', 'object',
                                   'nature', 'sky', 'human', 'vehicle']
+        self.num_classes = self.config['dataset']['num_classes']
 
         self.transform = torchvision.transforms.Compose([
             torchvision.transforms.Resize(self.config['dataset']['image_size']),
@@ -124,9 +126,8 @@ class Cityscapes:
         return trainset, trainloader, testset, testloader
 
     # Cityscapes 데이터셋 라벨 색상 불러오기
-    def get_cityscapes_colormap(self, short=False):
-        assert isinstance(short, bool)
-        if not short:
+    def get_cityscapes_colormap(self):
+        if self.num_classes == 20:
             colormap = np.zeros((20, 3), dtype=np.uint8)
             colormap[0] = [0, 0, 0]
             colormap[1] = [128, 64, 128]
@@ -148,7 +149,7 @@ class Cityscapes:
             colormap[17] = [0, 80, 100]
             colormap[18] = [0, 0, 230]
             colormap[19] = [119, 11, 32]
-        else:
+        elif self.num_classes == 8:
             colormap = np.zeros((8, 3), dtype=np.uint8)
             colormap[0] = [0, 0, 0]
             colormap[1] = [128, 64, 128]
@@ -158,6 +159,8 @@ class Cityscapes:
             colormap[5] = [70, 130, 180]
             colormap[6] = [220, 20, 60]
             colormap[7] = [0, 0, 142]
+        else:
+            raise ValueError('Wrong num_classes.')
 
         return np.divide(colormap, 255).tolist()
 

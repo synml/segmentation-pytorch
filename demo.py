@@ -29,7 +29,7 @@ if __name__ == '__main__':
         image_names.append(image_name)
 
     # label colormap 설정
-    cmap = matplotlib.colors.ListedColormap(dataset.get_cityscapes_colormap(short=True))
+    cmap = matplotlib.colors.ListedColormap(dataset.get_cityscapes_colormap())
 
     # 예측 결과 저장
     step = 0
