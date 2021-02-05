@@ -11,9 +11,8 @@ UNet:
   batch_size: 16
   epoch: 100
   optimizer:
-    name: SGD
+    name: Adam
     lr: 0.001
-    momentum: 0.9
     weight_decay: 0.00001
   scheduler:
     name: ReduceLROnPlateau
