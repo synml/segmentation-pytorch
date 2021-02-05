@@ -60,11 +60,11 @@ class UNet(nn.Module):
 
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = UNet(8).to(device)
+    model = UNet(20).to(device)
     model.eval()
 
-    torchsummary.torchsummary.summary(model, (3, 256, 512))
+    torchsummary.torchsummary.summary(model, (3, 400, 800))
 
     writer = torch.utils.tensorboard.SummaryWriter('../runs')
-    writer.add_graph(model, torch.rand(1, 3, 256, 512).to(device))
+    writer.add_graph(model, torch.rand(1, 3, 400, 800).to(device))
     writer.close()

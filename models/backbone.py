@@ -19,28 +19,22 @@ class Backbone(nn.Module):
         self.layer4 = resnet34.layer4  # 512, 1/8
 
         # Classifier
-        self.classifier_2s = nn.Conv2d(128, num_classes, kernel_size=1)
-        self.classifier_4s = nn.Conv2d(256, num_classes, kernel_size=1)
-        self.classifier_8s = nn.Conv2d(512, num_classes, kernel_size=1)
+        self.classifier = nn.Conv2d(512, num_classes, kernel_size=1)
 
     def forward(self, x):
         # Encoder
-        initial_conv = self.initial_conv(x)
-        layer1 = self.layer1(initial_conv)
-        layer2 = self.layer2(layer1)
-        layer3 = self.layer3(layer2)
-        layer4 = self.layer4(layer3)
+        x = self.initial_conv(x)
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+        x = self.layer4(x)
 
         # Classifier
-        classifier_8s = self.classifier_8s(layer4)
-        classifier_4s = self.classifier_4s(layer3)
-        classifier_2s = self.classifier_2s(layer2)
+        x = self.classifier(x)
 
-        # FCN
-        classifier_4s += F.interpolate(classifier_8s, scale_factor=2, mode='bilinear', align_corners=False)
-        classifier_2s += F.interpolate(classifier_4s, scale_factor=2, mode='bilinear', align_corners=False)
-        out = F.interpolate(classifier_2s, scale_factor=2, mode='bilinear', align_corners=False)
-        return out
+        # Upsample
+        x = F.interpolate(x, scale_factor=8, mode='bilinear', align_corners=False)
+        return x
 
     def make_initial_conv(self, in_channels: int, out_channels: int):
         return nn.Sequential(
@@ -65,11 +59,11 @@ def load_backbone(num_classes: int, pretrained=False):
 
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = Backbone(8).to(device)
+    model = Backbone(20).to(device)
     model.eval()
 
-    torchsummary.torchsummary.summary(model, (3, 256, 512))
+    torchsummary.torchsummary.summary(model, (3, 400, 800))
 
     writer = torch.utils.tensorboard.SummaryWriter('../runs')
-    writer.add_graph(model, torch.rand(1, 3, 256, 512).to(device))
+    writer.add_graph(model, torch.rand(1, 3, 400, 800).to(device))
     writer.close()
