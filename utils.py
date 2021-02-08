@@ -189,7 +189,7 @@ class DataAugmentation:
 
 def train_interupter():
     with open('train_interupter.txt', 'r', encoding='utf-8') as f:
-        flag = f.read()
+        flag = f.read().strip()
 
     if flag == '0':
         return False
