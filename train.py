@@ -60,7 +60,7 @@ if __name__ == '__main__':
 
         # 모델 평가
         val_loss, _, miou, _ = eval.evaluate(model, testloader, criterion, config['dataset']['num_classes'],
-                                             device, config['amp_enabled'])
+                                             config['amp_enabled'], device, False)
         writer.add_scalar('Validation Loss', val_loss, epoch)
         writer.add_scalar('mIoU', miou, epoch)
 

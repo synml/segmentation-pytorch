@@ -41,7 +41,7 @@ class EvaluationMetrics:
         return iou, miou
 
 
-def evaluate(model, testloader, criterion, num_classes: int, device, amp_enabled: bool):
+def evaluate(model, testloader, criterion, num_classes: int, amp_enabled: bool, device, eval_fps=True):
     model.eval()
 
     # Evaluate
@@ -55,12 +55,16 @@ def evaluate(model, testloader, criterion, num_classes: int, device, amp_enabled
 
         # 예측
         with torch.cuda.amp.autocast(enabled=amp_enabled):
-            torch.cuda.synchronize()
-            start_time = time.time()
-            with torch.no_grad():
-                output = model(image)
-            torch.cuda.synchronize()
-            inference_time += time.time() - start_time
+            if eval_fps:
+                torch.cuda.synchronize()
+                start_time = time.time()
+                with torch.no_grad():
+                    output = model(image)
+                torch.cuda.synchronize()
+                inference_time += time.time() - start_time
+            else:
+                with torch.no_grad():
+                    output = model(image)
 
             # validation loss를 모두 합침
             val_loss += criterion(output, target).item()
@@ -79,8 +83,11 @@ def evaluate(model, testloader, criterion, num_classes: int, device, amp_enabled
     val_loss /= len(testloader)
 
     # 추론 시간과 fps를 계산 (추론 시간 단위: sec)
-    inference_time /= len(testloader.dataset)
-    fps = 1 / inference_time
+    if eval_fps:
+        inference_time /= len(testloader.dataset)
+        fps = 1 / inference_time
+    else:
+        fps = 0
 
     return val_loss, iou, miou, fps
 
@@ -103,7 +110,8 @@ if __name__ == '__main__':
     criterion = nn.CrossEntropyLoss()
 
     # 모델 평가
-    val_loss, iou, miou, fps = evaluate(model, testloader, criterion, config[config['model']]['num_classes'], device)
+    val_loss, iou, miou, fps = evaluate(model, testloader, criterion, config['dataset']['num_classes'],
+                                        config['amp_enabled'], device)
 
     # 평가 결과를 csv 파일로 저장
     os.makedirs('result', exist_ok=True)
