@@ -187,6 +187,20 @@ class DataAugmentation:
         return image, target
 
 
+def train_interupter():
+    with open('train_interupter.txt', 'r', encoding='utf-8') as f:
+        flag = f.read()
+
+    if flag == '0':
+        return False
+    elif flag == '1':
+        with open('train_interupter.txt', 'w', encoding='utf-8') as f:
+            f.write('0')
+        return True
+    else:
+        raise ValueError('Wrong flag value.')
+
+
 # 데이터셋 불러오는 코드 검증 (Shape: [batch, channel, height, width])
 def show_dataset(image: torch.Tensor, target: torch.Tensor):
     def make_plt_subplot(nrows: int, ncols: int, index: int, title: str, image):

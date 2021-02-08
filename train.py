@@ -36,6 +36,9 @@ if __name__ == '__main__':
     prev_miou = 0.0
     prev_val_loss = 0.0
     for epoch in tqdm.tqdm(range(config[config['model']]['epoch']), desc='Epoch'):
+        if utils.train_interupter():
+            print('Train interrupt occurs.')
+            break
         model.train()
 
         for batch_idx, (image, target) in enumerate(tqdm.tqdm(trainloader, desc='Train', leave=False)):
