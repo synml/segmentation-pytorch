@@ -75,15 +75,7 @@ def get_scheduler(config: dict, optimizer: torch.optim.Optimizer):
 class Cityscapes:
     def __init__(self, config: dict):
         self.config = config
-        self.class_names = ['unlabeled', 'road', 'sidewalk', 'building', 'wall',
-                            'fence', 'pole', 'traffic light', 'traffic sign', 'vegetation',
-                            'terrain', 'sky', 'person', 'rider', 'car',
-                            'truck', 'bus', 'train', 'motorcycle', 'bicycle']
-
-        self.class_names_short = ['unlabeled', 'flat', 'construction', 'object',
-                                  'nature', 'sky', 'human', 'vehicle']
         self.num_classes = self.config['dataset']['num_classes']
-
         self.transform = torchvision.transforms.Compose([
             torchvision.transforms.Resize(self.config['dataset']['image_size']),
             torchvision.transforms.ToTensor(),
@@ -124,6 +116,19 @@ class Cityscapes:
         testset.targets.sort()
 
         return trainset, trainloader, testset, testloader
+
+    def get_class_names(self):
+        if self.num_classes == 20:
+            class_names = ['unlabeled', 'road', 'sidewalk', 'building', 'wall',
+                           'fence', 'pole', 'traffic light', 'traffic sign', 'vegetation',
+                           'terrain', 'sky', 'person', 'rider', 'car',
+                           'truck', 'bus', 'train', 'motorcycle', 'bicycle']
+        elif self.num_classes == 8:
+            class_names = ['unlabeled', 'flat', 'construction', 'object', 'nature', 'sky', 'human', 'vehicle']
+        else:
+            raise ValueError('Wrong num_classes.')
+
+        return class_names
 
     # Cityscapes 데이터셋 라벨 색상 불러오기
     def get_cityscapes_colormap(self):

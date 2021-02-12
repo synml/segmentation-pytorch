@@ -115,12 +115,13 @@ if __name__ == '__main__':
 
     # 평가 결과를 csv 파일로 저장
     os.makedirs('result', exist_ok=True)
+    class_names = dataset.get_class_names()
     with open(os.path.join('result', '{}.csv'.format(config['model'])), mode='w') as f:
         writer = csv.writer(f, delimiter=',', lineterminator='\n')
 
         writer.writerow(['Class Number', 'Class Name', 'IoU'])
         for class_num, iou_value in enumerate(iou, start=1):
-            writer.writerow([class_num, dataset.class_names_short[class_num], iou_value])
+            writer.writerow([class_num, class_names[class_num], iou_value])
         writer.writerow(['mIoU', miou, ' '])
         writer.writerow(['Validation loss', val_loss, ' '])
         writer.writerow(['FPS', fps, ' '])
