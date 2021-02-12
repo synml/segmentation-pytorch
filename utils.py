@@ -117,6 +117,7 @@ class Cityscapes:
 
         return trainset, trainloader, testset, testloader
 
+    # Cityscapes 데이터셋 클래스 이름 가져오기
     def get_class_names(self):
         if self.num_classes == 20:
             class_names = ['unlabeled', 'road', 'sidewalk', 'building', 'wall',
@@ -130,7 +131,7 @@ class Cityscapes:
 
         return class_names
 
-    # Cityscapes 데이터셋 라벨 색상 불러오기
+    # Cityscapes 데이터셋 라벨 색상 가져오기
     def get_cityscapes_colormap(self):
         if self.num_classes == 20:
             colormap = np.zeros((20, 3), dtype=np.uint8)
