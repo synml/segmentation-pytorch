@@ -18,7 +18,7 @@ UNet:
     name: ReduceLROnPlateau
     factor: 0.5
     patience: 5
-    min_lr: 0.00001
+    min_lr: 0.00005
   pretrained_weights: weights/UNet_best.pth
 
 Backbone:
@@ -32,7 +32,7 @@ Backbone:
     name: ReduceLROnPlateau
     factor: 0.5
     patience: 5
-    min_lr: 0.00001
+    min_lr: 0.00005
   pretrained_weights: weights/Backbone_best.pth
 
 Proposed:
@@ -46,5 +46,5 @@ Proposed:
     name: ReduceLROnPlateau
     factor: 0.5
     patience: 5
-    min_lr: 0.00001
+    min_lr: 0.00005
   pretrained_weights: weights/Proposed_best.pth
