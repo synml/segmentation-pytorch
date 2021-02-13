@@ -29,7 +29,7 @@ if __name__ == '__main__':
 
     # 4. Tensorboard
     writer = torch.utils.tensorboard.SummaryWriter(os.path.join('runs', config['model']))
-    writer.add_graph(model, trainloader.__iter__().__next__()[0].to(device))
+    writer.add_graph(model, trainloader.__iter__().__next__()[0][:2].to(device))
 
     # 5. Train and evaluate
     log_loss = tqdm.tqdm(total=0, position=2, bar_format='{desc}', leave=False)
