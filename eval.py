@@ -5,7 +5,6 @@ import time
 import numpy as np
 import sklearn.metrics
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.utils.data
 import tqdm
 
@@ -70,7 +69,6 @@ def evaluate(model, testloader, criterion, num_classes: int, amp_enabled: bool, 
             val_loss += criterion(output, target).item()
 
             # Segmentation map 만들기
-            output = F.log_softmax(output, dim=1)
             output = torch.argmax(output, dim=1)
 
         # 혼동행렬 업데이트
