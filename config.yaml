@@ -33,7 +33,7 @@ Backbone:
     factor: 0.5
     patience: 5
     min_lr: 0.00005
-  pretrained_weights: weights/Backbone_best.pth
+  pretrained_weights: weights/Backbone_val_best.pth
 
 Proposed:
   batch_size: 4
