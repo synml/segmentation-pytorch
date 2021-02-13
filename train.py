@@ -77,7 +77,7 @@ if __name__ == '__main__':
             prev_miou = miou
 
         # Best val_loss를 가진 모델을 저장
-        if val_loss > prev_val_loss:
+        if val_loss < prev_val_loss:
             torch.save(model.state_dict(), os.path.join('weights', '{}_val_best.pth'.format(config['model'])))
             prev_val_loss = val_loss
     writer.close()
