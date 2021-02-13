@@ -34,7 +34,7 @@ if __name__ == '__main__':
     # 5. Train and evaluate
     log_loss = tqdm.tqdm(total=0, position=2, bar_format='{desc}', leave=False)
     prev_miou = 0.0
-    prev_val_loss = 0.0
+    prev_val_loss = 100
     for epoch in tqdm.tqdm(range(config[config['model']]['epoch']), desc='Epoch'):
         if utils.train_interupter():
             print('Train interrupt occurs.')
