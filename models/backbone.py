@@ -50,8 +50,8 @@ class Backbone(nn.Module):
 def load_backbone(num_classes: int, pretrained=False):
     model = Backbone(num_classes)
     if pretrained:
-        if os.path.exists('weights/Backbone_best.pth'):
-            model.load_state_dict(torch.load('weights/Backbone_best.pth'))
+        if os.path.exists('weights/Backbone_val_best.pth'):
+            model.load_state_dict(torch.load('weights/Backbone_val_best.pth'))
         else:
             print('FileNotFound: pretrained_weights (Backbone)')
     return model
