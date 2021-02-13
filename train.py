@@ -72,6 +72,7 @@ if __name__ == '__main__':
         scheduler.step(val_loss)
 
         # Best mIoU를 가진 모델을 저장
+        os.makedirs('weights', exist_ok=True)
         if miou > prev_miou:
             torch.save(model.state_dict(), os.path.join('weights', '{}_best.pth'.format(config['model'])))
             prev_miou = miou
