@@ -33,7 +33,7 @@ def get_model(config: dict, pretrained=False) -> torch.nn.Module:
     elif config['model'] == 'Backbone':
         model = models.backbone.Backbone(config['dataset']['num_classes'])
     elif config['model'] == 'Proposed':
-        model = models.proposed.Proposed(config['dataset']['num_classes'])
+        model = models.proposed.Proposed(config['dataset']['num_classes'], config['Backbone']['pretrained_weights'])
     else:
         raise NameError('Wrong model name.')
 

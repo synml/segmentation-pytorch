@@ -8,10 +8,10 @@ import models.backbone
 
 
 class Proposed(nn.Module):
-    def __init__(self, num_classes: int):
+    def __init__(self, num_classes: int, backbone_pretrained_weights: str = None):
         super(Proposed, self).__init__()
         # Backbone
-        backbone = models.backbone.load_backbone(num_classes, pretrained=True)
+        backbone = models.backbone.load_backbone(num_classes, backbone_pretrained_weights)
         self.initial_conv = backbone.initial_conv
         self.encode1 = backbone.layer1  # 64
         self.encode2 = backbone.layer2  # 128, 1/2
