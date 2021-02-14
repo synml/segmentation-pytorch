@@ -19,7 +19,7 @@ if __name__ == '__main__':
 
     # 2. Model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = utils.get_model(config).to(device)
+    model = utils.get_model(config, pretrained_backbone=True).to(device)
 
     # 3. Loss function, optimizer, lr scheduler, scaler
     criterion = nn.CrossEntropyLoss()

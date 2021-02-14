@@ -24,7 +24,7 @@ def load_config():
     return config
 
 
-def get_model(config: dict, pretrained=False) -> torch.nn.Module:
+def get_model(config: dict, pretrained=False, pretrained_backbone=False) -> torch.nn.Module:
     assert isinstance(pretrained, bool)
     assert config['dataset']['num_classes'] == 20 or config['dataset']['num_classes'] == 8
 
@@ -33,7 +33,10 @@ def get_model(config: dict, pretrained=False) -> torch.nn.Module:
     elif config['model'] == 'Backbone':
         model = models.backbone.Backbone(config['dataset']['num_classes'])
     elif config['model'] == 'Proposed':
-        model = models.proposed.Proposed(config['dataset']['num_classes'], config['Backbone']['pretrained_weights'])
+        if pretrained_backbone:
+            model = models.proposed.Proposed(config['dataset']['num_classes'], config['Backbone']['pretrained_weights'])
+        else:
+            model = models.proposed.Proposed(config['dataset']['num_classes'])
     else:
         raise NameError('Wrong model name.')
 
