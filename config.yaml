@@ -36,7 +36,7 @@ Backbone:
   pretrained_weights: weights/Backbone_val_best.pth
 
 Proposed:
-  batch_size: 4
+  batch_size: 8
   epoch: 100
   optimizer:
     name: Adam
