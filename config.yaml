@@ -40,7 +40,7 @@ Proposed:
   epoch: 100
   optimizer:
     name: Adam
-    lr: 0.001
+    lr: 0.0005
     weight_decay: 0.00001
   scheduler:
     name: ReduceLROnPlateau
