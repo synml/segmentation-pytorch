@@ -50,6 +50,6 @@ if __name__ == '__main__':
         # 1 배치단위 처리
         assert target.shape[0] == output.shape[0]
         for i in range(target.shape[0]):
-            plt.imsave(os.path.join(result_dir, image_names[step]), output[i].cpu(), cmap=cmap)
-            plt.imsave(os.path.join(groundtruth_dir, image_names[step]), target[i], cmap=cmap)
+            plt.imsave(os.path.join(result_dir, image_names[step]), output[i].cpu(), cmap=cmap, vmin=0, vmax=cmap.N)
+            plt.imsave(os.path.join(groundtruth_dir, image_names[step]), target[i], cmap=cmap, vmin=0, vmax=cmap.N)
             step += 1
