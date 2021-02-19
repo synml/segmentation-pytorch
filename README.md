@@ -1,2 +1,3 @@
-# UNet-pytorch
- A simple PyTorch implementation of U-Net.
+# segmentation-pytorch
+ A simple PyTorch implementation of semantic segmentation models.
+ 
