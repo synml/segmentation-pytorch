@@ -191,7 +191,7 @@ class DataAugmentation:
             target = self.target_transform(target)
 
         # RandomHorizontalFlip
-        if self.p < torch.rand(1):
+        if torch.rand(1) < self.p:
             image = torchvision.transforms.functional.hflip(image)
             target = torchvision.transforms.functional.hflip(target)
         return image, target
