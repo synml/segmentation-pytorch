@@ -18,9 +18,7 @@ def load_config():
     with open('config.yaml') as f:
         config = yaml.safe_load(f)
 
-    config['dataset']['image_size'] = (int(config['dataset']['image_size'].split('x')[1]),
-                                       int(config['dataset']['image_size'].split('x')[0]))
-
+    config['dataset']['image_size'] = tuple([int(i) for i in config['dataset']['image_size'].split('x')])
     return config
 
 
