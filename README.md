@@ -47,8 +47,8 @@ This repository supports these semantic segmentation models as follows:
 
 - (U-Net) Convolutional Networks for Biomedical Image Segmentation [[Paper]](https://arxiv.org/pdf/1505.04597.pdf)
 - (AR U-Net) Atrous Residual U-Net for Semantic Segmentation in Urban Street Scenes [Paper]
-- (DeepLab v3) Rethinking Atrous Convolution for Semantic Image Segmentation [[Paper]](https://arxiv.org/pdf/1706.05587.pdf)
-- (DeepLab v3+) Encoder-Decoder with Atrous Separable Convolution for Semantic Segmentation [[Paper]](https://arxiv.org/pdf/1802.02611.pdf)
+- (DeepLab V3) Rethinking Atrous Convolution for Semantic Image Segmentation [[Paper]](https://arxiv.org/pdf/1706.05587.pdf)
+- (DeepLab V3+) Encoder-Decoder with Atrous Separable Convolution for Semantic Segmentation [[Paper]](https://arxiv.org/pdf/1802.02611.pdf)
 
 ## Datasets
 
@@ -88,18 +88,16 @@ This repository supports these datasets as follows:
 
 1. Clone this repository.
    
-   - ```bash
-     git clone https://github.com/synml/pytorch-semantic-segmentation
-     ```
+   ```bash
+   git clone https://github.com/synml/pytorch-semantic-segmentation
+   ```
    
 2. Create and activate a new virtual environment with Miniconda.
 
-   - ```bash
-      conda create -n [env_name, ex: torch] python=3.8
-      ```
-   - ```bash
-      conda activate [env_name, ex: torch]
-      ```
+   ```bash
+   conda create -n [env_name, ex: torch] python=3.8
+   conda activate [env_name, ex: torch]
+   ```
 
 3. Install PyTorch.
 
@@ -107,31 +105,89 @@ This repository supports these datasets as follows:
 
 4. Install the dependent packages mentioned above.
 
-   - ```bash
-     conda install matplotlib pyyaml scikit-learn tensorboard tqdm
-     ```
+   ```bash
+   conda install matplotlib pyyaml scikit-learn tensorboard tqdm
+   ```
 
 5. Prepare datasets.
 
+   - Please refer [Datasets](#Datasets) section.
+
 6. Customize the configuration file. (**config.yaml**)
+
+   ```yaml
+   dataset:
+     image_size: 400x800	# rows x cols
+     num_classes: 20	# 19 + 1 (background)
+     num_workers: 8	# number of CPU cores
+     root: ../../data/cityscapes	# dataset path
+   
+   model: UNet		# options [UNet, AR_UNet, DeepLabV3, DeepLabV3plus]
+   amp_enabled: True	# Automatic Mixed Precision
+   
+   UNet:	# Match model name
+     batch_size: 16
+     epoch: 100
+     optimizer:
+       name: Adam	# options [SGD, Adam]
+       lr: 0.001
+       weight_decay: 0.00001
+       <optimizer_keyarg1>:<value>
+     scheduler:
+       name: ReduceLROnPlateau
+       factor: 0.5
+       patience: 5
+       min_lr: 0.00005
+     pretrained_weights: weights/UNet_best.pth
+   
+   Backbone:
+     batch_size: 16
+     epoch: 100
+     optimizer:
+       name: Adam
+       lr: 0.001
+       weight_decay: 0.00001
+     scheduler:
+       name: ReduceLROnPlateau
+       factor: 0.5
+       patience: 5
+       min_lr: 0.00005
+     pretrained_weights: weights/Backbone_val_best.pth
+   
+   Proposed:
+     batch_size: 8
+     epoch: 100
+     optimizer:
+       name: Adam
+       lr: 0.0005
+       weight_decay: 0.00001
+     scheduler:
+       name: ReduceLROnPlateau
+       factor: 0.5
+       patience: 5
+       min_lr: 0.00005
+     pretrained_weights: weights/Proposed_best.pth
+   
+   ```
 
 ## Module-description
 
-backup.py
+- backup.py
 
-clean.py
+- clean.py
 
-demo.py
+- demo.py
 
-eval.py
+- eval.py
 
-exec_tensorboard.py
+- exec_tensorboard.py
 
-featurte_visualizer.py
+- featurte_visualizer.py
 
-train.py
+- train.py
 
-train_interupter.ini
+- train_interupter.ini
+
 
 ## Credits
 
