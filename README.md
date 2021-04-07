@@ -41,7 +41,7 @@ This repository aims to implement semantic segmentation models with PyTorch.
   - [flops-counter.pytorch](https://github.com/sovrasov/flops-counter.pytorch)
   - [Netron](https://github.com/lutzroeder/Netron) : Visualizer for neural network models. (web version: [Netron](https://lutzroeder.github.io/netron/))
 
-## **Models**
+## Models
 
 This repository supports these semantic segmentation models as follows:
 
