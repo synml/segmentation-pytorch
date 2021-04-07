@@ -13,8 +13,8 @@ This repository aims to implement semantic segmentation models with PyTorch.
 - [Requirements](#Requirements)
 - [Models](#Models)
 - [Datasets](#Datasets)
-- [How to Use](#How to Use)
-- [Module Description](#Module Description)
+- [How-to-use](#How-to-use)
+- [Module-description](#Module-description)
 - [Credits](#Credits)
 - [Contribution](#Contribution)
 - [License](#License)
@@ -30,13 +30,13 @@ This repository aims to implement semantic segmentation models with PyTorch.
   - OS: Ubuntu (Primary), Windows (Secondary)
   - Miniconda (Python 3.8)
   - PyTorch 1.8.1 (CUDA 11.1)
-- Dependent Packages
+- Dependent packages
   - Matplotlib
   - PyYAML
   - Scikit-learn
   - Tensorboard
   - Tqdm
-- Useful Packages
+- Useful packages
   - [pytorch-summary](https://github.com/sksq96/pytorch-summary)
   - [flops-counter.pytorch](https://github.com/sovrasov/flops-counter.pytorch)
   - [Netron](https://github.com/lutzroeder/Netron) : Visualizer for neural network models. (web version: [Netron](https://lutzroeder.github.io/netron/))
@@ -50,7 +50,7 @@ This repository supports these semantic segmentation models as follows:
 - (DeepLab v3) Rethinking Atrous Convolution for Semantic Image Segmentation [Paper]
 - (DeepLab v3+) Encoder-Decoder with Atrous Separable Convolution for Semantic Segmentation [Paper]
 
-## Dataset
+## Datasets
 
 This repository supports these datasets as follows:
 
@@ -84,7 +84,7 @@ This repository supports these datasets as follows:
   6. Run the script `createTrainIdLabelImgs.py` to create annotations based on the training labels.
 - [Pascal VOC 2012](http://host.robots.ox.ac.uk/pascal/VOC/voc2012/index.html)
 
-## How to Use
+## How-to-use
 
 1. Clone this repository.
    
@@ -115,7 +115,7 @@ This repository supports these datasets as follows:
 
 6. Customize the configuration file. (**config.yaml**)
 
-## Module Description
+## Module-description
 
 backup.py
 
@@ -140,7 +140,7 @@ train_interupter.ini
 - https://github.com/xiaoyufenfei/Efficient-Segmentation-Networks
 - https://github.com/milesial/Pytorch-UNet
 
-## Contribution method
+## Contribution
 
 1. Fork this repository.
 2. Create a new branch or use the master branch.
