@@ -75,7 +75,7 @@ This repository supports these datasets as follows:
      |  |  |-- README
      ```
   
-  3. Download [**cityscapesScripts**](https://github.com/mcordts/cityscapesScripts) for inspection, preparation, and evaluation. (Or clone [this repo](https://github.com/synml/cityscapesScripts))
+  3. Download [**cityscapesScripts**](https://github.com/mcordts/cityscapesScripts) for inspection, preparation, and evaluation. (or clone [this repo](https://github.com/synml/cityscapesScripts))
   
   4. Edit the script `labels.py` to specify the label number.
   
@@ -111,7 +111,7 @@ This repository supports these datasets as follows:
 
 5. Prepare datasets.
 
-   - Please refer [Datasets](#Datasets) section.
+   - Please refer to [Datasets](#Datasets) section.
 
 6. Customize the configuration file. (**config.yaml**)
 
