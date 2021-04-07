@@ -45,10 +45,10 @@ This repository aims to implement semantic segmentation models with PyTorch.
 
 This repository supports these semantic segmentation models as follows:
 
-- (U-Net) Convolutional Networks for Biomedical Image Segmentation [Paper]
+- (U-Net) Convolutional Networks for Biomedical Image Segmentation [[Paper]](https://arxiv.org/pdf/1505.04597.pdf)
 - (AR U-Net) Atrous Residual U-Net for Semantic Segmentation in Urban Street Scenes [Paper]
-- (DeepLab v3) Rethinking Atrous Convolution for Semantic Image Segmentation [Paper]
-- (DeepLab v3+) Encoder-Decoder with Atrous Separable Convolution for Semantic Segmentation [Paper]
+- (DeepLab v3) Rethinking Atrous Convolution for Semantic Image Segmentation [[Paper]](https://arxiv.org/pdf/1706.05587.pdf)
+- (DeepLab v3+) Encoder-Decoder with Atrous Separable Convolution for Semantic Segmentation [[Paper]](https://arxiv.org/pdf/1802.02611.pdf)
 
 ## Datasets
 
