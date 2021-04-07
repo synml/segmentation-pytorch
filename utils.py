@@ -83,8 +83,6 @@ class Cityscapes:
             torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ])
         self.target_transform = torchvision.transforms.Compose([
-            torchvision.transforms.Resize(self.config['dataset']['image_size'],
-                                          torchvision.transforms.functional.InterpolationMode.NEAREST),
             torchvision.transforms.ToTensor(),
         ])
         self.transforms = DataAugmentation(self.transform, self.target_transform)

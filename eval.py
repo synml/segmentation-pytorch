@@ -5,6 +5,7 @@ import time
 import numpy as np
 import sklearn.metrics
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.utils.data
 import tqdm
 
@@ -40,7 +41,7 @@ class EvaluationMetrics:
         return iou, miou
 
 
-def evaluate(model, testloader, criterion, num_classes: int, amp_enabled: bool, device, eval_fps=True):
+def evaluate(model, testloader, criterion, num_classes: int, amp_enabled: bool, device):
     model.eval()
 
     # Evaluate
@@ -54,16 +55,13 @@ def evaluate(model, testloader, criterion, num_classes: int, amp_enabled: bool, 
 
         # 예측
         with torch.cuda.amp.autocast(enabled=amp_enabled):
-            if eval_fps:
-                torch.cuda.synchronize()
-                start_time = time.time()
-                with torch.no_grad():
-                    output = model(image)
-                torch.cuda.synchronize()
-                inference_time += time.time() - start_time
-            else:
-                with torch.no_grad():
-                    output = model(image)
+            torch.cuda.synchronize()
+            start_time = time.time()
+            with torch.no_grad():
+                output = model(image)
+                output = F.interpolate(output, size=target.shape[1:], mode='bilinear', align_corners=False)
+            torch.cuda.synchronize()
+            inference_time += time.time() - start_time
 
             # validation loss를 모두 합침
             val_loss += criterion(output, target).item()
@@ -81,11 +79,8 @@ def evaluate(model, testloader, criterion, num_classes: int, amp_enabled: bool, 
     val_loss /= len(testloader)
 
     # 추론 시간과 fps를 계산 (추론 시간 단위: sec)
-    if eval_fps:
-        inference_time /= len(testloader.dataset)
-        fps = 1 / inference_time
-    else:
-        fps = 0
+    inference_time /= len(testloader.dataset)
+    fps = 1 / inference_time
 
     return val_loss, iou, miou, fps
 

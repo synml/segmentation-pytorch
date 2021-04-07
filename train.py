@@ -1,6 +1,7 @@
 import os
 
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.utils.data
 import torch.utils.tensorboard
 import tqdm
@@ -49,6 +50,7 @@ if __name__ == '__main__':
             # 순전파 + 역전파 + 최적화
             with torch.cuda.amp.autocast(enabled=config['amp_enabled']):
                 output = model(image)
+                output = F.interpolate(output, size=target.shape[1:], mode='bilinear', align_corners=False)
                 loss = criterion(output, target)
             scaler.scale(loss).backward()
             scaler.step(optimizer)
@@ -63,7 +65,7 @@ if __name__ == '__main__':
 
         # 모델 평가
         val_loss, _, miou, _ = eval.evaluate(model, testloader, criterion, config['dataset']['num_classes'],
-                                             config['amp_enabled'], device, False)
+                                             config['amp_enabled'], device)
         writer.add_scalar('Validation Loss', val_loss, epoch)
         writer.add_scalar('mIoU', miou, epoch)
 
