@@ -32,7 +32,7 @@ def get_model(config: dict, pretrained=False, pretrained_backbone=False) -> torc
         model = models.resnet34.Resnet34(config['dataset']['num_classes'])
     elif config['model'] == 'AR_UNet':
         if pretrained_backbone:
-            model = models.ar_unet.AR_UNet(config['dataset']['num_classes'], config['Backbone']['pretrained_weights'])
+            model = models.ar_unet.AR_UNet(config['dataset']['num_classes'], config['Resnet34']['pretrained_weights'])
         else:
             model = models.ar_unet.AR_UNet(config['dataset']['num_classes'])
     else:
