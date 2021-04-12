@@ -109,7 +109,7 @@ class ASPP(nn.Module):
         branch2 = self.branch2(x)
         branch3 = self.branch3(x)
         branch4 = self.branch4(x)
-        branch5 = F.interpolate(self.branch5(x), size=(x.size()[2], x.size()[3]), mode="bilinear", align_corners=False)
+        branch5 = F.interpolate(self.branch5(x), size=tuple(x.size()[2:]), mode="bilinear", align_corners=False)
 
         out = self.final_conv(torch.cat([branch1, branch2, branch3, branch4, branch5], dim=1))
         return out
