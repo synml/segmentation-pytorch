@@ -20,30 +20,30 @@ class DeepLabv3plus(nn.Module):
         else:
             raise NotImplementedError('Wrong backbone.')
 
-        # ASPP
-        if output_stride == 16:
-            aspp_atrous_rates = [6, 12, 18]
-        elif output_stride == 8:
-            aspp_atrous_rates = [12, 24, 36]
-        else:
-            raise NotImplementedError('Wrong output_stride.')
-        self.aspp = torchvision.models.segmentation.deeplabv3.ASPP(2048, aspp_atrous_rates, 256)
-
-        # Decoder
-        self.decoder = Decoder(backbone, num_classes)
+        self.aspp = ASPP(2048, output_stride, 256)
+        self.decoder = Decoder(backbone, output_stride, num_classes)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        size = x.size()[2:]
-
         x, low_level_feature = self.backbone(x)
         x = self.aspp(x)
         x = self.decoder(x, low_level_feature)
-        x = F.interpolate(x, size=size, mode='bilinear', align_corners=True)
         return x
 
 
+class ASPP(torchvision.models.segmentation.deeplabv3.ASPP):
+    def __init__(self, in_channels: int, output_stride: int, out_channels=256) -> None:
+        if output_stride == 16:
+            atrous_rates = [6, 12, 18]
+        elif output_stride == 8:
+            atrous_rates = [12, 24, 36]
+        else:
+            raise NotImplementedError('Wrong output_stride.')
+
+        super(ASPP, self).__init__(in_channels, atrous_rates, out_channels)
+
+
 class Decoder(nn.Module):
-    def __init__(self, backbone: str, num_classes: int) -> None:
+    def __init__(self, backbone: str, output_stride: int, num_classes: int) -> None:
         super(Decoder, self).__init__()
         if backbone == 'resnet101':
             in_channels = 256
@@ -52,22 +52,29 @@ class Decoder(nn.Module):
         else:
             raise NotImplementedError('Wrong backbone.')
 
+        if output_stride == 16:
+            scale_factor = 4
+        elif output_stride == 8:
+            scale_factor = 2
+        else:
+            raise NotImplementedError('Wrong output_stride.')
+
         low_level_feature_channels = 48
         self.compress_low_level_feature = nn.Sequential(
             nn.Conv2d(in_channels, low_level_feature_channels, kernel_size=1, bias=False),
             nn.BatchNorm2d(low_level_feature_channels),
             nn.ReLU(inplace=True)
         )
+        self.upsample1 = nn.Upsample(scale_factor=scale_factor, mode='bilinear', align_corners=False)
         self.decode1 = self.make_decoder(in_channels + low_level_feature_channels, 256)
         self.classifier = nn.Conv2d(256, num_classes, kernel_size=1)
+        self.upsample2 = nn.Upsample(scale_factor=4, mode='bilinear', align_corners=True)
 
     def forward(self, x: torch.Tensor, low_level_feature: torch.Tensor) -> torch.Tensor:
-        low_level_feature = self.compress_low_level_feature(low_level_feature)
-
-        x = F.interpolate(x, size=low_level_feature.size()[2:], mode='bilinear', align_corners=False)
-        x = torch.cat((x, low_level_feature), dim=1)
+        x = torch.cat((self.upsample1(x), self.compress_low_level_feature(low_level_feature)), dim=1)
         x = self.decode1(x)
         x = self.classifier(x)
+        x = self.upsample2(x)
         return x
 
     def make_decoder(self, in_channels: int, out_channels: int) -> nn.Sequential:
@@ -83,7 +90,7 @@ class Decoder(nn.Module):
 
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = DeepLabv3plus('resnet101', output_stride=8, num_classes=20).to(device)
+    model = DeepLabv3plus('resnet101', output_stride=16, num_classes=20).to(device)
     model.eval()
 
     torchsummary.torchsummary.summary(model, (3, 400, 800))
