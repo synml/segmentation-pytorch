@@ -43,8 +43,8 @@ if __name__ == '__main__':
     model = load_resnet101(output_stride=8, pretrained=True).to(device)
     model.eval()
 
-    torchsummary.torchsummary.summary(model, (3, 256, 512))
+    torchsummary.torchsummary.summary(model, (3, 400, 800))
 
-    writer = torch.utils.tensorboard.SummaryWriter('../runs')
-    writer.add_graph(model, torch.rand(1, 3, 256, 512).to(device))
+    writer = torch.utils.tensorboard.SummaryWriter('../../runs')
+    writer.add_graph(model, torch.rand(1, 3, 400, 800).to(device))
     writer.close()
