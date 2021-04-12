@@ -9,8 +9,8 @@ import torchvision
 import torchvision.transforms.functional
 import yaml
 
-import models.backbone
-import models.proposed
+import models.resnet34
+import models.ar_unet
 import models.unet
 
 
@@ -28,13 +28,13 @@ def get_model(config: dict, pretrained=False, pretrained_backbone=False) -> torc
 
     if config['model'] == 'UNet':
         model = models.unet.UNet(config['dataset']['num_classes'])
-    elif config['model'] == 'Backbone':
-        model = models.backbone.Backbone(config['dataset']['num_classes'])
-    elif config['model'] == 'Proposed':
+    elif config['model'] == 'Resnet34':
+        model = models.resnet34.Resnet34(config['dataset']['num_classes'])
+    elif config['model'] == 'AR_UNet':
         if pretrained_backbone:
-            model = models.proposed.Proposed(config['dataset']['num_classes'], config['Backbone']['pretrained_weights'])
+            model = models.ar_unet.AR_UNet(config['dataset']['num_classes'], config['Backbone']['pretrained_weights'])
         else:
-            model = models.proposed.Proposed(config['dataset']['num_classes'])
+            model = models.ar_unet.AR_UNet(config['dataset']['num_classes'])
     else:
         raise NameError('Wrong model name.')
 

@@ -4,14 +4,14 @@ import torch.nn.functional as F
 import torch.utils.tensorboard
 import torchsummary
 
-import models.backbone
+import models.resnet34
 
 
-class Proposed(nn.Module):
+class AR_UNet(nn.Module):
     def __init__(self, num_classes: int, backbone_pretrained_weights: str = None):
-        super(Proposed, self).__init__()
+        super(AR_UNet, self).__init__()
         # Backbone
-        backbone = models.backbone.load_backbone(num_classes, backbone_pretrained_weights)
+        backbone = models.resnet34.load_backbone(num_classes, backbone_pretrained_weights)
         self.initial_conv = backbone.initial_conv
         self.encode1 = backbone.layer1  # 64
         self.encode2 = backbone.layer2  # 128, 1/2
@@ -117,7 +117,7 @@ class ASPP(nn.Module):
 
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = Proposed(20).to(device)
+    model = AR_UNet(20).to(device)
     model.eval()
 
     torchsummary.torchsummary.summary(model, (3, 400, 800))

@@ -7,9 +7,9 @@ import torchvision
 import torchsummary
 
 
-class Backbone(nn.Module):
+class Resnet34(nn.Module):
     def __init__(self, num_classes: int):
-        super(Backbone, self).__init__()
+        super(Resnet34, self).__init__()
         # Backbone
         resnet34 = torchvision.models.resnet34(pretrained=True)
         self.initial_conv = self.make_initial_conv(3, 64)
@@ -48,7 +48,7 @@ class Backbone(nn.Module):
 
 
 def load_backbone(num_classes: int, pretrained_weights: str = None):
-    model = Backbone(num_classes)
+    model = Resnet34(num_classes)
     if pretrained_weights is not None:
         if os.path.exists(pretrained_weights):
             model.load_state_dict(torch.load(pretrained_weights))
@@ -59,7 +59,7 @@ def load_backbone(num_classes: int, pretrained_weights: str = None):
 
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = Backbone(20).to(device)
+    model = Resnet34(20).to(device)
     model.eval()
 
     torchsummary.torchsummary.summary(model, (3, 400, 800))

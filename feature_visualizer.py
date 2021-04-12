@@ -50,7 +50,7 @@ if __name__ == '__main__':
         model.decode2.register_forward_hook(get_feature_maps(feature_maps, 'decode2'))
         model.decode1.register_forward_hook(get_feature_maps(feature_maps, 'decode1'))
         model.classifier.register_forward_hook(get_feature_maps(feature_maps, 'classifier'))
-    elif config['model'] == 'Proposed':
+    elif config['model'] == 'AR_UNet':
         model.initial_conv.register_forward_hook(get_feature_maps(feature_maps, 'initial_conv'))
         model.encode1.register_forward_hook(get_feature_maps(feature_maps, 'encode1'))
         model.encode2.register_forward_hook(get_feature_maps(feature_maps, 'encode2'))
@@ -61,7 +61,7 @@ if __name__ == '__main__':
         model.decode2.register_forward_hook(get_feature_maps(feature_maps, 'decode2'))
         model.decode1.register_forward_hook(get_feature_maps(feature_maps, 'decode1'))
         model.classifier.register_forward_hook(get_feature_maps(feature_maps, 'classifier'))
-    elif config['model'] == 'Backbone':
+    elif config['model'] == 'Resnet34':
         model.initial_conv.register_forward_hook(get_feature_maps(feature_maps, 'initial_conv'))
         model.layer1.register_forward_hook(get_feature_maps(feature_maps, 'layer1'))
         model.layer2.register_forward_hook(get_feature_maps(feature_maps, 'layer2'))

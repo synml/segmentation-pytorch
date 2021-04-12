@@ -1,12 +1,15 @@
+# Dataset settings
 dataset:
   image_size: 400x800
   num_classes: 20
   num_workers: 8
   root: ../../data/cityscapes
 
+# Model settings
 model: UNet
 amp_enabled: True
 
+# Model definitions
 UNet:
   batch_size: 16
   epoch: 100
@@ -21,7 +24,7 @@ UNet:
     min_lr: 0.00005
   pretrained_weights: weights/UNet_best.pth
 
-Backbone:
+Resnet34:
   batch_size: 16
   epoch: 100
   optimizer:
@@ -35,7 +38,7 @@ Backbone:
     min_lr: 0.00005
   pretrained_weights: weights/Backbone_val_best.pth
 
-Proposed:
+AR_UNet:
   batch_size: 8
   epoch: 100
   optimizer:
