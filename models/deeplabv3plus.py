@@ -9,9 +9,9 @@ import models.backbone.resnet101
 import models.backbone.xception
 
 
-class DeepLabv3plus(nn.Module):
+class DeepLabV3plus(nn.Module):
     def __init__(self, backbone: str, output_stride: int, num_classes: int) -> None:
-        super(DeepLabv3plus, self).__init__()
+        super(DeepLabV3plus, self).__init__()
         # Backbone
         if backbone == 'resnet101':
             self.backbone = models.backbone.resnet101.load_resnet101(output_stride, pretrained=True)
@@ -90,7 +90,7 @@ class Decoder(nn.Module):
 
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = DeepLabv3plus('resnet101', output_stride=16, num_classes=20).to(device)
+    model = DeepLabV3plus('resnet101', output_stride=16, num_classes=20).to(device)
     model.eval()
 
     torchsummary.torchsummary.summary(model, (3, 400, 800))
