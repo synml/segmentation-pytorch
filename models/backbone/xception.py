@@ -26,7 +26,7 @@ model_urls = {
 
 class SeparableConv2d(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size=1, stride=1, padding=0, dilation=1, bias=False,
-                 activate_first=True, inplace=True):
+                 activate_first=True, inplace=True) -> None:
         super(SeparableConv2d, self).__init__()
         self.relu0 = nn.ReLU(inplace=inplace)
         self.depthwise = nn.Conv2d(in_channels, in_channels, kernel_size, stride, padding, dilation, groups=in_channels,
@@ -38,7 +38,7 @@ class SeparableConv2d(nn.Module):
         self.relu2 = nn.ReLU(inplace=True)
         self.activate_first = activate_first
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         if self.activate_first:
             x = self.relu0(x)
         x = self.depthwise(x)
@@ -53,48 +53,47 @@ class SeparableConv2d(nn.Module):
 
 
 class Block(nn.Module):
-    def __init__(self, in_filters: int, out_filters: int, stride: int, atrous: int = None,
-                 grow_first=True, activate_first=True):
+    def __init__(self, in_channels: int, out_channels: int, stride: int, atrous: int = None,
+                 grow_first=True, activate_first=True) -> None:
         super(Block, self).__init__()
         if atrous is None:
-            atrous = [1] * 3
+            atrous = [1, 1, 1]
         else:
-            atrous_list = [atrous] * 3
-            atrous = atrous_list
+            atrous = [atrous, atrous, atrous]
 
-        if out_filters != in_filters or stride != 1:
-            self.skip = nn.Conv2d(in_filters, out_filters, 1, stride=stride, bias=False)
-            self.skipbn = nn.BatchNorm2d(out_filters)
+        if out_channels != in_channels or stride != 1:
+            self.skip = nn.Conv2d(in_channels, out_channels, 1, stride=stride, bias=False)
+            self.skipbn = nn.BatchNorm2d(out_channels)
         else:
             self.skip = None
 
         self.hook_layer = None
+
         if grow_first:
-            filters = out_filters
+            filters = out_channels
         else:
-            filters = in_filters
-        self.sepconv1 = SeparableConv2d(in_filters, filters, 3, stride=1, padding=1 * atrous[0], dilation=atrous[0],
+            filters = in_channels
+        self.sepconv1 = SeparableConv2d(in_channels, filters, 3, stride=1, padding=1 * atrous[0], dilation=atrous[0],
                                         bias=False, activate_first=activate_first, inplace=False)
-        self.sepconv2 = SeparableConv2d(filters, out_filters, 3, stride=1, padding=1 * atrous[1], dilation=atrous[1],
+        self.sepconv2 = SeparableConv2d(filters, out_channels, 3, stride=1, padding=1 * atrous[1], dilation=atrous[1],
                                         bias=False, activate_first=activate_first)
-        self.sepconv3 = SeparableConv2d(out_filters, out_filters, 3, stride=stride, padding=1 * atrous[2],
+        self.sepconv3 = SeparableConv2d(out_channels, out_channels, 3, stride=stride, padding=1 * atrous[2],
                                         dilation=atrous[2], bias=False, activate_first=activate_first)
 
-    def forward(self, inp):
-
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         if self.skip is not None:
-            skip = self.skip(inp)
+            skip = self.skip(x)
             skip = self.skipbn(skip)
         else:
-            skip = inp
+            skip = x
 
-        x = self.sepconv1(inp)
-        x = self.sepconv2(x)
-        self.hook_layer = x
-        x = self.sepconv3(x)
+        out = self.sepconv1(x)
+        out = self.sepconv2(out)
+        self.hook_layer = out
+        out = self.sepconv3(out)
 
-        x += skip
-        return x
+        out += skip
+        return out
 
 
 class Xception(nn.Module):
@@ -158,7 +157,6 @@ class Xception(nn.Module):
         x = self.block2(x)
         self.layers.append(self.block2.hook_layer)
         x = self.block3(x)
-        # self.layers.append(self.block3.hook_layer)
 
         # Middle flow
         x = self.block4(x)
