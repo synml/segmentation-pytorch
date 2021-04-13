@@ -69,11 +69,11 @@ class Block(nn.Module):
             filters = out_channels
         else:
             filters = in_channels
-        self.sepconv1 = SeparableConv2d(in_channels, filters, 3, stride=1, padding=1 * dilation[0], dilation=dilation[0],
+        self.sepconv1 = SeparableConv2d(in_channels, filters, 3, stride=1, padding=dilation[0], dilation=dilation[0],
                                         bias=False, activate_first=activate_first, inplace=False)
-        self.sepconv2 = SeparableConv2d(filters, out_channels, 3, stride=1, padding=1 * dilation[1], dilation=dilation[1],
+        self.sepconv2 = SeparableConv2d(filters, out_channels, 3, stride=1, padding=dilation[1], dilation=dilation[1],
                                         bias=False, activate_first=activate_first)
-        self.sepconv3 = SeparableConv2d(out_channels, out_channels, 3, stride, padding=1 * dilation[2],
+        self.sepconv3 = SeparableConv2d(out_channels, out_channels, 3, stride, padding=dilation[2],
                                         dilation=dilation[2], bias=False, activate_first=activate_first)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -187,8 +187,6 @@ def xception(output_stride: int, pretrained: bool) -> Xception:
     model = Xception(output_stride)
     if pretrained:
         old_dict = torch.load('../../weights/xception_pytorch_imagenet.pth')
-        old_dict = {key: value for key, value in old_dict.items() if
-                    ('itr' not in key and 'tmp' not in key and 'track' not in key)}
         model_dict = model.state_dict()
         model_dict.update(old_dict)
         model.load_state_dict(model_dict)
