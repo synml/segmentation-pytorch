@@ -57,11 +57,11 @@ class Block(nn.Module):
             dilation = [dilation, dilation, dilation]
 
         if out_channels != in_channels or stride != 1:
-            self.shortcut = nn.Conv2d(in_channels, out_channels, 1, stride, bias=False)
-            self.shortcut_bn = nn.BatchNorm2d(out_channels)
+            self.skip = nn.Conv2d(in_channels, out_channels, 1, stride, bias=False)
+            self.skipbn = nn.BatchNorm2d(out_channels)
         else:
-            self.shortcut = None
-            self.shortcut_bn = None
+            self.skip = None
+            self.skipbn = None
 
         self.hook_layer = None
 
@@ -77,9 +77,9 @@ class Block(nn.Module):
                                         dilation=dilation[2], bias=False, activate_first=activate_first)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        if self.shortcut is not None:
-            skip = self.shortcut(x)
-            skip = self.shortcut_bn(skip)
+        if self.skip is not None:
+            skip = self.skip(x)
+            skip = self.skipbn(skip)
         else:
             skip = x
 
