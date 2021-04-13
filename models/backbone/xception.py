@@ -15,8 +15,6 @@ The resize parameter of the validation transform should be 333, and make sure to
 """
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import torch.utils.model_zoo as model_zoo
 import torch.utils.tensorboard
 import torchsummary
 
@@ -99,20 +97,17 @@ class Block(nn.Module):
 
 
 class Xception(nn.Module):
-    """
-    Xception optimized for the ImageNet dataset, as specified in
-    https://arxiv.org/pdf/1610.02357.pdf
-    """
-
     def __init__(self, output_stride):
         super(Xception, self).__init__()
-
         if output_stride == 8:
             stride_list = [2, 1, 1]
         elif output_stride == 16:
             stride_list = [2, 2, 1]
         else:
-            raise ValueError('xception.py: output stride=%d is not supported.' % output_stride)
+            raise NotImplementedError('Wrong output_stride.')
+
+        self.layers = []
+
         self.conv1 = nn.Conv2d(3, 32, 3, 2, 1, bias=False)
         self.bn1 = nn.BatchNorm2d(32)
         self.relu1 = nn.ReLU(inplace=True)
@@ -120,7 +115,6 @@ class Xception(nn.Module):
         self.conv2 = nn.Conv2d(32, 64, 3, 1, 1, bias=False)
         self.bn2 = nn.BatchNorm2d(64)
         self.relu2 = nn.ReLU(inplace=True)
-        # do relu here
 
         self.block1 = Block(64, 128, 2)
         self.block2 = Block(128, 256, stride_list[0])
@@ -148,34 +142,26 @@ class Xception(nn.Module):
         self.block19 = Block(728, 728, 1, atrous=[1 * rate, 1 * rate, 1 * rate])
 
         self.block20 = Block(728, 1024, stride_list[2], atrous=rate, grow_first=False)
-        # self.block12=Block(728,1024,2,2,start_with_relu=True,grow_first=False)
 
         self.conv3 = SeparableConv2d(1024, 1536, 3, 1, 1 * rate, dilation=rate, activate_first=False)
-        # self.bn3 = SynchronizedBatchNorm2d(1536, momentum=bn_mom)
-
         self.conv4 = SeparableConv2d(1536, 1536, 3, 1, 1 * rate, dilation=rate, activate_first=False)
-        # self.bn4 = SynchronizedBatchNorm2d(1536, momentum=bn_mom)
-
-        # do relu here
         self.conv5 = SeparableConv2d(1536, 2048, 3, 1, 1 * rate, dilation=rate, activate_first=False)
-        # self.bn5 = SynchronizedBatchNorm2d(2048, momentum=bn_mom)
-        self.layers = []
 
-    def forward(self, x):
-        self.layers = []
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # Entry flow
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu1(x)
-        # self.layers.append(x)
         x = self.conv2(x)
         x = self.bn2(x)
         x = self.relu2(x)
-
         x = self.block1(x)
         x = self.block2(x)
         self.layers.append(self.block2.hook_layer)
         x = self.block3(x)
         # self.layers.append(self.block3.hook_layer)
+
+        # Middle flow
         x = self.block4(x)
         x = self.block5(x)
         x = self.block6(x)
@@ -192,48 +178,32 @@ class Xception(nn.Module):
         x = self.block17(x)
         x = self.block18(x)
         x = self.block19(x)
+
+        # Exit flow
         x = self.block20(x)
-        # self.layers.append(self.block20.hook_layer)
-
         x = self.conv3(x)
-        # x = self.bn3(x)
-        # x = self.relu(x)
-
         x = self.conv4(x)
-        # x = self.bn4(x)
-        # x = self.relu(x)
-
         x = self.conv5(x)
-        # x = self.bn5(x)
-        # x = self.relu(x)
-        self.layers.append(x)
-
         return x
 
     def get_layers(self):
         return self.layers
 
 
-def xception(pretrained=True, os=16):
-    model = Xception(output_stride=os)
+def xception(output_stride: int, pretrained: bool) -> Xception:
+    model = Xception(output_stride)
     if pretrained:
         old_dict = torch.load(model_urls['xception'])
-        # old_dict = model_zoo.load_url(model_urls['xception'])
-        # for name, weights in old_dict.items():
-        #     if 'pointwise' in name:
-        #         old_dict[name] = weights.unsqueeze(-1).unsqueeze(-1)
-        model_dict = model.state_dict()
         old_dict = {k: v for k, v in old_dict.items() if ('itr' not in k and 'tmp' not in k and 'track' not in k)}
+        model_dict = model.state_dict()
         model_dict.update(old_dict)
-
         model.load_state_dict(model_dict)
-
     return model
 
 
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = xception(False).to(device)
+    model = xception(output_stride=16, pretrained=False).to(device)
     model.eval()
 
     torchsummary.torchsummary.summary(model, (3, 200, 400))
