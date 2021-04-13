@@ -21,13 +21,16 @@ class SeparableConv2d(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if self.activation_first:
             x = self.relu0(x)
-        x = self.depthwise(x)
-        x = self.bn1(x)
-        if not self.activation_first:
+            x = self.depthwise(x)
+            x = self.bn1(x)
+            x = self.pointwise(x)
+            x = self.bn2(x)
+        else:
+            x = self.depthwise(x)
+            x = self.bn1(x)
             x = self.relu1(x)
-        x = self.pointwise(x)
-        x = self.bn2(x)
-        if not self.activation_first:
+            x = self.pointwise(x)
+            x = self.bn2(x)
             x = self.relu2(x)
         return x
 
