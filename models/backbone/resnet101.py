@@ -30,7 +30,7 @@ class ResNet101(torchvision.models.resnet.ResNet):
         return x, low_level_feature
 
 
-def load_resnet101(output_stride: int, pretrained: bool):
+def load_resnet101(output_stride: int, pretrained: bool) -> ResNet101:
     model = ResNet101(output_stride)
     if pretrained:
         state_dict = torch.hub.load_state_dict_from_url(torchvision.models.resnet.model_urls['resnet101'])
