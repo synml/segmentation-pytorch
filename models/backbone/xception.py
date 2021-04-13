@@ -1,18 +1,3 @@
-"""
-Ported to pytorch thanks to [tstandley](https://github.com/tstandley/Xception-PyTorch)
-@author: tstandley
-Adapted by cadene
-Creates an Xception Model as defined in:
-Francois Chollet
-Xception: Deep Learning with Depthwise Separable Convolutions
-https://arxiv.org/pdf/1610.02357.pdf
-This weights ported from the Keras implementation. Achieves the following performance on the validation set:
-Loss:0.9173 Prec@1:78.892 Prec@5:94.292
-REMEMBER to set your image size to 3x299x299 for both test and validation
-normalize = transforms.Normalize(mean=[0.5, 0.5, 0.5],
-                                  std=[0.5, 0.5, 0.5])
-The resize parameter of the validation transform should be 333, and make sure to center crop at 299x299
-"""
 import torch
 import torch.nn as nn
 import torch.utils.tensorboard
@@ -20,29 +5,29 @@ import torchsummary
 
 
 class SeparableConv2d(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size=1, stride=1, padding=0, dilation=1, bias=False,
-                 activate_first=True, inplace=True) -> None:
+    def __init__(self, in_channels: int, out_channels: int, kernel_size: int, stride=1, padding=0, dilation=1,
+                 bias=True, activation_first=True, inplace=True) -> None:
         super(SeparableConv2d, self).__init__()
         self.relu0 = nn.ReLU(inplace=inplace)
-        self.depthwise = nn.Conv2d(in_channels, in_channels, kernel_size, stride, padding, dilation, groups=in_channels,
-                                   bias=bias)
+        self.depthwise = nn.Conv2d(in_channels, in_channels, kernel_size, stride, padding, dilation,
+                                   groups=in_channels, bias=bias)
         self.bn1 = nn.BatchNorm2d(in_channels)
         self.relu1 = nn.ReLU(inplace=True)
-        self.pointwise = nn.Conv2d(in_channels, out_channels, 1, 1, 0, 1, 1, bias=bias)
+        self.pointwise = nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=bias)
         self.bn2 = nn.BatchNorm2d(out_channels)
         self.relu2 = nn.ReLU(inplace=True)
-        self.activate_first = activate_first
+        self.activation_first = activation_first
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        if self.activate_first:
+        if self.activation_first:
             x = self.relu0(x)
         x = self.depthwise(x)
         x = self.bn1(x)
-        if not self.activate_first:
+        if not self.activation_first:
             x = self.relu1(x)
         x = self.pointwise(x)
         x = self.bn2(x)
-        if not self.activate_first:
+        if not self.activation_first:
             x = self.relu2(x)
         return x
 
@@ -64,15 +49,15 @@ class Block(nn.Module):
         self.hook_layer = None
 
         if grow_first:
-            channels = out_channels
+            mid_channels = out_channels
         else:
-            channels = in_channels
-        self.sepconv1 = SeparableConv2d(in_channels, channels, 3, stride=1, padding=dilation, dilation=dilation,
-                                        bias=False, activate_first=True, inplace=False)
-        self.sepconv2 = SeparableConv2d(channels, out_channels, 3, stride=1, padding=dilation, dilation=dilation,
-                                        bias=False, activate_first=True)
-        self.sepconv3 = SeparableConv2d(out_channels, out_channels, 3, stride, padding=dilation,
-                                        dilation=dilation, bias=False, activate_first=True)
+            mid_channels = in_channels
+        self.sepconv1 = SeparableConv2d(in_channels, mid_channels, 3, 1, padding=dilation, dilation=dilation,
+                                        bias=False, inplace=False)
+        self.sepconv2 = SeparableConv2d(mid_channels, out_channels, 3, 1, padding=dilation, dilation=dilation,
+                                        bias=False)
+        self.sepconv3 = SeparableConv2d(out_channels, out_channels, 3, stride, padding=dilation, dilation=dilation,
+                                        bias=False)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if self.skip is not None:
@@ -137,9 +122,12 @@ class Xception(nn.Module):
 
         # Exit flow
         self.block20 = Block(728, 1024, 1, exit_block_dilations[0], skip_connection_type='conv', grow_first=False)
-        self.conv3 = SeparableConv2d(1024, 1536, 3, 1, exit_block_dilations[1], exit_block_dilations[1], activate_first=False)
-        self.conv4 = SeparableConv2d(1536, 1536, 3, 1, exit_block_dilations[1], exit_block_dilations[1], activate_first=False)
-        self.conv5 = SeparableConv2d(1536, 2048, 3, 1, exit_block_dilations[1], exit_block_dilations[1], activate_first=False)
+        self.conv3 = SeparableConv2d(1024, 1536, 3, 1, exit_block_dilations[1], exit_block_dilations[1],
+                                     bias=False, activation_first=False)
+        self.conv4 = SeparableConv2d(1536, 1536, 3, 1, exit_block_dilations[1], exit_block_dilations[1],
+                                     bias=False, activation_first=False)
+        self.conv5 = SeparableConv2d(1536, 2048, 3, 1, exit_block_dilations[1], exit_block_dilations[1],
+                                     bias=False, activation_first=False)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # Entry flow
