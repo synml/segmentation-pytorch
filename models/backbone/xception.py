@@ -53,16 +53,17 @@ class SeparableConv2d(nn.Module):
 
 
 class Block(nn.Module):
-    def __init__(self, in_filters, out_filters, strides=1, atrous=None, grow_first=True, activate_first=True):
+    def __init__(self, in_filters: int, out_filters: int, stride: int, atrous: int = None,
+                 grow_first=True, activate_first=True):
         super(Block, self).__init__()
         if atrous is None:
             atrous = [1] * 3
-        elif isinstance(atrous, int):
+        else:
             atrous_list = [atrous] * 3
             atrous = atrous_list
 
-        if out_filters != in_filters or strides != 1:
-            self.skip = nn.Conv2d(in_filters, out_filters, 1, stride=strides, bias=False)
+        if out_filters != in_filters or stride != 1:
+            self.skip = nn.Conv2d(in_filters, out_filters, 1, stride=stride, bias=False)
             self.skipbn = nn.BatchNorm2d(out_filters)
         else:
             self.skip = None
@@ -76,7 +77,7 @@ class Block(nn.Module):
                                         bias=False, activate_first=activate_first, inplace=False)
         self.sepconv2 = SeparableConv2d(filters, out_filters, 3, stride=1, padding=1 * atrous[1], dilation=atrous[1],
                                         bias=False, activate_first=activate_first)
-        self.sepconv3 = SeparableConv2d(out_filters, out_filters, 3, stride=strides, padding=1 * atrous[2],
+        self.sepconv3 = SeparableConv2d(out_filters, out_filters, 3, stride=stride, padding=1 * atrous[2],
                                         dilation=atrous[2], bias=False, activate_first=activate_first)
 
     def forward(self, inp):
@@ -97,52 +98,50 @@ class Block(nn.Module):
 
 
 class Xception(nn.Module):
-    def __init__(self, output_stride):
+    def __init__(self, output_stride: int) -> None:
         super(Xception, self).__init__()
         if output_stride == 8:
             stride_list = [2, 1, 1]
+            rate = 2
         elif output_stride == 16:
             stride_list = [2, 2, 1]
+            rate = 1
         else:
             raise NotImplementedError('Wrong output_stride.')
 
         self.layers = []
 
+        # Entry flow
         self.conv1 = nn.Conv2d(3, 32, 3, 2, 1, bias=False)
         self.bn1 = nn.BatchNorm2d(32)
         self.relu1 = nn.ReLU(inplace=True)
-
         self.conv2 = nn.Conv2d(32, 64, 3, 1, 1, bias=False)
         self.bn2 = nn.BatchNorm2d(64)
         self.relu2 = nn.ReLU(inplace=True)
-
         self.block1 = Block(64, 128, 2)
         self.block2 = Block(128, 256, stride_list[0])
         self.block3 = Block(256, 728, stride_list[1])
 
-        rate = 16 // output_stride
+        # Middle flow
         self.block4 = Block(728, 728, 1, atrous=rate)
         self.block5 = Block(728, 728, 1, atrous=rate)
         self.block6 = Block(728, 728, 1, atrous=rate)
         self.block7 = Block(728, 728, 1, atrous=rate)
-
         self.block8 = Block(728, 728, 1, atrous=rate)
         self.block9 = Block(728, 728, 1, atrous=rate)
         self.block10 = Block(728, 728, 1, atrous=rate)
         self.block11 = Block(728, 728, 1, atrous=rate)
-
         self.block12 = Block(728, 728, 1, atrous=rate)
         self.block13 = Block(728, 728, 1, atrous=rate)
         self.block14 = Block(728, 728, 1, atrous=rate)
         self.block15 = Block(728, 728, 1, atrous=rate)
+        self.block16 = Block(728, 728, 1, atrous=rate)
+        self.block17 = Block(728, 728, 1, atrous=rate)
+        self.block18 = Block(728, 728, 1, atrous=rate)
+        self.block19 = Block(728, 728, 1, atrous=rate)
 
-        self.block16 = Block(728, 728, 1, atrous=[1 * rate, 1 * rate, 1 * rate])
-        self.block17 = Block(728, 728, 1, atrous=[1 * rate, 1 * rate, 1 * rate])
-        self.block18 = Block(728, 728, 1, atrous=[1 * rate, 1 * rate, 1 * rate])
-        self.block19 = Block(728, 728, 1, atrous=[1 * rate, 1 * rate, 1 * rate])
-
+        # Exit flow
         self.block20 = Block(728, 1024, stride_list[2], atrous=rate, grow_first=False)
-
         self.conv3 = SeparableConv2d(1024, 1536, 3, 1, 1 * rate, dilation=rate, activate_first=False)
         self.conv4 = SeparableConv2d(1536, 1536, 3, 1, 1 * rate, dilation=rate, activate_first=False)
         self.conv5 = SeparableConv2d(1536, 2048, 3, 1, 1 * rate, dilation=rate, activate_first=False)
