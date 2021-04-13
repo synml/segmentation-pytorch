@@ -18,11 +18,6 @@ import torch.nn as nn
 import torch.utils.tensorboard
 import torchsummary
 
-model_urls = {
-    'xception': '/home/wangyude/.torch/models/xception_pytorch_imagenet.pth'
-    # 'http://data.lip6.fr/cadene/pretrainedmodels/xception-b5690688.pth'
-}
-
 
 class SeparableConv2d(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size=1, stride=1, padding=0, dilation=1, bias=False,
@@ -191,7 +186,7 @@ class Xception(nn.Module):
 def xception(output_stride: int, pretrained: bool) -> Xception:
     model = Xception(output_stride)
     if pretrained:
-        old_dict = torch.load(model_urls['xception'])
+        old_dict = torch.load('../../weights/xception_pytorch_imagenet.pth')
         old_dict = {k: v for k, v in old_dict.items() if ('itr' not in k and 'tmp' not in k and 'track' not in k)}
         model_dict = model.state_dict()
         model_dict.update(old_dict)
