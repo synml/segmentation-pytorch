@@ -187,7 +187,8 @@ def xception(output_stride: int, pretrained: bool) -> Xception:
     model = Xception(output_stride)
     if pretrained:
         old_dict = torch.load('../../weights/xception_pytorch_imagenet.pth')
-        old_dict = {k: v for k, v in old_dict.items() if ('itr' not in k and 'tmp' not in k and 'track' not in k)}
+        old_dict = {key: value for key, value in old_dict.items() if
+                    ('itr' not in key and 'tmp' not in key and 'track' not in key)}
         model_dict = model.state_dict()
         model_dict.update(old_dict)
         model.load_state_dict(model_dict)
@@ -196,7 +197,7 @@ def xception(output_stride: int, pretrained: bool) -> Xception:
 
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = xception(output_stride=16, pretrained=False).to(device)
+    model = xception(output_stride=16, pretrained=True).to(device)
     model.eval()
 
     torchsummary.torchsummary.summary(model, (3, 200, 400))
