@@ -104,7 +104,7 @@ class Xception(nn.Module):
         else:
             raise NotImplementedError('Wrong output_stride.')
 
-        self.layers = []
+        self.low_level_features = []
 
         # Entry flow
         self.conv1 = nn.Conv2d(3, 32, 3, 2, 1, bias=False)
@@ -151,7 +151,7 @@ class Xception(nn.Module):
         x = self.relu2(x)
         x = self.block1(x)
         x = self.block2(x)
-        self.layers.append(self.block2.hook_layer)
+        self.low_level_features.append(self.block2.hook_layer)
         x = self.block3(x)
 
         # Middle flow
@@ -179,11 +179,8 @@ class Xception(nn.Module):
         x = self.conv5(x)
         return x
 
-    def get_layers(self):
-        return self.layers
 
-
-def xception(output_stride: int, pretrained: bool) -> Xception:
+def load_xception(output_stride: int, pretrained: bool) -> Xception:
     model = Xception(output_stride)
     if pretrained:
         old_dict = torch.load('../../weights/xception_pytorch_imagenet.pth')
@@ -195,7 +192,7 @@ def xception(output_stride: int, pretrained: bool) -> Xception:
 
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = xception(output_stride=16, pretrained=True).to(device)
+    model = load_xception(output_stride=16, pretrained=True).to(device)
     model.eval()
 
     torchsummary.torchsummary.summary(model, (3, 200, 400))
