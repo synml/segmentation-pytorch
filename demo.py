@@ -2,7 +2,6 @@ import os
 
 import matplotlib.colors
 import matplotlib.pyplot as plt
-import torch.nn.functional as F
 import torch.utils.data
 import tqdm
 
@@ -46,7 +45,6 @@ if __name__ == '__main__':
         with torch.cuda.amp.autocast(enabled=config['amp_enabled']):
             with torch.no_grad():
                 output = model(image)
-                output = F.interpolate(output, size=target.shape[1:], mode='bilinear', align_corners=False)
                 output = torch.argmax(output, dim=1)
 
         # 1 배치단위 처리
