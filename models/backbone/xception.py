@@ -53,19 +53,20 @@ class SeparableConv2d(nn.Module):
 
 
 class Block(nn.Module):
-    def __init__(self, in_channels: int, out_channels: int, stride: int, atrous: int = None,
+    def __init__(self, in_channels: int, out_channels: int, stride: int, dilation: int = None,
                  grow_first=True, activate_first=True) -> None:
         super(Block, self).__init__()
-        if atrous is None:
-            atrous = [1, 1, 1]
+        if dilation is None:
+            dilation = [1, 1, 1]
         else:
-            atrous = [atrous, atrous, atrous]
+            dilation = [dilation, dilation, dilation]
 
         if out_channels != in_channels or stride != 1:
-            self.skip = nn.Conv2d(in_channels, out_channels, 1, stride=stride, bias=False)
-            self.skipbn = nn.BatchNorm2d(out_channels)
+            self.shortcut = nn.Conv2d(in_channels, out_channels, 1, stride, bias=False)
+            self.shortcut_bn = nn.BatchNorm2d(out_channels)
         else:
-            self.skip = None
+            self.shortcut = None
+            self.shortcut_bn = None
 
         self.hook_layer = None
 
@@ -73,17 +74,17 @@ class Block(nn.Module):
             filters = out_channels
         else:
             filters = in_channels
-        self.sepconv1 = SeparableConv2d(in_channels, filters, 3, stride=1, padding=1 * atrous[0], dilation=atrous[0],
+        self.sepconv1 = SeparableConv2d(in_channels, filters, 3, stride=1, padding=1 * dilation[0], dilation=dilation[0],
                                         bias=False, activate_first=activate_first, inplace=False)
-        self.sepconv2 = SeparableConv2d(filters, out_channels, 3, stride=1, padding=1 * atrous[1], dilation=atrous[1],
+        self.sepconv2 = SeparableConv2d(filters, out_channels, 3, stride=1, padding=1 * dilation[1], dilation=dilation[1],
                                         bias=False, activate_first=activate_first)
-        self.sepconv3 = SeparableConv2d(out_channels, out_channels, 3, stride=stride, padding=1 * atrous[2],
-                                        dilation=atrous[2], bias=False, activate_first=activate_first)
+        self.sepconv3 = SeparableConv2d(out_channels, out_channels, 3, stride, padding=1 * dilation[2],
+                                        dilation=dilation[2], bias=False, activate_first=activate_first)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        if self.skip is not None:
-            skip = self.skip(x)
-            skip = self.skipbn(skip)
+        if self.shortcut is not None:
+            skip = self.shortcut(x)
+            skip = self.shortcut_bn(skip)
         else:
             skip = x
 
@@ -122,25 +123,25 @@ class Xception(nn.Module):
         self.block3 = Block(256, 728, stride_list[1])
 
         # Middle flow
-        self.block4 = Block(728, 728, 1, atrous=rate)
-        self.block5 = Block(728, 728, 1, atrous=rate)
-        self.block6 = Block(728, 728, 1, atrous=rate)
-        self.block7 = Block(728, 728, 1, atrous=rate)
-        self.block8 = Block(728, 728, 1, atrous=rate)
-        self.block9 = Block(728, 728, 1, atrous=rate)
-        self.block10 = Block(728, 728, 1, atrous=rate)
-        self.block11 = Block(728, 728, 1, atrous=rate)
-        self.block12 = Block(728, 728, 1, atrous=rate)
-        self.block13 = Block(728, 728, 1, atrous=rate)
-        self.block14 = Block(728, 728, 1, atrous=rate)
-        self.block15 = Block(728, 728, 1, atrous=rate)
-        self.block16 = Block(728, 728, 1, atrous=rate)
-        self.block17 = Block(728, 728, 1, atrous=rate)
-        self.block18 = Block(728, 728, 1, atrous=rate)
-        self.block19 = Block(728, 728, 1, atrous=rate)
+        self.block4 = Block(728, 728, 1, dilation=rate)
+        self.block5 = Block(728, 728, 1, dilation=rate)
+        self.block6 = Block(728, 728, 1, dilation=rate)
+        self.block7 = Block(728, 728, 1, dilation=rate)
+        self.block8 = Block(728, 728, 1, dilation=rate)
+        self.block9 = Block(728, 728, 1, dilation=rate)
+        self.block10 = Block(728, 728, 1, dilation=rate)
+        self.block11 = Block(728, 728, 1, dilation=rate)
+        self.block12 = Block(728, 728, 1, dilation=rate)
+        self.block13 = Block(728, 728, 1, dilation=rate)
+        self.block14 = Block(728, 728, 1, dilation=rate)
+        self.block15 = Block(728, 728, 1, dilation=rate)
+        self.block16 = Block(728, 728, 1, dilation=rate)
+        self.block17 = Block(728, 728, 1, dilation=rate)
+        self.block18 = Block(728, 728, 1, dilation=rate)
+        self.block19 = Block(728, 728, 1, dilation=rate)
 
         # Exit flow
-        self.block20 = Block(728, 1024, stride_list[2], atrous=rate, grow_first=False)
+        self.block20 = Block(728, 1024, stride_list[2], dilation=rate, grow_first=False)
         self.conv3 = SeparableConv2d(1024, 1536, 3, 1, 1 * rate, dilation=rate, activate_first=False)
         self.conv4 = SeparableConv2d(1536, 1536, 3, 1, 1 * rate, dilation=rate, activate_first=False)
         self.conv5 = SeparableConv2d(1536, 2048, 3, 1, 1 * rate, dilation=rate, activate_first=False)
