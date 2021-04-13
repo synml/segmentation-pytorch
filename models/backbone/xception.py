@@ -13,12 +13,10 @@ normalize = transforms.Normalize(mean=[0.5, 0.5, 0.5],
                                   std=[0.5, 0.5, 0.5])
 The resize parameter of the validation transform should be 333, and make sure to center crop at 299x299
 """
-import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.model_zoo as model_zoo
-from torch.nn import init
 import torch.utils.tensorboard
 import torchsummary
 
@@ -57,8 +55,7 @@ class SeparableConv2d(nn.Module):
 
 
 class Block(nn.Module):
-    def __init__(self, in_filters, out_filters, strides=1, atrous=None, grow_first=True, activate_first=True,
-                 inplace=True):
+    def __init__(self, in_filters, out_filters, strides=1, atrous=None, grow_first=True, activate_first=True):
         super(Block, self).__init__()
         if atrous is None:
             atrous = [1] * 3
@@ -66,11 +63,9 @@ class Block(nn.Module):
             atrous_list = [atrous] * 3
             atrous = atrous_list
 
-        self.head_relu = True
         if out_filters != in_filters or strides != 1:
             self.skip = nn.Conv2d(in_filters, out_filters, 1, stride=strides, bias=False)
             self.skipbn = nn.BatchNorm2d(out_filters)
-            self.head_relu = False
         else:
             self.skip = None
 
@@ -80,11 +75,11 @@ class Block(nn.Module):
         else:
             filters = in_filters
         self.sepconv1 = SeparableConv2d(in_filters, filters, 3, stride=1, padding=1 * atrous[0], dilation=atrous[0],
-                                        bias=False, activate_first=activate_first, inplace=self.head_relu)
+                                        bias=False, activate_first=activate_first, inplace=False)
         self.sepconv2 = SeparableConv2d(filters, out_filters, 3, stride=1, padding=1 * atrous[1], dilation=atrous[1],
                                         bias=False, activate_first=activate_first)
         self.sepconv3 = SeparableConv2d(out_filters, out_filters, 3, stride=strides, padding=1 * atrous[2],
-                                        dilation=atrous[2], bias=False, activate_first=activate_first, inplace=inplace)
+                                        dilation=atrous[2], bias=False, activate_first=activate_first)
 
     def forward(self, inp):
 
@@ -128,7 +123,7 @@ class Xception(nn.Module):
         # do relu here
 
         self.block1 = Block(64, 128, 2)
-        self.block2 = Block(128, 256, stride_list[0], inplace=False)
+        self.block2 = Block(128, 256, stride_list[0])
         self.block3 = Block(256, 728, stride_list[1])
 
         rate = 16 // output_stride
@@ -165,16 +160,6 @@ class Xception(nn.Module):
         self.conv5 = SeparableConv2d(1536, 2048, 3, 1, 1 * rate, dilation=rate, activate_first=False)
         # self.bn5 = SynchronizedBatchNorm2d(2048, momentum=bn_mom)
         self.layers = []
-
-        # ------- init weights --------
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-                m.weight.data.normal_(0, math.sqrt(2. / n))
-            elif isinstance(m, nn.BatchNorm2d):
-                m.weight.data.fill_(1)
-                m.bias.data.zero_()
-        # -----------------------------
 
     def forward(self, x):
         self.layers = []
