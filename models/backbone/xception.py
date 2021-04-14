@@ -36,10 +36,10 @@ class Block(nn.Module):
 
         if skip_connection_type == 'conv':
             self.skip = nn.Conv2d(in_channels, out_channels, 1, stride, bias=False)
-            self.skipbn = nn.BatchNorm2d(out_channels)
+            self.skip_bn = nn.BatchNorm2d(out_channels)
         elif skip_connection_type == 'sum':
             self.skip = None
-            self.skipbn = None
+            self.skip_bn = None
         else:
             raise NotImplementedError('Wrong skip_connection_type.')
 
@@ -57,7 +57,7 @@ class Block(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if self.skip is not None:
             skip = self.skip(x)
-            skip = self.skipbn(skip)
+            skip = self.skip_bn(skip)
         else:
             skip = x
 
@@ -176,24 +176,8 @@ class Xception(nn.Module):
 def load_xception(output_stride: int, pretrained: bool) -> Xception:
     model = Xception(output_stride)
     if pretrained:
-        old_dict: dict = torch.load('../../weights/xception_65_imagenet.pth')
-        old_dict2 = {}
-        for key, value in old_dict.items():
-            if key.startswith('block') and 'bn1' in key:
-                new_key = key.replace('bn1', 'depthwise_bn')
-                old_dict2[new_key] = value
-            elif key.startswith('block') and 'bn2' in key:
-                new_key = key.replace('bn2', 'pointwise_bn')
-                old_dict2[new_key] = value
-            elif key.startswith('conv') and 'bn1' in key:
-                new_key = key.replace('bn1', 'depthwise_bn')
-                old_dict2[new_key] = value
-            elif key.startswith('conv') and 'bn2' in key:
-                new_key = key.replace('bn2', 'pointwise_bn')
-                old_dict2[new_key] = value
-            else:
-                old_dict2[key] = value
-        model.load_state_dict(old_dict2)
+        state_dict = torch.load('../../weights/xception_65_imagenet.pth')
+        model.load_state_dict(state_dict)
     return model
 
 

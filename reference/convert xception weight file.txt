@@ -1,0 +1,21 @@
+old_dict: dict = torch.load('../../weights/xception_65_imagenet.pth')
+        old_dict2 = {}
+        for key, value in old_dict.items():
+            if key.startswith('block') and 'bn1' in key:
+                new_key = key.replace('bn1', 'depthwise_bn')
+                old_dict2[new_key] = value
+            elif key.startswith('block') and 'bn2' in key:
+                new_key = key.replace('bn2', 'pointwise_bn')
+                old_dict2[new_key] = value
+            elif key.startswith('block') and 'skipbn' in key:
+                new_key = key.replace('skipbn', 'skip_bn')
+                old_dict2[new_key] = value
+            elif key.startswith('conv') and 'bn1' in key:
+                new_key = key.replace('bn1', 'depthwise_bn')
+                old_dict2[new_key] = value
+            elif key.startswith('conv') and 'bn2' in key:
+                new_key = key.replace('bn2', 'pointwise_bn')
+                old_dict2[new_key] = value
+            else:
+                old_dict2[key] = value
+        model.load_state_dict(old_dict2)
