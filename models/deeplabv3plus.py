@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.utils.tensorboard
 import torchvision
 import torchsummary
@@ -20,12 +21,15 @@ class DeepLabV3plus(nn.Module):
             raise NotImplementedError('Wrong backbone.')
 
         self.aspp = ASPP(2048, output_stride, 256)
-        self.decoder = Decoder(backbone, output_stride, num_classes)
+        self.decoder = Decoder(num_classes)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        size = x.size()[2:]
+
         x = self.backbone(x)
         x = self.aspp(x)
         x = self.decoder(x, self.backbone.low_level_feature[0])
+        x = F.interpolate(x, size=size, mode='bilinear', align_corners=True)
         return x
 
 
@@ -42,38 +46,24 @@ class ASPP(torchvision.models.segmentation.deeplabv3.ASPP):
 
 
 class Decoder(nn.Module):
-    def __init__(self, backbone: str, output_stride: int, num_classes: int) -> None:
+    def __init__(self, num_classes: int) -> None:
         super(Decoder, self).__init__()
-        if backbone == 'resnet101':
-            in_channels = 256
-        elif backbone == 'xception':
-            in_channels = 128
-        else:
-            raise NotImplementedError('Wrong backbone.')
-
-        if output_stride == 16:
-            scale_factor = 4
-        elif output_stride == 8:
-            scale_factor = 2
-        else:
-            raise NotImplementedError('Wrong output_stride.')
-
         low_level_feature_channels = 48
         self.compress_low_level_feature = nn.Sequential(
-            nn.Conv2d(in_channels, low_level_feature_channels, kernel_size=1, bias=False),
+            nn.Conv2d(256, low_level_feature_channels, kernel_size=1, bias=False),
             nn.BatchNorm2d(low_level_feature_channels),
             nn.ReLU(inplace=True)
         )
-        self.upsample1 = nn.Upsample(scale_factor=scale_factor, mode='bilinear', align_corners=False)
-        self.decode1 = self.make_decoder(in_channels + low_level_feature_channels, 256)
+        self.decode1 = self.make_decoder(256 + low_level_feature_channels, 256)
         self.classifier = nn.Conv2d(256, num_classes, kernel_size=1)
-        self.upsample2 = nn.Upsample(scale_factor=4, mode='bilinear', align_corners=True)
 
     def forward(self, x: torch.Tensor, low_level_feature: torch.Tensor) -> torch.Tensor:
-        x = torch.cat((self.upsample1(x), self.compress_low_level_feature(low_level_feature)), dim=1)
+        low_level_feature = self.compress_low_level_feature(low_level_feature)
+
+        x = F.interpolate(x, size=low_level_feature.size()[2:], mode='bilinear', align_corners=True)
+        x = torch.cat((x, low_level_feature), dim=1)
         x = self.decode1(x)
         x = self.classifier(x)
-        x = self.upsample2(x)
         return x
 
     def make_decoder(self, in_channels: int, out_channels: int) -> nn.Sequential:
