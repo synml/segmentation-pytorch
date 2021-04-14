@@ -84,7 +84,7 @@ class Xception(nn.Module):
         else:
             raise NotImplementedError('Wrong output_stride.')
 
-        self.low_level_features = []
+        self.low_level_feature = []
 
         # Entry flow
         self.conv1 = nn.Conv2d(3, 32, kernel_size=3, stride=2, padding=1, bias=False)
@@ -137,7 +137,7 @@ class Xception(nn.Module):
         x = self.relu2(x)
         x = self.block1(x)
         x = self.block2(x)
-        self.low_level_features.append(self.block2.hook_layer)
+        self.low_level_feature.append(self.block2.hook_layer)
         x = self.block3(x)
 
         # Middle flow
