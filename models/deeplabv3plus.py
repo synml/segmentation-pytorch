@@ -23,9 +23,9 @@ class DeepLabV3plus(nn.Module):
         self.decoder = Decoder(backbone, output_stride, num_classes)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x, low_level_feature = self.backbone(x)
+        x = self.backbone(x)
         x = self.aspp(x)
-        x = self.decoder(x, low_level_feature)
+        x = self.decoder(x, self.backbone.low_level_feature[0])
         return x
 
 

@@ -16,18 +16,20 @@ class ResNet101(torchvision.models.resnet.ResNet):
         super(ResNet101, self).__init__(torchvision.models.resnet.Bottleneck, [3, 4, 23, 3],
                                         replace_stride_with_dilation=replace_stride_with_dilation)
 
-    def forward(self, x: torch.Tensor):
+        self.low_level_feature = []
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
         x = self.maxpool(x)
 
         x = self.layer1(x)
-        low_level_feature = x
+        self.low_level_feature.append(x)
         x = self.layer2(x)
         x = self.layer3(x)
         x = self.layer4(x)
-        return x, low_level_feature
+        return x
 
 
 def load_resnet101(output_stride: int, pretrained: bool) -> ResNet101:
