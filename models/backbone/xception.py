@@ -10,18 +10,18 @@ class SeparableConv2d(nn.Module):
         super(SeparableConv2d, self).__init__()
         self.depthwise = nn.Conv2d(in_channels, in_channels, kernel_size, stride, padding, dilation,
                                    groups=in_channels, bias=bias)
-        self.bn1 = nn.BatchNorm2d(in_channels)
+        self.depthwise_bn = nn.BatchNorm2d(in_channels)
         self.activation = activation
         self.pointwise = nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=bias)
-        self.bn2 = nn.BatchNorm2d(out_channels)
+        self.pointwise_bn = nn.BatchNorm2d(out_channels)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.depthwise(x)
-        x = self.bn1(x)
+        x = self.depthwise_bn(x)
         if self.activation is not None:
             x = self.activation(x)
         x = self.pointwise(x)
-        x = self.bn2(x)
+        x = self.pointwise_bn(x)
         return x
 
 
@@ -177,10 +177,23 @@ def load_xception(output_stride: int, pretrained: bool) -> Xception:
     model = Xception(output_stride)
     if pretrained:
         old_dict: dict = torch.load('../../weights/xception_65_imagenet.pth')
-
-        # state_dict: collections.OrderedDict = model.state_dict()
-        # state_dict.update(old_dict)
-        model.load_state_dict(old_dict)
+        old_dict2 = {}
+        for key, value in old_dict.items():
+            if key.startswith('block') and 'bn1' in key:
+                new_key = key.replace('bn1', 'depthwise_bn')
+                old_dict2[new_key] = value
+            elif key.startswith('block') and 'bn2' in key:
+                new_key = key.replace('bn2', 'pointwise_bn')
+                old_dict2[new_key] = value
+            elif key.startswith('conv') and 'bn1' in key:
+                new_key = key.replace('bn1', 'depthwise_bn')
+                old_dict2[new_key] = value
+            elif key.startswith('conv') and 'bn2' in key:
+                new_key = key.replace('bn2', 'pointwise_bn')
+                old_dict2[new_key] = value
+            else:
+                old_dict2[key] = value
+        model.load_state_dict(old_dict2)
     return model
 
 
