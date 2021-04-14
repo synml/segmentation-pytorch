@@ -65,7 +65,7 @@ class Block(nn.Module):
         out = self.sepconv1(out)
         out = self.relu2(out)
         out = self.sepconv2(out)
-        if self.hook_layer:
+        if self.hook_layer is not None:
             self.hook_layer = out
         out = self.relu3(out)
         out = self.sepconv3(out)
