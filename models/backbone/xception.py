@@ -174,7 +174,7 @@ class Xception(nn.Module):
 def load_xception(output_stride: int, pretrained: bool) -> Xception:
     model = Xception(output_stride)
     if pretrained:
-        old_dict = torch.load('../../weights/xception_pytorch_imagenet.pth')
+        old_dict = torch.load('../../weights/xception_65_imagenet.pth')
         model_dict = model.state_dict()
         model_dict.update(old_dict)
         model.load_state_dict(model_dict)
