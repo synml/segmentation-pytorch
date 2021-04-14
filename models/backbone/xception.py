@@ -8,19 +8,19 @@ class SeparableConv2d(nn.Module):
     def __init__(self, in_channels: int, out_channels: int, kernel_size: int, stride=1, padding=0, dilation=1,
                  bias=True, activation_first=True, inplace=True) -> None:
         super(SeparableConv2d, self).__init__()
-        self.relu0 = nn.ReLU(inplace=inplace)
+        self.activation_first = activation_first
+
+        self.relu1 = nn.ReLU(inplace=inplace)
+        self.relu2 = nn.ReLU(inplace=True)
         self.depthwise = nn.Conv2d(in_channels, in_channels, kernel_size, stride, padding, dilation,
                                    groups=in_channels, bias=bias)
         self.bn1 = nn.BatchNorm2d(in_channels)
-        self.relu1 = nn.ReLU(inplace=True)
         self.pointwise = nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=bias)
         self.bn2 = nn.BatchNorm2d(out_channels)
-        self.relu2 = nn.ReLU(inplace=True)
-        self.activation_first = activation_first
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if self.activation_first:
-            x = self.relu0(x)
+            x = self.relu1(x)
             x = self.depthwise(x)
             x = self.bn1(x)
             x = self.pointwise(x)
@@ -39,6 +39,7 @@ class Block(nn.Module):
     def __init__(self, in_channels: int, out_channels: int, stride: int, dilation: int,
                  skip_connection_type: str, grow_first=True) -> None:
         super(Block, self).__init__()
+        self.hook_layer = None
 
         if skip_connection_type == 'conv':
             self.skip = nn.Conv2d(in_channels, out_channels, 1, stride, bias=False)
@@ -48,8 +49,6 @@ class Block(nn.Module):
             self.skipbn = None
         else:
             raise NotImplementedError('Wrong skip_connection_type.')
-
-        self.hook_layer = None
 
         if grow_first:
             mid_channels = out_channels
@@ -174,10 +173,11 @@ class Xception(nn.Module):
 def load_xception(output_stride: int, pretrained: bool) -> Xception:
     model = Xception(output_stride)
     if pretrained:
-        old_dict = torch.load('../../weights/xception_65_imagenet.pth')
-        model_dict = model.state_dict()
-        model_dict.update(old_dict)
-        model.load_state_dict(model_dict)
+        old_dict: dict = torch.load('../../weights/xception_65_imagenet.pth')
+
+        # state_dict: collections.OrderedDict = model.state_dict()
+        # state_dict.update(old_dict)
+        model.load_state_dict(old_dict)
     return model
 
 
