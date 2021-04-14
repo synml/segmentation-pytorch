@@ -27,9 +27,12 @@ class SeparableConv2d(nn.Module):
 
 class Block(nn.Module):
     def __init__(self, in_channels: int, out_channels: int, stride: int, dilation: int,
-                 skip_connection_type: str, grow_first=True) -> None:
+                 skip_connection_type: str, grow_first=True, hook_layer=False) -> None:
         super(Block, self).__init__()
-        self.hook_layer = None
+        if hook_layer:
+            self.hook_layer = hook_layer
+        else:
+            self.hook_layer = None
 
         if skip_connection_type == 'conv':
             self.skip = nn.Conv2d(in_channels, out_channels, 1, stride, bias=False)
@@ -62,7 +65,8 @@ class Block(nn.Module):
         out = self.sepconv1(out)
         out = self.relu2(out)
         out = self.sepconv2(out)
-        self.hook_layer = out
+        if self.hook_layer:
+            self.hook_layer = out
         out = self.relu3(out)
         out = self.sepconv3(out)
 
@@ -94,7 +98,7 @@ class Xception(nn.Module):
         self.bn2 = nn.BatchNorm2d(64)
         self.relu2 = nn.ReLU(inplace=True)
         self.block1 = Block(64, 128, 2, dilation=1, skip_connection_type='conv')
-        self.block2 = Block(128, 256, 2, dilation=1, skip_connection_type='conv')
+        self.block2 = Block(128, 256, 2, dilation=1, skip_connection_type='conv', hook_layer=True)
         self.block3 = Block(256, 728, entry_block3_stride, dilation=1, skip_connection_type='conv')
 
         # Middle flow
