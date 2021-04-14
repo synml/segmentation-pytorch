@@ -6,32 +6,22 @@ import torchsummary
 
 class SeparableConv2d(nn.Module):
     def __init__(self, in_channels: int, out_channels: int, kernel_size: int, stride=1, padding=0, dilation=1,
-                 bias=True, activation_first=True, inplace=True) -> None:
+                 bias=True, activation: nn.Module = None) -> None:
         super(SeparableConv2d, self).__init__()
-        self.activation_first = activation_first
-
-        self.relu1 = nn.ReLU(inplace=inplace)
-        self.relu2 = nn.ReLU(inplace=True)
         self.depthwise = nn.Conv2d(in_channels, in_channels, kernel_size, stride, padding, dilation,
                                    groups=in_channels, bias=bias)
         self.bn1 = nn.BatchNorm2d(in_channels)
+        self.activation = activation
         self.pointwise = nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=bias)
         self.bn2 = nn.BatchNorm2d(out_channels)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        if self.activation_first:
-            x = self.relu1(x)
-            x = self.depthwise(x)
-            x = self.bn1(x)
-            x = self.pointwise(x)
-            x = self.bn2(x)
-        else:
-            x = self.depthwise(x)
-            x = self.bn1(x)
-            x = self.relu1(x)
-            x = self.pointwise(x)
-            x = self.bn2(x)
-            x = self.relu2(x)
+        x = self.depthwise(x)
+        x = self.bn1(x)
+        if self.activation is not None:
+            x = self.activation(x)
+        x = self.pointwise(x)
+        x = self.bn2(x)
         return x
 
 
@@ -54,12 +44,12 @@ class Block(nn.Module):
             mid_channels = out_channels
         else:
             mid_channels = in_channels
-        self.sepconv1 = SeparableConv2d(in_channels, mid_channels, 3, 1, padding=dilation, dilation=dilation,
-                                        bias=False, inplace=False)
-        self.sepconv2 = SeparableConv2d(mid_channels, out_channels, 3, 1, padding=dilation, dilation=dilation,
-                                        bias=False)
-        self.sepconv3 = SeparableConv2d(out_channels, out_channels, 3, stride, padding=dilation, dilation=dilation,
-                                        bias=False)
+        self.relu1 = nn.ReLU()
+        self.sepconv1 = SeparableConv2d(in_channels, mid_channels, 3, 1, dilation, dilation, bias=False)
+        self.relu2 = nn.ReLU(inplace=True)
+        self.sepconv2 = SeparableConv2d(mid_channels, out_channels, 3, 1, dilation, dilation, bias=False)
+        self.relu3 = nn.ReLU(inplace=True)
+        self.sepconv3 = SeparableConv2d(out_channels, out_channels, 3, stride, dilation, dilation, bias=False)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if self.skip is not None:
@@ -68,9 +58,12 @@ class Block(nn.Module):
         else:
             skip = x
 
-        out = self.sepconv1(x)
+        out = self.relu1(x)
+        out = self.sepconv1(out)
+        out = self.relu2(out)
         out = self.sepconv2(out)
         self.hook_layer = out
+        out = self.relu3(out)
         out = self.sepconv3(out)
 
         out += skip
@@ -125,11 +118,14 @@ class Xception(nn.Module):
         # Exit flow
         self.block20 = Block(728, 1024, 1, exit_block_dilations[0], skip_connection_type='conv', grow_first=False)
         self.conv3 = SeparableConv2d(1024, 1536, 3, 1, exit_block_dilations[1], exit_block_dilations[1],
-                                     bias=False, activation_first=False)
+                                     bias=False, activation=nn.ReLU(inplace=True))
+        self.relu3 = nn.ReLU(inplace=True)
         self.conv4 = SeparableConv2d(1536, 1536, 3, 1, exit_block_dilations[1], exit_block_dilations[1],
-                                     bias=False, activation_first=False)
+                                     bias=False, activation=nn.ReLU(inplace=True))
+        self.relu4 = nn.ReLU(inplace=True)
         self.conv5 = SeparableConv2d(1536, 2048, 3, 1, exit_block_dilations[1], exit_block_dilations[1],
-                                     bias=False, activation_first=False)
+                                     bias=False, activation=nn.ReLU(inplace=True))
+        self.relu5 = nn.ReLU(inplace=True)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # Entry flow
@@ -165,8 +161,11 @@ class Xception(nn.Module):
         # Exit flow
         x = self.block20(x)
         x = self.conv3(x)
+        x = self.relu3(x)
         x = self.conv4(x)
+        x = self.relu4(x)
         x = self.conv5(x)
+        x = self.relu5(x)
         return x
 
 
