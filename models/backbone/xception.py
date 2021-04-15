@@ -35,11 +35,11 @@ class Block(nn.Module):
             self.hook_layer = None
 
         if skip_connection_type == 'conv':
-            self.skip = nn.Conv2d(in_channels, out_channels, 1, stride, bias=False)
-            self.skip_bn = nn.BatchNorm2d(out_channels)
+            self.shortcut = nn.Conv2d(in_channels, out_channels, 1, stride, bias=False)
+            self.shortcut_bn = nn.BatchNorm2d(out_channels)
         elif skip_connection_type == 'sum':
-            self.skip = None
-            self.skip_bn = None
+            self.shortcut = None
+            self.shortcut_bn = None
         else:
             raise NotImplementedError('Wrong skip_connection_type.')
 
@@ -55,11 +55,11 @@ class Block(nn.Module):
         self.sepconv3 = SeparableConv2d(out_channels, out_channels, 3, stride, dilation, dilation, bias=False)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        if self.skip is not None:
-            skip = self.skip(x)
-            skip = self.skip_bn(skip)
+        if self.shortcut is not None:
+            shortcut = self.shortcut(x)
+            shortcut = self.shortcut_bn(shortcut)
         else:
-            skip = x
+            shortcut = x
 
         out = self.relu1(x)
         out = self.sepconv1(out)
@@ -70,7 +70,7 @@ class Block(nn.Module):
         out = self.relu3(out)
         out = self.sepconv3(out)
 
-        out += skip
+        out += shortcut
         return out
 
 
