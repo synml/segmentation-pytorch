@@ -14,9 +14,9 @@ class DeepLabV3plus(nn.Module):
         super(DeepLabV3plus, self).__init__()
         # Backbone
         if backbone == 'resnet101':
-            self.backbone = models.backbone.resnet101.load_resnet101(output_stride, pretrained=True)
+            self.backbone = models.backbone.resnet101.load_resnet101(output_stride)
         elif backbone == 'xception':
-            self.backbone = models.backbone.xception.load_xception(output_stride, pretrained=True)
+            self.backbone = models.backbone.xception.load_xception(output_stride)
         else:
             raise NotImplementedError('Wrong backbone.')
 

@@ -1,11 +1,12 @@
-import torch
+import torch.nn as nn
 import torch.utils.tensorboard
 import torchvision
 import torchsummary
 
 
-class ResNet101(torchvision.models.resnet.ResNet):
+class ResNet101(nn.Module):
     def __init__(self, output_stride: int) -> None:
+        super(ResNet101, self).__init__()
         if output_stride == 16:
             replace_stride_with_dilation = [False, False, True]
         elif output_stride == 8:
@@ -13,8 +14,16 @@ class ResNet101(torchvision.models.resnet.ResNet):
         else:
             raise NotImplementedError('Wrong output_stride.')
 
-        super(ResNet101, self).__init__(torchvision.models.resnet.Bottleneck, [3, 4, 23, 3],
-                                        replace_stride_with_dilation=replace_stride_with_dilation)
+        resnet101 = torchvision.models.resnet101(pretrained=True,
+                                                 replace_stride_with_dilation=replace_stride_with_dilation)
+        self.conv1 = resnet101.conv1
+        self.bn1 = resnet101.bn1
+        self.relu = resnet101.relu
+        self.maxpool = resnet101.maxpool
+        self.layer1 = resnet101.layer1
+        self.layer2 = resnet101.layer2
+        self.layer3 = resnet101.layer3
+        self.layer4 = resnet101.layer4
 
         self.low_level_feature = []
 
@@ -32,17 +41,13 @@ class ResNet101(torchvision.models.resnet.ResNet):
         return x
 
 
-def load_resnet101(output_stride: int, pretrained: bool) -> ResNet101:
-    model = ResNet101(output_stride)
-    if pretrained:
-        state_dict = torch.hub.load_state_dict_from_url(torchvision.models.resnet.model_urls['resnet101'])
-        model.load_state_dict(state_dict)
-    return model
+def load_resnet101(output_stride: int) -> ResNet101:
+    return ResNet101(output_stride)
 
 
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = load_resnet101(output_stride=8, pretrained=True).to(device)
+    model = load_resnet101(output_stride=8).to(device)
     model.eval()
 
     torchsummary.torchsummary.summary(model, (3, 400, 800))
