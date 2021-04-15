@@ -20,7 +20,16 @@ class DeepLabV3plus(nn.Module):
         else:
             raise NotImplementedError('Wrong backbone.')
 
-        self.aspp = ASPP(2048, output_stride, 256)
+        # ASPP
+        if output_stride == 16:
+            atrous_rates = [6, 12, 18]
+        elif output_stride == 8:
+            atrous_rates = [12, 24, 36]
+        else:
+            raise NotImplementedError('Wrong output_stride.')
+        self.aspp = torchvision.models.segmentation.deeplabv3.ASPP(2048, atrous_rates, 256)
+
+        # Decoder
         self.decoder = Decoder(num_classes)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -31,18 +40,6 @@ class DeepLabV3plus(nn.Module):
         x = self.decoder(x, self.backbone.low_level_feature[0])
         x = F.interpolate(x, size=size, mode='bilinear', align_corners=True)
         return x
-
-
-class ASPP(torchvision.models.segmentation.deeplabv3.ASPP):
-    def __init__(self, in_channels: int, output_stride: int, out_channels=256) -> None:
-        if output_stride == 16:
-            atrous_rates = [6, 12, 18]
-        elif output_stride == 8:
-            atrous_rates = [12, 24, 36]
-        else:
-            raise NotImplementedError('Wrong output_stride.')
-
-        super(ASPP, self).__init__(in_channels, atrous_rates, out_channels)
 
 
 class Decoder(nn.Module):
