@@ -24,7 +24,7 @@ UNet:
     min_lr: 0.00005
   pretrained_weights: weights/UNet_best.pth
 
-Resnet34:
+ResNet34:
   batch_size: 16
   epoch: 100
   optimizer:

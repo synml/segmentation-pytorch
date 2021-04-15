@@ -11,7 +11,7 @@ class AR_UNet(nn.Module):
     def __init__(self, num_classes: int, backbone_pretrained_weights: str = None):
         super(AR_UNet, self).__init__()
         # Backbone
-        backbone = models.backbone.resnet34.load_backbone(num_classes, backbone_pretrained_weights)
+        backbone = models.backbone.resnet34.load_resnet34(num_classes, backbone_pretrained_weights)
         self.initial_conv = backbone.initial_conv
         self.encode1 = backbone.layer1  # 64
         self.encode2 = backbone.layer2  # 128, 1/2
