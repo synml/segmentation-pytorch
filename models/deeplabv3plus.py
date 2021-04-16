@@ -22,9 +22,9 @@ class DeepLabV3plus(nn.Module):
 
         # ASPP
         if output_stride == 16:
-            atrous_rates = [6, 12, 18]
+            atrous_rates = (6, 12, 18)
         elif output_stride == 8:
-            atrous_rates = [12, 24, 36]
+            atrous_rates = (12, 24, 36)
         else:
             raise NotImplementedError('Wrong output_stride.')
         self.aspp = torchvision.models.segmentation.deeplabv3.ASPP(2048, atrous_rates, 256)
