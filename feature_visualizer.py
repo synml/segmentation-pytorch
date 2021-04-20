@@ -9,7 +9,7 @@ import utils
 
 
 def get_feature_maps(feature_maps: dict, name: str):
-    def hook(model, input, output):
+    def hook(module, input, output):
         feature_maps[name] = output.detach()
     return hook
 
