@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.utils.tensorboard
 import torchsummary
+import ptflops
 
 
 class SeparableConv2d(nn.Module):
@@ -185,7 +186,9 @@ if __name__ == '__main__':
     model = load_xception(output_stride=16).to(device)
     model.eval()
 
-    torchsummary.torchsummary.summary(model, (3, 200, 400))
+    torchsummary.torchsummary.summary(model, (3, 400, 800))
+    macs, params = ptflops.get_model_complexity_info(model, (3, 400, 800), print_per_layer_stat=False, as_strings=False)
+    print(f'GFLOPs: {macs / 1000000000 * 2}, params: {params}')
 
     writer = torch.utils.tensorboard.SummaryWriter('../../runs')
     writer.add_graph(model, torch.rand(1, 3, 400, 800).to(device))
