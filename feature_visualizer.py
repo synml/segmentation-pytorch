@@ -61,7 +61,7 @@ if __name__ == '__main__':
         model.decode2.register_forward_hook(get_feature_maps(feature_maps, 'decode2'))
         model.decode1.register_forward_hook(get_feature_maps(feature_maps, 'decode1'))
         model.classifier.register_forward_hook(get_feature_maps(feature_maps, 'classifier'))
-    elif config['model'] == 'Resnet34':
+    elif config['model'] == 'ResNet34':
         model.initial_conv.register_forward_hook(get_feature_maps(feature_maps, 'initial_conv'))
         model.layer1.register_forward_hook(get_feature_maps(feature_maps, 'layer1'))
         model.layer2.register_forward_hook(get_feature_maps(feature_maps, 'layer2'))
