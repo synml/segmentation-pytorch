@@ -39,7 +39,7 @@ class DeepLabV3plus(nn.Module):
         x = self.backbone(x)
         x = self.aspp(x)
         x = self.decoder(x, self.backbone.low_level_feature)
-        x = F.interpolate(x, size=size, mode='bilinear', align_corners=True)
+        x = F.interpolate(x, size=size, mode='bilinear', align_corners=False)
         return x
 
 
@@ -58,7 +58,7 @@ class Decoder(nn.Module):
     def forward(self, x: torch.Tensor, low_level_feature: list[torch.Tensor]) -> torch.Tensor:
         low_level_feature = self.compress_low_level_feature(low_level_feature.pop(0))
 
-        x = F.interpolate(x, size=low_level_feature.size()[2:], mode='bilinear', align_corners=True)
+        x = F.interpolate(x, size=low_level_feature.size()[2:], mode='bilinear', align_corners=False)
         x = torch.cat((x, low_level_feature), dim=1)
         x = self.decode1(x)
         x = self.classifier(x)
