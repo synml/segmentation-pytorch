@@ -4,6 +4,7 @@ from typing import Callable, Optional
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+import torch.nn as nn
 import torch.utils.data
 import torchvision
 import torchvision.transforms.functional
@@ -36,7 +37,7 @@ def get_model(config: dict, pretrained=False, pretrained_backbone=False) -> torc
         else:
             model = models.ar_unet.AR_UNet(config['dataset']['num_classes'])
     else:
-        raise NameError('Wrong model name.')
+        raise NotImplementedError('Wrong model name.')
 
     if pretrained:
         if os.path.exists(config[config['model']]['pretrained_weights']):
@@ -44,6 +45,17 @@ def get_model(config: dict, pretrained=False, pretrained_backbone=False) -> torc
         else:
             print('FileNotFound: pretrained_weights (' + config['model'] + ')')
     return model
+
+
+def get_criterion(config: dict) -> nn.Module:
+    cfg_criterion: dict = config[config['model']]['criterion']
+
+    if cfg_criterion == 'CrossEntropyLoss':
+        criterion = nn.CrossEntropyLoss()
+    else:
+        raise NotImplementedError('Wrong criterion name.')
+
+    return criterion
 
 
 def get_optimizer(config: dict, model: torch.nn.Module) -> torch.optim.Optimizer:
@@ -55,7 +67,7 @@ def get_optimizer(config: dict, model: torch.nn.Module) -> torch.optim.Optimizer
     elif cfg_optim['name'] == 'Adam':
         optimizer = torch.optim.Adam(model.parameters(), lr=cfg_optim['lr'], weight_decay=cfg_optim['weight_decay'])
     else:
-        raise NameError('Wrong optimizer name.')
+        raise NotImplementedError('Wrong optimizer name.')
 
     return optimizer
 
@@ -68,7 +80,7 @@ def get_scheduler(config: dict, optimizer: torch.optim.Optimizer):
                                                                patience=cfg_scheduler['patience'],
                                                                min_lr=cfg_scheduler['min_lr'])
     else:
-        raise NameError('Wrong scheduler name.')
+        raise NotImplementedError('Wrong scheduler name.')
 
     return scheduler
 
