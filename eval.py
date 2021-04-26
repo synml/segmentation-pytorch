@@ -5,6 +5,7 @@ import time
 import numpy as np
 import sklearn.metrics
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.utils.data
 import tqdm
 
@@ -58,6 +59,7 @@ def evaluate(model, testloader, criterion, num_classes: int, amp_enabled: bool, 
             start_time = time.time()
             with torch.no_grad():
                 output = model(image)
+                output = F.interpolate(output, size=target.size()[1:], mode='bilinear', align_corners=False)
             torch.cuda.synchronize()
             inference_time += time.time() - start_time
 

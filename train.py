@@ -49,6 +49,7 @@ if __name__ == '__main__':
             # 순전파 + 역전파 + 최적화
             with torch.cuda.amp.autocast(enabled=config['amp_enabled']):
                 output = model(image)
+                output = F.interpolate(output, size=target.size()[1:], mode='bilinear', align_corners=False)
                 loss = criterion(output, target)
             scaler.scale(loss).backward()
             scaler.step(optimizer)
