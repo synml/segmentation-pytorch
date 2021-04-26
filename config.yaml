@@ -1,5 +1,6 @@
 # Dataset settings
 dataset:
+  name: Cityscapes
   image_size: 400x800
   num_classes: 20
   num_workers: 8
@@ -13,6 +14,8 @@ amp_enabled: True
 UNet:
   batch_size: 16
   epoch: 100
+  criterion:
+    name: CrossEntropyLoss
   optimizer:
     name: Adam
     lr: 0.001
@@ -27,6 +30,8 @@ UNet:
 ResNet34:
   batch_size: 16
   epoch: 100
+  criterion:
+    name: CrossEntropyLoss
   optimizer:
     name: Adam
     lr: 0.001
@@ -41,6 +46,8 @@ ResNet34:
 AR_UNet:
   batch_size: 8
   epoch: 100
+  criterion:
+    name: CrossEntropyLoss
   optimizer:
     name: Adam
     lr: 0.0005

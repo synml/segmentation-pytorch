@@ -50,7 +50,7 @@ def get_model(config: dict, pretrained=False, pretrained_backbone=False) -> torc
 def get_criterion(config: dict) -> nn.Module:
     cfg_criterion: dict = config[config['model']]['criterion']
 
-    if cfg_criterion == 'CrossEntropyLoss':
+    if cfg_criterion['name'] == 'CrossEntropyLoss':
         criterion = nn.CrossEntropyLoss()
     else:
         raise NotImplementedError('Wrong criterion name.')

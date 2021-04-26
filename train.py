@@ -1,6 +1,6 @@
 import os
 
-import torch.nn as nn
+import torch.nn.functional as F
 import torch.utils.data
 import torch.utils.tensorboard
 import tqdm
@@ -22,7 +22,7 @@ if __name__ == '__main__':
     model = utils.get_model(config, pretrained_backbone=True).to(device)
 
     # 3. Loss function, optimizer, lr scheduler, scaler
-    criterion = nn.CrossEntropyLoss()
+    criterion = utils.get_criterion(config)
     optimizer = utils.get_optimizer(config, model)
     scheduler = utils.get_scheduler(config, optimizer)
     scaler = torch.cuda.amp.GradScaler(enabled=config['amp_enabled'])
