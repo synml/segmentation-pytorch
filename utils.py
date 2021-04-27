@@ -12,6 +12,7 @@ import yaml
 
 import models.backbone.resnet34
 import models.ar_unet
+import models.deeplabv3plus
 import models.unet
 
 
@@ -36,6 +37,8 @@ def get_model(config: dict, pretrained=False, pretrained_backbone=False) -> torc
             model = models.ar_unet.AR_UNet(config['dataset']['num_classes'], config['Resnet34']['pretrained_weights'])
         else:
             model = models.ar_unet.AR_UNet(config['dataset']['num_classes'])
+    elif config['model'] == 'DeepLabV3plus':
+        model = models.deeplabv3plus.DeepLabV3plus('xception', 16, config['dataset']['num_classes'])
     else:
         raise NotImplementedError('Wrong model name.')
 

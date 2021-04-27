@@ -1,13 +1,13 @@
 # Dataset settings
 dataset:
   name: Cityscapes
-  image_size: 400x800
+  image_size: 512x1024
   num_classes: 20
   num_workers: 8
   root: ../../data/cityscapes
 
 # Model settings
-model: UNet
+model: DeepLabV3plus
 amp_enabled: True
 
 # Model definitions
@@ -51,6 +51,22 @@ AR_UNet:
   optimizer:
     name: Adam
     lr: 0.0005
+    weight_decay: 0.00001
+  scheduler:
+    name: ReduceLROnPlateau
+    factor: 0.5
+    patience: 5
+    min_lr: 0.00005
+  pretrained_weights: weights/Proposed_best.pth
+
+DeepLabV3plus:
+  batch_size: 8
+  epoch: 100
+  criterion:
+    name: CrossEntropyLoss
+  optimizer:
+    name: Adam
+    lr: 0.007
     weight_decay: 0.00001
   scheduler:
     name: ReduceLROnPlateau
