@@ -70,7 +70,10 @@ if __name__ == '__main__':
 
         # lr scheduler의 step을 진행
         writer.add_scalar('lr', optimizer.param_groups[0]['lr'], epoch)
-        scheduler.step(val_loss)
+        if config[config['model']]['scheduler']['name'] == 'ReduceLROnPlateau':
+            scheduler.step(val_loss)
+        else:
+            scheduler.step()
 
         # Best mIoU를 가진 모델을 저장
         os.makedirs('weights', exist_ok=True)

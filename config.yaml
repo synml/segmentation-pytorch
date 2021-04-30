@@ -41,7 +41,7 @@ ResNet34:
     factor: 0.5
     patience: 5
     min_lr: 0.00005
-  pretrained_weights: weights/Backbone_val_best.pth
+  pretrained_weights: weights/ResNet34_val_best.pth
 
 AR_UNet:
   batch_size: 8
@@ -61,7 +61,8 @@ AR_UNet:
 
 DeepLabV3plus:
   batch_size: 8
-  epoch: 100
+  epoch: 31
+  iter: 90000
   criterion:
     name: CrossEntropyLoss
   optimizer:
@@ -69,8 +70,5 @@ DeepLabV3plus:
     lr: 0.007
     weight_decay: 0.00001
   scheduler:
-    name: ReduceLROnPlateau
-    factor: 0.5
-    patience: 5
-    min_lr: 0.00005
-  pretrained_weights: weights/Proposed_best.pth
+    name: WarmupPolyLR
+  pretrained_weights: weights/DeepLabV3plus_best.pth
