@@ -62,6 +62,7 @@ AR_UNet:
   pretrained_weights: weights/Proposed_best.pth
 
 DeepLabV3plus:
+  backbone: Xception
   batch_size: 8
   epoch: 31
   iter: 90000

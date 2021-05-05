@@ -13,9 +13,9 @@ class DeepLabV3plus(nn.Module):
     def __init__(self, backbone: str, output_stride: int, num_classes: int) -> None:
         super(DeepLabV3plus, self).__init__()
         # Backbone
-        if backbone == 'resnet101':
+        if backbone == 'ResNet101':
             self.backbone = models.backbone.resnet101.ResNet101(output_stride)
-        elif backbone == 'xception':
+        elif backbone == 'Xception':
             self.backbone = models.backbone.xception.Xception(output_stride)
             self.backbone.load_state_dict(torch.load('weights/xception_65_imagenet.pth'))
         else:
