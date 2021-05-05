@@ -6,8 +6,7 @@ import torchvision
 import torchsummary
 import ptflops
 
-import models.backbone.resnet101
-import models.backbone.xception
+import models
 
 
 class DeepLabV3plus(nn.Module):
