@@ -3,7 +3,7 @@ import torch
 import torch.utils.data
 import torchvision
 
-import datasets.transforms
+import datasets
 
 
 class Cityscapes:
