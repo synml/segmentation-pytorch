@@ -4,8 +4,6 @@ import time
 
 import numpy as np
 import sklearn.metrics
-import torch.nn as nn
-import torch.nn.functional as F
 import torch.utils.data
 import tqdm
 
@@ -59,7 +57,6 @@ def evaluate(model, testloader, criterion, num_classes: int, amp_enabled: bool, 
             start_time = time.time()
             with torch.no_grad():
                 output = model(image)
-                output = F.interpolate(output, size=target.size()[1:], mode='bilinear', align_corners=False)
             torch.cuda.synchronize()
             inference_time += time.time() - start_time
 
@@ -73,7 +70,7 @@ def evaluate(model, testloader, criterion, num_classes: int, amp_enabled: bool, 
         metrics.update_matrix(target, output)
 
     # 평가 점수 가져오기
-    iou, miou = metrics.get_scores(ignore_first_label=True)
+    iou, miou = metrics.get_scores(ignore_last_label=True)
 
     # 평균 validation loss 계산
     val_loss /= len(testloader)
@@ -86,34 +83,34 @@ def evaluate(model, testloader, criterion, num_classes: int, amp_enabled: bool, 
 
 
 if __name__ == '__main__':
-    # 0. Load config
-    config = utils.load_config()
-    print('Activated model: {}'.format(config['model']))
+    # 0. Load cfg and create components builder
+    cfg = utils.builder.load_cfg('cfg.yaml')
+    builder = utils.builder.Builder(cfg)
 
     # 1. Dataset
-    dataset = utils.Cityscapes(config)
-    _, _, _, testloader = dataset.set_cityscapes()
+    dataset_impl, _, valloader = builder.build_dataset('val')
 
     # 2. Model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = utils.get_model(config, pretrained=True).to(device)
-    model.eval()
+    model = builder.build_model(pretrained=True).to(device)
+    model_name = cfg['model']['name']
+    print(f'Activated model: {model_name}')
 
     # 3. Loss function
-    criterion = nn.CrossEntropyLoss()
+    criterion = builder.build_criterion()
 
     # 모델 평가
-    val_loss, iou, miou, fps = evaluate(model, testloader, criterion, config['dataset']['num_classes'],
-                                        config['amp_enabled'], device)
+    val_loss, iou, miou, fps = evaluate(model, valloader, criterion, cfg['model']['num_classes'],
+                                        cfg['model']['amp_enabled'], device)
 
     # 평가 결과를 csv 파일로 저장
     os.makedirs('result', exist_ok=True)
-    class_names = dataset.get_class_names()
-    with open(os.path.join('result', '{}.csv'.format(config['model'])), mode='w') as f:
+    class_names = dataset_impl.class_names
+    with open(os.path.join('result', f'{model_name}.csv'), mode='w') as f:
         writer = csv.writer(f, delimiter=',', lineterminator='\n')
 
         writer.writerow(['Class Number', 'Class Name', 'IoU'])
-        for class_num, iou_value in enumerate(iou, start=1):
+        for class_num, iou_value in enumerate(iou):
             writer.writerow([class_num, class_names[class_num], iou_value])
         writer.writerow(['mIoU', miou, ' '])
         writer.writerow(['Validation loss', val_loss, ' '])
