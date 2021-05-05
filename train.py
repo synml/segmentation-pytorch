@@ -9,34 +9,35 @@ import eval
 import utils
 
 if __name__ == '__main__':
-    # 0. Load config
-    config = utils.load_config()
-    print('Activated model: {}'.format(config['model']))
+    # 0. Load cfg and create components builder
+    cfg = utils.builder.load_cfg('cfg.yaml')
+    builder = utils.builder.Builder(cfg)
 
     # 1. Dataset
-    dataset = utils.Cityscapes(config)
-    _, trainloader, _, testloader = dataset.set_cityscapes()
+    dataset_impl, trainset, trainloader = builder.build_dataset('train')
 
     # 2. Model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = utils.get_model(config, pretrained_backbone=True).to(device)
+    model = builder.build_model().to(device)
+    model_name = cfg['model']['name']
+    print(f'Activated model: {model_name}')
 
     # 3. Loss function, optimizer, lr scheduler, scaler
-    criterion = utils.get_criterion(config)
-    optimizer = utils.get_optimizer(config, model)
-    scheduler = utils.get_scheduler(config, optimizer)
-    scaler = torch.cuda.amp.GradScaler(enabled=config['amp_enabled'])
+    criterion = builder.build_criterion()
+    optimizer = builder.build_optimizer(model)
+    scheduler = builder.build_scheduler(optimizer)
+    scaler = torch.cuda.amp.GradScaler(enabled=cfg['model']['amp_enabled'])
 
     # 4. Tensorboard
-    writer = torch.utils.tensorboard.SummaryWriter(os.path.join('runs', config['model']))
+    writer = torch.utils.tensorboard.SummaryWriter(os.path.join('runs', model_name))
     writer.add_graph(model, trainloader.__iter__().__next__()[0][:2].to(device))
 
     # 5. Train and evaluate
     log_loss = tqdm.tqdm(total=0, position=2, bar_format='{desc}', leave=False)
     prev_miou = 0.0
     prev_val_loss = 100
-    for epoch in tqdm.tqdm(range(config[config['model']]['epoch']), desc='Epoch'):
-        if utils.train_interupter():
+    for epoch in tqdm.tqdm(range(cfg[model_name]['epoch']), desc='Epoch'):
+        if utils.train_interupter.train_interupter():
             print('Train interrupt occurs.')
             break
         model.train()
@@ -47,30 +48,30 @@ if __name__ == '__main__':
             image, target = image.to(device), target.to(device, dtype=torch.int64)
 
             # 순전파 + 역전파 + 최적화
-            with torch.cuda.amp.autocast(enabled=config['amp_enabled']):
+            optimizer.zero_grad(set_to_none=True)
+            with torch.cuda.amp.autocast(enabled=cfg['model']['amp_enabled']):
                 output = model(image)
                 output = F.interpolate(output, size=target.size()[1:], mode='bilinear', align_corners=False)
                 loss = criterion(output, target)
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()
-            optimizer.zero_grad(set_to_none=True)
 
             # 손실값 출력
-            log_loss.set_description_str('Loss: {:.4f}'.format(loss.item()))
+            log_loss.set_description_str(f'Loss: {loss.item():.4f}')
 
             # Tensorboard에 학습 과정 기록
             writer.add_scalar('Train Loss', loss.item(), len(trainloader) * epoch + batch_idx)
 
         # 모델 평가
-        val_loss, _, miou, _ = eval.evaluate(model, testloader, criterion, config['dataset']['num_classes'],
-                                             config['amp_enabled'], device)
+        val_loss, _, miou, _ = eval.evaluate(model, testloader, criterion, cfg['model']['num_classes'],
+                                             cfg['model']['amp_enabled'], device)
         writer.add_scalar('Validation Loss', val_loss, epoch)
         writer.add_scalar('mIoU', miou, epoch)
 
         # lr scheduler의 step을 진행
         writer.add_scalar('lr', optimizer.param_groups[0]['lr'], epoch)
-        if config[config['model']]['scheduler']['name'] == 'ReduceLROnPlateau':
+        if cfg[cfg['model']]['scheduler']['name'] == 'ReduceLROnPlateau':
             scheduler.step(val_loss)
         else:
             scheduler.step()
@@ -78,11 +79,11 @@ if __name__ == '__main__':
         # Best mIoU를 가진 모델을 저장
         os.makedirs('weights', exist_ok=True)
         if miou > prev_miou:
-            torch.save(model.state_dict(), os.path.join('weights', '{}_best.pth'.format(config['model'])))
+            torch.save(model.state_dict(), os.path.join('weights', f'{model_name}_best.pth'))
             prev_miou = miou
 
         # Best val_loss를 가진 모델을 저장
         if val_loss < prev_val_loss:
-            torch.save(model.state_dict(), os.path.join('weights', '{}_val_best.pth'.format(config['model'])))
+            torch.save(model.state_dict(), os.path.join('weights', f'{model_name}_val_best.pth'))
             prev_val_loss = val_loss
     writer.close()

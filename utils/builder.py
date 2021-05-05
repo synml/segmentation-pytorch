@@ -9,7 +9,7 @@ import models
 import utils
 
 
-def load_cfg(file: str):
+def load_cfg(file: str) -> dict:
     with open(file) as f:
         cfg = yaml.load(f, Loader=yaml.FullLoader)
     return cfg
@@ -19,33 +19,35 @@ class Builder:
     def __init__(self, cfg: dict):
         self.cfg = cfg
 
-    def build_dataset(self):
+    def build_dataset(self, split: str):
         cfg_dataset = self.cfg['dataset']
 
         if cfg_dataset['name'] == 'Cityscapes':
-            dataset = datasets.cityscapes.Cityscapes(self.cfg)
+            dataset_impl = datasets.cityscapes.Cityscapes(self.cfg)
+            dataset, dataloader = dataset_impl.get_dataloader(split)
         else:
             raise NotImplementedError('Wrong dataset name.')
-        return dataset
+        return dataset_impl, dataset, dataloader
 
     def build_model(self, pretrained=False) -> torch.nn.Module:
-        cfg_model = self.cfg['model']
+        cfg_model_name = self.cfg['model']['name']
+        num_classes = self.cfg['model']['num_classes']
 
-        if cfg_model['name'] == 'UNet':
-            model = models.unet.UNet(cfg_model['num_classes'])
-        elif cfg_model['name'] == 'AR_UNet':
-            model = models.ar_unet.AR_UNet(cfg_model['num_classes'])
-        elif cfg_model['name'] == 'DeepLabV3plus':
-            model = models.deeplabv3plus.DeepLabV3plus('xception', 16, cfg_model['num_classes'])
+        if cfg_model_name == 'UNet':
+            model = models.unet.UNet(num_classes)
+        elif cfg_model_name == 'AR_UNet':
+            model = models.ar_unet.AR_UNet(num_classes)
+        elif cfg_model_name == 'DeepLabV3plus':
+            model = models.deeplabv3plus.DeepLabV3plus(self.cfg[cfg_model_name]['backbone'], 16, num_classes)
         else:
             raise NotImplementedError('Wrong model name.')
 
         if pretrained:
-            pretrained_weights_path = self.cfg[cfg_model['name']]['pretrained_weights']
+            pretrained_weights_path = self.cfg[cfg_model_name]['pretrained_weights']
             if os.path.exists(pretrained_weights_path):
                 model.load_state_dict(torch.load(pretrained_weights_path))
             else:
-                print('FileNotFound: pretrained_weights ({})'.format(cfg_model['name']))
+                print(f'FileNotFound: pretrained_weights ({cfg_model_name})')
         return model
 
     def build_criterion(self) -> nn.Module:
