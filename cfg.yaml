@@ -2,13 +2,14 @@
 dataset:
   name: Cityscapes
   image_size: 512x1024
-  num_classes: 20
   num_workers: 8
   root: ../../data/cityscapes
 
 # Model settings
-model: DeepLabV3plus
-amp_enabled: True
+model:
+  name: DeepLabV3plus
+  amp_enabled: True
+  num_classes: 20
 
 # Model definitions
 UNet:
