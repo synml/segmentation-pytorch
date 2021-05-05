@@ -2,7 +2,7 @@
 dataset:
   name: Cityscapes
   root: ../../data/cityscapes
-  image_size: 1024x2048
+  image_size: !!python/tuple [1024, 2048]
   ignore_index: 255
   num_workers: 8
 
@@ -73,4 +73,8 @@ DeepLabV3plus:
     weight_decay: 0.00001
   scheduler:
     name: WarmupPolyLR
+  augmentation:
+    size: 769
+    scale: !!python/tuple [0.25, 1.0]
+    ratio: !!python/tuple [1.3333333333333333, 2.0]  # 4/3, 2/1
   pretrained_weights: weights/DeepLabV3plus_best.pth

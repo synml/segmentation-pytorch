@@ -11,9 +11,7 @@ import utils
 
 def load_cfg(file: str):
     with open(file) as f:
-        cfg = yaml.safe_load(f)
-
-    cfg['dataset']['image_size'] = tuple([int(i) for i in cfg['dataset']['image_size'].split('x')])
+        cfg = yaml.load(f, Loader=yaml.FullLoader)
     return cfg
 
 
