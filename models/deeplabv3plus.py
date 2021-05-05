@@ -3,8 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.tensorboard
 import torchvision
-import torchsummary
-import ptflops
 
 import models
 
@@ -80,12 +78,4 @@ class Decoder(nn.Module):
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = DeepLabV3plus('resnet101', output_stride=16, num_classes=20).to(device)
-    model.eval()
-
-    torchsummary.torchsummary.summary(model, (3, 400, 800))
-    macs, params = ptflops.get_model_complexity_info(model, (3, 400, 800), print_per_layer_stat=False, as_strings=False)
-    print(f'GFLOPs: {macs / 1000000000 * 2}, params: {params}')
-
-    writer = torch.utils.tensorboard.SummaryWriter('../runs')
-    writer.add_graph(model, torch.rand(1, 3, 400, 800).to(device))
-    writer.close()
+    models.test.test_model(model, (3, 400, 800), device)
