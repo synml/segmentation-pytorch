@@ -54,7 +54,7 @@ class Builder:
         cfg_criterion: dict = self.cfg[self.cfg['model']['name']]['criterion']
 
         if cfg_criterion['name'] == 'CrossEntropyLoss':
-            criterion = nn.CrossEntropyLoss()
+            criterion = nn.CrossEntropyLoss(ignore_index=self.cfg['dataset']['ignore_index'])
         else:
             raise NotImplementedError('Wrong criterion name.')
         return criterion

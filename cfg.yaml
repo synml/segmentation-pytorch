@@ -1,9 +1,10 @@
 # Dataset settings
 dataset:
   name: Cityscapes
-  image_size: 512x1024
-  num_workers: 8
   root: ../../data/cityscapes
+  image_size: 1024x2048
+  ignore_index: 255
+  num_workers: 8
 
 # Model settings
 model:
