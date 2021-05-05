@@ -7,7 +7,7 @@ def move_directory(src: str, dst: str):
     if os.path.exists(src):
         shutil.move(src, dst)
     else:
-        print('FileNotFound: ' + src)
+        print(f'FileNotFound: {src}')
 
 
 def move_files(src: str, dst: str):
@@ -16,7 +16,7 @@ def move_files(src: str, dst: str):
             shutil.move(file, dst)
         os.rmdir(src)
     else:
-        print('FileNotFound: ' + src)
+        print(f'FileNotFound: {src}')
 
 
 # Set backup directory
