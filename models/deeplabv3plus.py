@@ -5,6 +5,7 @@ import torch.utils.tensorboard
 import torchvision
 
 import models
+import models.backbone
 
 
 class DeepLabV3plus(nn.Module):
@@ -77,5 +78,5 @@ class Decoder(nn.Module):
 
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = DeepLabV3plus('resnet101', output_stride=16, num_classes=20).to(device)
+    model = DeepLabV3plus('ResNet101', output_stride=16, num_classes=20).to(device)
     models.test.test_model(model, (3, 400, 800), device)
