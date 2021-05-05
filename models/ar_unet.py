@@ -2,18 +2,18 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.tensorboard
+import torchvision
+
 import torchsummary
 import ptflops
 
-import models.backbone.resnet34
-
 
 class AR_UNet(nn.Module):
-    def __init__(self, num_classes: int, backbone_pretrained_weights: str = None):
+    def __init__(self, num_classes: int):
         super(AR_UNet, self).__init__()
         # Backbone
-        backbone = models.backbone.resnet34.load_resnet34(num_classes, backbone_pretrained_weights)
-        self.initial_conv = backbone.initial_conv
+        backbone = torchvision.models.resnet34(pretrained=True)
+        self.initial_conv = self.make_initial_conv(3, 64)
         self.encode1 = backbone.layer1  # 64
         self.encode2 = backbone.layer2  # 128, 1/2
         self.encode3 = backbone.layer3  # 256, 1/4
@@ -61,10 +61,14 @@ class AR_UNet(nn.Module):
             nn.ReLU(inplace=True)
         )
 
-    def make_channel_adjuster(self, in_channels: int, out_channels: int):
+    def make_initial_conv(self, in_channels: int, out_channels: int):
         return nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=1),
-            nn.Conv2d(out_channels, out_channels, kernel_size=1)
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True)
         )
 
 
