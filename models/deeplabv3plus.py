@@ -14,9 +14,10 @@ class DeepLabV3plus(nn.Module):
         super(DeepLabV3plus, self).__init__()
         # Backbone
         if backbone == 'resnet101':
-            self.backbone = models.backbone.resnet101.load_resnet101(output_stride)
+            self.backbone = models.backbone.resnet101.ResNet101(output_stride)
         elif backbone == 'xception':
-            self.backbone = models.backbone.xception.load_xception(output_stride)
+            self.backbone = models.backbone.xception.Xception(output_stride)
+            self.backbone.load_state_dict(torch.load('weights/xception_65_imagenet.pth'))
         else:
             raise NotImplementedError('Wrong backbone.')
 

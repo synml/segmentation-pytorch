@@ -174,16 +174,9 @@ class Xception(nn.Module):
         return x
 
 
-def load_xception(output_stride: int) -> Xception:
-    model = Xception(output_stride)
-    state_dict = torch.load('weights/xception_65_imagenet.pth')
-    model.load_state_dict(state_dict)
-    return model
-
-
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = load_xception(output_stride=16).to(device)
+    model = Xception(output_stride=16).to(device)
     model.eval()
 
     torchsummary.torchsummary.summary(model, (3, 400, 800))
