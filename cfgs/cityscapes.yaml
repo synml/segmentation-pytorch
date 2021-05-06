@@ -25,23 +25,11 @@ UNet:
     factor: 0.5
     patience: 5
     min_lr: 0.00005
+  augmentation:
+    size: !!python/tuple [769, 769]
+    scale: !!python/tuple [0.25, 1.0]
+    ratio: !!python/tuple [1.0, 1.0]
   pretrained_weights: weights/UNet_best.pth
-
-ResNet34:
-  batch_size: 16
-  epoch: 100
-  criterion:
-    name: CrossEntropyLoss
-  optimizer:
-    name: Adam
-    lr: 0.001
-    weight_decay: 0.00001
-  scheduler:
-    name: ReduceLROnPlateau
-    factor: 0.5
-    patience: 5
-    min_lr: 0.00005
-  pretrained_weights: weights/ResNet34_val_best.pth
 
 AR_UNet:
   batch_size: 8
@@ -57,6 +45,10 @@ AR_UNet:
     factor: 0.5
     patience: 5
     min_lr: 0.00005
+  augmentation:
+    size: !!python/tuple [769, 769]
+    scale: !!python/tuple [0.25, 1.0]
+    ratio: !!python/tuple [1.0, 1.0]
   pretrained_weights: weights/Proposed_best.pth
 
 DeepLabV3plus:
