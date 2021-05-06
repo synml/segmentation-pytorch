@@ -19,6 +19,7 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = builder.build_model(dataset_impl.num_classes, pretrained=True).to(device)
     model_name = cfg['model']['name']
+    amp_enabled = cfg['model']['amp_enabled']
     print(f'Activated model: {model_name}')
 
     # 이미지 이름 불러오기
@@ -42,7 +43,7 @@ if __name__ == '__main__':
         image, target = image.to(device), target.type(torch.LongTensor)
 
         # 예측
-        with torch.cuda.amp.autocast(enabled=cfg['model']['amp_enabled']):
+        with torch.cuda.amp.autocast(enabled=amp_enabled):
             with torch.no_grad():
                 output = model(image)
                 output = torch.argmax(output, dim=1)

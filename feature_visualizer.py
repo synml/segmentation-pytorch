@@ -26,6 +26,7 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = builder.build_model(dataset_impl.num_classes, pretrained=True).to(device)
     model_name = cfg['model']['name']
+    amp_enabled = cfg['model']['amp_enabled']
     print(f'Activated model: {model_name}')
 
     # 이미지 불러오기
@@ -69,8 +70,9 @@ if __name__ == '__main__':
         model.layer4.register_forward_hook(get_feature_maps(feature_maps, 'layer4'))
 
     # 예측
-    with torch.no_grad():
-        output = model(image)
+    with torch.cuda.amp.autocast(enabled=amp_enabled):
+        with torch.no_grad():
+            output = model(image)
 
     # 각 계층의 feature maps 저장
     for layer in tqdm.tqdm(feature_maps.keys(), desc='Saving'):

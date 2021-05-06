@@ -63,6 +63,7 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = builder.build_model(dataset_impl.num_classes, pretrained=True).to(device)
     model_name = cfg['model']['name']
+    amp_enabled = cfg['model']['amp_enabled']
     print(f'Activated model: {model_name}')
 
     # 3. Loss function
@@ -70,7 +71,7 @@ if __name__ == '__main__':
 
     # 모델 평가
     val_loss, iou, miou, fps = evaluate(model, valloader, criterion, dataset_impl.num_classes,
-                                        cfg['model']['amp_enabled'], device)
+                                        amp_enabled, device)
 
     # 평가 결과를 csv 파일로 저장
     os.makedirs('result', exist_ok=True)
