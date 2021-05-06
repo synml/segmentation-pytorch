@@ -62,18 +62,18 @@ AR_UNet:
 DeepLabV3plus:
   backbone: Xception
   batch_size: 8
-  epoch: 31
+  epoch: 100
   iter: 90000
   criterion:
     name: CrossEntropyLoss
   optimizer:
     name: Adam
-    lr: 0.007
+    lr: 0.01
     weight_decay: 0.00001
   scheduler:
     name: WarmupPolyLR
   augmentation:
     size: 769
     scale: !!python/tuple [0.25, 1.0]
-    ratio: !!python/tuple [1.3333333333333333, 2.0]  # 4/3, 2/1
+    ratio: !!python/tuple [1.0, 1.0]
   pretrained_weights: weights/DeepLabV3plus_best.pth
