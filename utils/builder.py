@@ -81,8 +81,6 @@ class Builder:
             scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=cfg_scheduler['factor'],
                                                                    patience=cfg_scheduler['patience'],
                                                                    min_lr=cfg_scheduler['min_lr'])
-        elif cfg_scheduler['name'] == 'WarmupPolyLR':
-            scheduler = utils.lr_scheduler.WarmupPolyLR(optimizer, self.cfg[self.cfg['model']['name']]['iter'])
         else:
             raise NotImplementedError('Wrong scheduler name.')
         return scheduler
