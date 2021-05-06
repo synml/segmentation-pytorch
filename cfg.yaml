@@ -73,7 +73,7 @@ DeepLabV3plus:
   scheduler:
     name: WarmupPolyLR
   augmentation:
-    size: 769
+    size: !!python/tuple [769, 769]
     scale: !!python/tuple [0.25, 1.0]
     ratio: !!python/tuple [1.0, 1.0]
   pretrained_weights: weights/DeepLabV3plus_best.pth
