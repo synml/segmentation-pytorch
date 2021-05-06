@@ -20,13 +20,14 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = builder.build_model(dataset_impl.num_classes).to(device)
     model_name = cfg['model']['name']
+    amp_enabled = cfg['model']['amp_enabled']
     print(f'Activated model: {model_name}')
 
     # 3. Loss function, optimizer, lr scheduler, scaler
     criterion = builder.build_criterion(dataset_impl.ignore_index)
     optimizer = builder.build_optimizer(model)
     scheduler = builder.build_scheduler(optimizer)
-    scaler = torch.cuda.amp.GradScaler(enabled=cfg['model']['amp_enabled'])
+    scaler = torch.cuda.amp.GradScaler(enabled=amp_enabled)
 
     # 4. Tensorboard
     writer = torch.utils.tensorboard.SummaryWriter(os.path.join('runs', model_name))
@@ -48,7 +49,7 @@ if __name__ == '__main__':
 
             # 순전파 + 역전파 + 최적화
             optimizer.zero_grad(set_to_none=True)
-            with torch.cuda.amp.autocast(enabled=cfg['model']['amp_enabled']):
+            with torch.cuda.amp.autocast(enabled=amp_enabled):
                 output = model(image)
                 loss = criterion(output, target)
             scaler.scale(loss).backward()
@@ -59,12 +60,12 @@ if __name__ == '__main__':
             log_loss.set_description_str(f'Loss: {loss.item():.4f}')
 
             # Tensorboard에 학습 과정 기록
-            writer.add_scalar('Train Loss', loss.item(), len(trainloader) * epoch + batch_idx)
+            writer.add_scalar('Train loss', loss.item(), len(trainloader) * epoch + batch_idx)
 
         # 모델 평가
         val_loss, _, miou, _ = eval.evaluate(model, valloader, criterion, dataset_impl.num_classes,
-                                             cfg['model']['amp_enabled'], device)
-        writer.add_scalar('Validation Loss', val_loss, epoch)
+                                             amp_enabled, device)
+        writer.add_scalar('Validation loss', val_loss, epoch)
         writer.add_scalar('mIoU', miou, epoch)
 
         # lr scheduler의 step을 진행
