@@ -1,19 +1,18 @@
 import math
+from typing import List
 import torch
 
 
 class WarmupPolyLR(torch.optim.lr_scheduler._LRScheduler):
-    def __init__(
-        self,
-        optimizer: torch.optim.Optimizer,
-        max_iters: int,
-        warmup_factor: float = 0.001,
-        warmup_iters: int = 1000,
-        warmup_method: str = "linear",
-        last_epoch: int = -1,
-        power: float = 0.9,
-        constant_ending: float = 0.0,
-    ):
+    def __init__(self,
+                 optimizer: torch.optim.Optimizer,
+                 max_iters: int,
+                 warmup_factor: float = 0.001,
+                 warmup_iters: int = 1000,
+                 warmup_method: str = "linear",
+                 last_epoch: int = -1,
+                 power: float = 0.9,
+                 constant_ending: float = 0.0):
         self.max_iters = max_iters
         self.warmup_factor = warmup_factor
         self.warmup_iters = warmup_iters
@@ -22,22 +21,17 @@ class WarmupPolyLR(torch.optim.lr_scheduler._LRScheduler):
         self.constant_ending = constant_ending
         super().__init__(optimizer, last_epoch)
 
-    def get_lr(self):
-        warmup_factor = self._get_warmup_factor_at_iter(
-            self.warmup_method, self.last_epoch, self.warmup_iters, self.warmup_factor
-        )
+    def get_lr(self) -> List[float]:
+        warmup_factor = self._get_warmup_factor_at_iter(self.warmup_method, self.last_epoch,
+                                                        self.warmup_iters, self.warmup_factor)
         if self.constant_ending > 0 and warmup_factor == 1.0:
             # Constant ending lr.
-            if (
-                math.pow((1.0 - self.last_epoch / self.max_iters), self.power) < self.constant_ending
-            ):
+            if math.pow((1.0 - self.last_epoch / self.max_iters), self.power) < self.constant_ending:
                 return [base_lr * self.constant_ending for base_lr in self.base_lrs]
-        return [
-            base_lr * warmup_factor * math.pow((1.0 - self.last_epoch / self.max_iters), self.power)
-            for base_lr in self.base_lrs
-        ]
+        return [base_lr * warmup_factor * math.pow((1.0 - self.last_epoch / self.max_iters), self.power)
+                for base_lr in self.base_lrs]
 
-    def _compute_values(self):
+    def _compute_values(self) -> List[float]:
         # The new interface
         return self.get_lr()
 
