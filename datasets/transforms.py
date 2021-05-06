@@ -39,6 +39,6 @@ class RandomResizedCrop(torchvision.transforms.RandomResizedCrop):
     def forward(self, data: dict):
         i, j, h, w = self.get_params(data['image'], self.scale, self.ratio)
 
-        data['image'] = F.resized_crop(data['image'], i, j, h, w, self.size, self.interpolation)
-        data['target'] = F.resized_crop(data['target'], i, j, h, w, self.size, self.interpolation)
+        data['image'] = F.resized_crop(data['image'], i, j, h, w, self.size, F.InterpolationMode.BILINEAR)
+        data['target'] = F.resized_crop(data['target'], i, j, h, w, self.size, F.InterpolationMode.NEAREST)
         return data
