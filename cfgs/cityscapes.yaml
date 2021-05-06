@@ -5,6 +5,11 @@ dataset:
   image_size: !!python/tuple [1024, 2048]
   num_workers: 8
 
+# Model settings
+model:
+  name: DeepLabV3plus
+  amp_enabled: True
+
 # Model definitions
 UNet:
   batch_size: 16
