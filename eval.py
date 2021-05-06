@@ -16,7 +16,7 @@ class EvaluationMetrics:
         self.confusion_matrix = np.zeros((num_classes, num_classes))
 
     def update_matrix(self, gt_batch: torch.Tensor, pred_batch: torch.Tensor):
-        assert gt_batch.shape[0] == pred_batch.shape[0]
+        assert gt_batch.shape == pred_batch.shape
 
         gt = torch.flatten(gt_batch, start_dim=1).cpu().numpy()
         pred = torch.flatten(pred_batch, start_dim=1).cpu().numpy()
@@ -70,7 +70,7 @@ def evaluate(model, testloader, criterion, num_classes: int, amp_enabled: bool, 
         metrics.update_matrix(target, output)
 
     # 평가 점수 가져오기
-    iou, miou = metrics.get_scores(ignore_last_label=True)
+    iou, miou = metrics.get_scores()
 
     # 평균 validation loss 계산
     val_loss /= len(testloader)

@@ -19,6 +19,7 @@ class Cityscapes:
 
     # Cityscapes 데이터셋 설정
     def get_dataloader(self, split: str):
+        cfg_model_name = self.cfg['model']['name']
         transform = torchvision.transforms.Compose([
             torchvision.transforms.ToTensor(),
             torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
@@ -31,7 +32,7 @@ class Cityscapes:
                                                       target_type='semantic',
                                                       transforms=datasets.transforms.Transforms(self.cfg))
             dataloader = torch.utils.data.DataLoader(dataset,
-                                                     batch_size=self.cfg[self.cfg['model']]['batch_size'],
+                                                     batch_size=self.cfg[cfg_model_name]['batch_size'],
                                                      shuffle=True,
                                                      num_workers=self.cfg['dataset']['num_workers'],
                                                      pin_memory=True)
@@ -43,7 +44,7 @@ class Cityscapes:
                                                       transform=transform,
                                                       target_transform=torchvision.transforms.ToTensor())
             dataloader = torch.utils.data.DataLoader(dataset,
-                                                     batch_size=self.cfg[self.cfg['model']]['batch_size'],
+                                                     batch_size=self.cfg[cfg_model_name]['batch_size'],
                                                      shuffle=False,
                                                      num_workers=self.cfg['dataset']['num_workers'])
         elif split == 'test':
@@ -54,7 +55,7 @@ class Cityscapes:
                                                       transform=transform,
                                                       target_transform=torchvision.transforms.ToTensor())
             dataloader = torch.utils.data.DataLoader(dataset,
-                                                     batch_size=self.cfg[self.cfg['model']]['batch_size'],
+                                                     batch_size=self.cfg[cfg_model_name]['batch_size'],
                                                      shuffle=False,
                                                      num_workers=self.cfg['dataset']['num_workers'])
         else:
