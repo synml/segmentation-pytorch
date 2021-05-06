@@ -62,7 +62,7 @@ if __name__ == '__main__':
             writer.add_scalar('Train Loss', loss.item(), len(trainloader) * epoch + batch_idx)
 
         # 모델 평가
-        val_loss, _, miou, _ = eval.evaluate(model, valloader, criterion, cfg['model']['num_classes'],
+        val_loss, _, miou, _ = eval.evaluate(model, valloader, criterion, dataset_impl.num_classes,
                                              cfg['model']['amp_enabled'], device)
         writer.add_scalar('Validation Loss', val_loss, epoch)
         writer.add_scalar('mIoU', miou, epoch)
