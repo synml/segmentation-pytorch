@@ -3,14 +3,12 @@ dataset:
   name: Cityscapes
   root: ../../data/cityscapes
   image_size: !!python/tuple [1024, 2048]
-  ignore_index: 255
   num_workers: 8
 
 # Model settings
 model:
   name: DeepLabV3plus
   amp_enabled: True
-  num_classes: 20
 
 # Model definitions
 UNet:

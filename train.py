@@ -14,17 +14,17 @@ if __name__ == '__main__':
     builder = utils.builder.Builder(cfg)
 
     # 1. Dataset
-    _, _, trainloader = builder.build_dataset('train')
+    dataset_impl, _, trainloader = builder.build_dataset('train')
     _, _, valloader = builder.build_dataset('val')
 
     # 2. Model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = builder.build_model().to(device)
+    model = builder.build_model(dataset_impl.num_classes).to(device)
     model_name = cfg['model']['name']
     print(f'Activated model: {model_name}')
 
     # 3. Loss function, optimizer, lr scheduler, scaler
-    criterion = builder.build_criterion()
+    criterion = builder.build_criterion(dataset_impl.ignore_index)
     optimizer = builder.build_optimizer(model)
     scheduler = builder.build_scheduler(optimizer)
     scaler = torch.cuda.amp.GradScaler(enabled=cfg['model']['amp_enabled'])

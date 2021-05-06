@@ -13,7 +13,8 @@ class Cityscapes:
                             'pole', 'traffic light', 'traffic sign', 'vegetation', 'terrain',
                             'sky', 'person', 'rider', 'car', 'truck',
                             'bus', 'train', 'motorcycle', 'bicycle', 'unlabeled']
-        self.ignore_index = self.cfg['dataset']['ignore_index']
+        self.ignore_index = 255
+        self.num_classes = 19
         self.valid_classes = [7, 8, 11, 12, 13, 17, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 31, 32, 33]
 
     # Cityscapes 데이터셋 설정

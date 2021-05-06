@@ -17,7 +17,7 @@ if __name__ == '__main__':
 
     # 2. Model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = builder.build_model(pretrained=True).to(device)
+    model = builder.build_model(dataset_impl.num_classes, pretrained=True).to(device)
     model_name = cfg['model']['name']
     print(f'Activated model: {model_name}')
 

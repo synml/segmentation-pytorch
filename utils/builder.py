@@ -29,9 +29,8 @@ class Builder:
             raise NotImplementedError('Wrong dataset name.')
         return dataset_impl, dataset, dataloader
 
-    def build_model(self, pretrained=False) -> torch.nn.Module:
+    def build_model(self, num_classes: int, pretrained=False) -> torch.nn.Module:
         cfg_model_name = self.cfg['model']['name']
-        num_classes = self.cfg['model']['num_classes']
 
         if cfg_model_name == 'UNet':
             model = models.unet.UNet(num_classes)
@@ -50,11 +49,11 @@ class Builder:
                 print(f'FileNotFound: pretrained_weights ({cfg_model_name})')
         return model
 
-    def build_criterion(self) -> nn.Module:
+    def build_criterion(self, ignore_index: int) -> nn.Module:
         cfg_criterion: dict = self.cfg[self.cfg['model']['name']]['criterion']
 
         if cfg_criterion['name'] == 'CrossEntropyLoss':
-            criterion = nn.CrossEntropyLoss(ignore_index=self.cfg['dataset']['ignore_index'])
+            criterion = nn.CrossEntropyLoss(ignore_index=ignore_index)
         else:
             raise NotImplementedError('Wrong criterion name.')
         return criterion
