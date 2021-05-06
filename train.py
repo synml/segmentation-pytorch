@@ -1,6 +1,5 @@
 import os
 
-import torch.nn.functional as F
 import torch.utils.data
 import torch.utils.tensorboard
 import tqdm
@@ -52,7 +51,6 @@ if __name__ == '__main__':
             optimizer.zero_grad(set_to_none=True)
             with torch.cuda.amp.autocast(enabled=cfg['model']['amp_enabled']):
                 output = model(image)
-                output = F.interpolate(output, size=target.size()[1:], mode='bilinear', align_corners=False)
                 loss = criterion(output, target)
             scaler.scale(loss).backward()
             scaler.step(optimizer)
