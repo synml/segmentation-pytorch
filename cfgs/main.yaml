@@ -1,0 +1,4 @@
+activation:
+  cfg: cityscapes.yaml
+  model: DeepLabV3plus
+  amp: True
