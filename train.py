@@ -69,7 +69,7 @@ if __name__ == '__main__':
 
         # lr scheduler의 step을 진행
         writer.add_scalar('lr', optimizer.param_groups[0]['lr'], epoch)
-        if cfg[cfg['model']]['scheduler']['name'] == 'ReduceLROnPlateau':
+        if cfg[model_name]['scheduler']['name'] == 'ReduceLROnPlateau':
             scheduler.step(val_loss)
         else:
             scheduler.step()
