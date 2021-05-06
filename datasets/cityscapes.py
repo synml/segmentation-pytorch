@@ -19,45 +19,50 @@ class Cityscapes:
 
     # Cityscapes 데이터셋 설정
     def get_dataloader(self, split: str):
-        cfg_model_name = self.cfg['model']['name']
+        root = self.cfg['dataset']['root']
+        batch_size = self.cfg[self.cfg['model']['name']]['batch_size']
+        num_workers = self.cfg['dataset']['num_workers']
+        size = self.cfg[self.cfg['model']['name']]['augmentation']['size']
+        scale = self.cfg[self.cfg['model']['name']]['augmentation']['scale']
+        ratio = self.cfg[self.cfg['model']['name']]['augmentation']['ratio']
         transform = torchvision.transforms.Compose([
             torchvision.transforms.ToTensor(),
             torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ])
 
         if split == 'train':
-            dataset = torchvision.datasets.Cityscapes(root=self.cfg['dataset']['root'],
+            dataset = torchvision.datasets.Cityscapes(root=root,
                                                       split='train',
                                                       mode='fine',
                                                       target_type='semantic',
-                                                      transforms=datasets.transforms.Transforms(self.cfg))
+                                                      transforms=datasets.transforms.Transforms(size, scale, ratio))
             dataloader = torch.utils.data.DataLoader(dataset,
-                                                     batch_size=self.cfg[cfg_model_name]['batch_size'],
+                                                     batch_size=batch_size,
                                                      shuffle=True,
-                                                     num_workers=self.cfg['dataset']['num_workers'],
+                                                     num_workers=num_workers,
                                                      pin_memory=True)
         elif split == 'val':
-            dataset = torchvision.datasets.Cityscapes(root=self.cfg['dataset']['root'],
+            dataset = torchvision.datasets.Cityscapes(root=root,
                                                       split='val',
                                                       mode='fine',
                                                       target_type='semantic',
                                                       transform=transform,
                                                       target_transform=torchvision.transforms.ToTensor())
             dataloader = torch.utils.data.DataLoader(dataset,
-                                                     batch_size=self.cfg[cfg_model_name]['batch_size'],
+                                                     batch_size=batch_size,
                                                      shuffle=False,
-                                                     num_workers=self.cfg['dataset']['num_workers'])
+                                                     num_workers=num_workers)
         elif split == 'test':
-            dataset = torchvision.datasets.Cityscapes(root=self.cfg['dataset']['root'],
+            dataset = torchvision.datasets.Cityscapes(root=root,
                                                       split='test',
                                                       mode='fine',
                                                       target_type='semantic',
                                                       transform=transform,
                                                       target_transform=torchvision.transforms.ToTensor())
             dataloader = torch.utils.data.DataLoader(dataset,
-                                                     batch_size=self.cfg[cfg_model_name]['batch_size'],
+                                                     batch_size=batch_size,
                                                      shuffle=False,
-                                                     num_workers=self.cfg['dataset']['num_workers'])
+                                                     num_workers=num_workers)
         else:
             raise ValueError('Wrong split.')
 

@@ -4,11 +4,8 @@ import torchvision.transforms.functional as F
 
 
 class Transforms:
-    def __init__(self, cfg: dict) -> None:
-        cfg_augmentation = cfg[cfg['model']['name']]['augmentation']
-        self.random_resized_crop = RandomResizedCrop(cfg_augmentation['size'],
-                                                     cfg_augmentation['scale'],
-                                                     cfg_augmentation['ratio'])
+    def __init__(self, size: tuple[int, int], scale: tuple[float, float], ratio: tuple[float, float]):
+        self.random_resized_crop = RandomResizedCrop(size, scale, ratio)
 
     def __call__(self, image, target):
         image = torchvision.transforms.ToTensor()(image)
@@ -33,7 +30,7 @@ class RandomHorizontalFlip(torchvision.transforms.RandomHorizontalFlip):
 
 
 class RandomResizedCrop(torchvision.transforms.RandomResizedCrop):
-    def __init__(self, size: tuple[int], scale: tuple[float], ratio: tuple[float]):
+    def __init__(self, size: tuple[int, int], scale: tuple[float, float], ratio: tuple[float, float]):
         super().__init__(size, scale, ratio)
 
     def forward(self, data: dict):
