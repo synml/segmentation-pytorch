@@ -9,7 +9,7 @@ import tqdm
 import utils
 
 
-class EvaluationMetrics:
+class Evaluator:
     def __init__(self, num_classes: int):
         self.labels = list(range(num_classes))
         self.confusion_matrix = np.zeros((num_classes, num_classes))
@@ -44,7 +44,7 @@ def evaluate(model, testloader, criterion, num_classes: int, amp_enabled: bool, 
     model.eval()
 
     # Evaluate
-    metrics = EvaluationMetrics(num_classes)
+    metrics = Evaluator(num_classes)
     val_loss = 0
     inference_time = 0
     for image, target in tqdm.tqdm(testloader, desc='Eval', leave=False):
