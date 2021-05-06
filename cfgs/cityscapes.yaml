@@ -7,7 +7,7 @@ dataset:
 
 # Model settings
 model:
-  name: DeepLabV3plus
+  name:
   amp_enabled: True
 
 # Model definitions

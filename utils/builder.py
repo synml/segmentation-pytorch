@@ -9,9 +9,13 @@ import models
 import utils
 
 
-def load_cfg(file: str) -> dict:
-    with open(file) as f:
+def load_cfg() -> dict:
+    with open('cfgs/main.yaml') as f:
+        main = yaml.safe_load(f)
+
+    with open(main['cfg']) as f:
         cfg = yaml.load(f, Loader=yaml.FullLoader)
+    cfg['model']['name'] = main['model']
     return cfg
 
 

@@ -9,7 +9,7 @@ import utils
 
 if __name__ == '__main__':
     # 0. Load cfg and create components builder
-    cfg = utils.builder.load_cfg('cfg.yaml')
+    cfg = utils.builder.load_cfg()
     builder = utils.builder.Builder(cfg)
 
     # 1. Dataset
