@@ -14,7 +14,7 @@ def show_dataset(images: torch.Tensor, targets: torch.Tensor):
 
     to_pil_image = torchvision.transforms.ToPILImage()
 
-    assert images.shape == targets.shape
+    assert images.shape[0] == targets.shape[0]
     for i in range(images.shape[0]):
         make_plt_subplot(1, 2, 1, 'Input image', to_pil_image(images[i].squeeze().cpu()))
         make_plt_subplot(1, 2, 2, 'Groundtruth', to_pil_image(targets[i].cpu()))
