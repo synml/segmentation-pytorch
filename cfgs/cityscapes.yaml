@@ -62,6 +62,7 @@ DeepLabV3plus:
     lr: 0.001
   scheduler:
     name: CosineAnnealingWarmRestarts
+    T_0: 1000
   augmentation:
     RandomResizedCrop:
       size: !!python/tuple [769, 769]

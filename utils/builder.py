@@ -76,12 +76,10 @@ class Builder:
         return optimizer
 
     def build_scheduler(self, optimizer: torch.optim.Optimizer):
-        cfg_model_name = self.cfg['model']['name']
         cfg_scheduler = self.cfg[self.cfg['model']['name']]['scheduler']
 
         if cfg_scheduler['name'] == 'CosineAnnealingWarmRestarts':
-            scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer,
-                                                                             T_0=self.cfg[cfg_model_name]['epoch'])
+            scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=cfg_scheduler['T_0'])
         else:
             raise NotImplementedError('Wrong scheduler name.')
         return scheduler
