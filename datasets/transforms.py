@@ -52,16 +52,12 @@ class ColorJitter(torchvision.transforms.ColorJitter):
         for fn_id in fn_idx:
             if fn_id == 0 and brightness_factor is not None:
                 data['image'] = F.adjust_brightness(data['image'], brightness_factor)
-                data['target'] = F.adjust_brightness(data['target'], brightness_factor)
             elif fn_id == 1 and contrast_factor is not None:
                 data['image'] = F.adjust_contrast(data['image'], contrast_factor)
-                data['target'] = F.adjust_contrast(data['target'], contrast_factor)
             elif fn_id == 2 and saturation_factor is not None:
                 data['image'] = F.adjust_saturation(data['image'], saturation_factor)
-                data['target'] = F.adjust_saturation(data['target'], saturation_factor)
             elif fn_id == 3 and hue_factor is not None:
                 data['image'] = F.adjust_hue(data['image'], hue_factor)
-                data['target'] = F.adjust_hue(data['target'], hue_factor)
         return data
 
 
