@@ -26,9 +26,16 @@ UNet:
     patience: 5
     min_lr: 0.00005
   augmentation:
-    size: !!python/tuple [769, 769]
-    scale: !!python/tuple [0.25, 1.0]
-    ratio: !!python/tuple [1.0, 1.0]
+    RandomResizedCrop:
+      size: !!python/tuple [769, 769]
+      scale: !!python/tuple [0.25, 1.0]
+      ratio: !!python/tuple [1.0, 1.0]
+    ColorJitter:
+      brightness: 0.5
+      contrast: 0.5
+      saturation: 0.5
+      hue: 0
+    RandomHorizontalFlip:
   pretrained_weights: weights/UNet_best.pth
 
 AR_UNet:
@@ -46,9 +53,16 @@ AR_UNet:
     patience: 5
     min_lr: 0.00005
   augmentation:
-    size: !!python/tuple [769, 769]
-    scale: !!python/tuple [0.25, 1.0]
-    ratio: !!python/tuple [1.0, 1.0]
+    RandomResizedCrop:
+      size: !!python/tuple [769, 769]
+      scale: !!python/tuple [0.25, 1.0]
+      ratio: !!python/tuple [1.0, 1.0]
+    ColorJitter:
+      brightness: 0.5
+      contrast: 0.5
+      saturation: 0.5
+      hue: 0
+    RandomHorizontalFlip:
   pretrained_weights: weights/Proposed_best.pth
 
 DeepLabV3plus:
