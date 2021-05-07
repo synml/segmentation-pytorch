@@ -10,13 +10,15 @@ class Transforms:
         else:
             cfg_augmentation: dict = cfg[cfg['model']['name']]['augmentation']
             compose_items = []
-            for key, value in cfg_augmentation.items():
-                if key == 'RandomHorizontalFlip':
+            for k, v in cfg_augmentation.items():
+                if k == 'ColorJitter':
+                    compose_items.append(ColorJitter(v['brightness'], v['contrast'], v['saturation'], v['hue']))
+                elif k == 'RandomHorizontalFlip':
                     compose_items.append(RandomHorizontalFlip())
-                elif key == 'RandomResizedCrop':
-                    compose_items.append(RandomResizedCrop(value['size'], value['scale'], value['ratio']))
-                elif key == 'Resize':
-                    compose_items.append(Resize(value['size']))
+                elif k == 'RandomResizedCrop':
+                    compose_items.append(RandomResizedCrop(v['size'], v['scale'], v['ratio']))
+                elif k == 'Resize':
+                    compose_items.append(Resize(v['size']))
                 else:
                     raise NotImplementedError('Wrong augmentation.')
             self.augmentation = torchvision.transforms.Compose(compose_items)
@@ -37,6 +39,30 @@ class Transforms:
             return data['image'], data['target']
         else:
             return image, target
+
+
+class ColorJitter(torchvision.transforms.ColorJitter):
+    def __init__(self, brightness: float, contrast: float, saturation: float, hue: float):
+        super(ColorJitter, self).__init__(brightness, contrast, saturation, hue)
+
+    def forward(self, data: dict):
+        fn_idx, brightness_factor, contrast_factor, saturation_factor, hue_factor = \
+            self.get_params(self.brightness, self.contrast, self.saturation, self.hue)
+
+        for fn_id in fn_idx:
+            if fn_id == 0 and brightness_factor is not None:
+                data['image'] = F.adjust_brightness(data['image'], brightness_factor)
+                data['target'] = F.adjust_brightness(data['target'], brightness_factor)
+            elif fn_id == 1 and contrast_factor is not None:
+                data['image'] = F.adjust_contrast(data['image'], contrast_factor)
+                data['target'] = F.adjust_contrast(data['target'], contrast_factor)
+            elif fn_id == 2 and saturation_factor is not None:
+                data['image'] = F.adjust_saturation(data['image'], saturation_factor)
+                data['target'] = F.adjust_saturation(data['target'], saturation_factor)
+            elif fn_id == 3 and hue_factor is not None:
+                data['image'] = F.adjust_hue(data['image'], hue_factor)
+                data['target'] = F.adjust_hue(data['target'], hue_factor)
+        return data
 
 
 class RandomHorizontalFlip(torchvision.transforms.RandomHorizontalFlip):
