@@ -60,6 +60,7 @@ if __name__ == '__main__':
             scaler.update()
 
             # lr scheduler의 step을 진행
+            writer.add_scalar('lr', optimizer.param_groups[0]['lr'], iter)
             scheduler.step()
 
             # 손실값 출력
