@@ -42,16 +42,19 @@ if __name__ == '__main__':
             break
         model.train()
 
-        for batch_idx, (image, target) in enumerate(tqdm.tqdm(trainloader, desc='Train', leave=False)):
+        for batch_idx, (images, targets) in enumerate(tqdm.tqdm(trainloader, desc='Train', leave=False)):
+            # iter 계산
+            iter = len(trainloader) * epoch + batch_idx
+
             # target의 정규화를 해제 (0~1 값을 0~255 값으로 변경) + 채널 차원 제거
-            target.mul_(255).squeeze_(dim=1)
-            image, target = image.to(device), target.to(device, dtype=torch.int64)
+            targets.mul_(255).squeeze_(dim=1)
+            images, targets = images.to(device), targets.to(device, dtype=torch.int64)
 
             # 순전파 + 역전파 + 최적화
             optimizer.zero_grad(set_to_none=True)
             with torch.cuda.amp.autocast(enabled=amp_enabled):
-                output = model(image)
-                loss = criterion(output, target)
+                output = model(images)
+                loss = criterion(output, targets)
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()
@@ -60,7 +63,7 @@ if __name__ == '__main__':
             log_loss.set_description_str(f'Loss: {loss.item():.4f}')
 
             # Tensorboard에 학습 과정 기록
-            writer.add_scalar('Train loss', loss.item(), len(trainloader) * epoch + batch_idx)
+            writer.add_scalar('Train loss', loss.item(), iter)
 
         # 모델 평가
         val_loss, _, miou, _ = eval.evaluate(model, valloader, criterion, dataset_impl.num_classes,

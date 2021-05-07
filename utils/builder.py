@@ -6,7 +6,6 @@ import yaml
 
 import datasets
 import models
-import utils
 
 
 def load_cfg() -> dict:
@@ -81,6 +80,9 @@ class Builder:
             scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=cfg_scheduler['factor'],
                                                                    patience=cfg_scheduler['patience'],
                                                                    min_lr=cfg_scheduler['min_lr'])
+        elif cfg_scheduler['name'] == 'CosineAnnealingLR':
+            scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer,
+                                                                   T_max=self.cfg[self.cfg['model']['name']]['epoch'])
         else:
             raise NotImplementedError('Wrong scheduler name.')
         return scheduler

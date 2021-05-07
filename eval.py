@@ -15,28 +15,28 @@ def evaluate(model, testloader, criterion, num_classes: int, amp_enabled: bool, 
     metrics = utils.metrics.Evaluator(num_classes)
     val_loss = 0
     inference_time = 0
-    for image, target in tqdm.tqdm(testloader, desc='Eval', leave=False):
+    for images, targets in tqdm.tqdm(testloader, desc='Eval', leave=False):
         # target의 정규화를 해제 (0~1 값을 0~255 값으로 변경) + 채널 차원 제거
-        target.mul_(255).squeeze_(dim=1)
-        image, target = image.to(device), target.to(device, dtype=torch.int64)
+        targets.mul_(255).squeeze_(dim=1)
+        images, targets = images.to(device), targets.to(device, dtype=torch.int64)
 
         # 예측
         with torch.cuda.amp.autocast(enabled=amp_enabled):
             torch.cuda.synchronize()
             start_time = time.time()
             with torch.no_grad():
-                output = model(image)
+                output = model(images)
             torch.cuda.synchronize()
             inference_time += time.time() - start_time
 
             # validation loss를 모두 합침
-            val_loss += criterion(output, target).item()
+            val_loss += criterion(output, targets).item()
 
             # Segmentation map 만들기
             output = torch.argmax(output, dim=1)
 
         # 혼동행렬 업데이트
-        metrics.update_matrix(target, output)
+        metrics.update_matrix(targets, output)
 
     # 평가 점수 가져오기
     iou, miou = metrics.get_scores()
