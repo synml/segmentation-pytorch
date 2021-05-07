@@ -15,6 +15,8 @@ class Transforms:
                     compose_items.append(RandomHorizontalFlip())
                 elif key == 'RandomResizedCrop':
                     compose_items.append(RandomResizedCrop(value['size'], value['scale'], value['ratio']))
+                elif key == 'Resize':
+                    compose_items.append(Resize(value['size']))
                 else:
                     raise NotImplementedError('Wrong augmentation.')
             self.augmentation = torchvision.transforms.Compose(compose_items)
@@ -57,4 +59,14 @@ class RandomResizedCrop(torchvision.transforms.RandomResizedCrop):
 
         data['image'] = F.resized_crop(data['image'], i, j, h, w, self.size, F.InterpolationMode.BILINEAR)
         data['target'] = F.resized_crop(data['target'], i, j, h, w, self.size, F.InterpolationMode.NEAREST)
+        return data
+
+
+class Resize(torchvision.transforms.Resize):
+    def __init__(self, size: tuple[int, int]):
+        super(Resize, self).__init__(size)
+
+    def forward(self, data: dict):
+        data['image'] = F.resize(data['image'], self.size, F.InterpolationMode.BILINEAR)
+        data['target'] = F.resize(data['target'], self.size, F.InterpolationMode.NEAREST)
         return data
