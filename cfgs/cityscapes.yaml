@@ -62,7 +62,7 @@ AR_UNet:
 DeepLabV3plus:
   backbone: ResNet101
   batch_size: 16
-  epoch: 100
+  epoch: 200
   criterion:
     name: CrossEntropyLoss
   optimizer:
