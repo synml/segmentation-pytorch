@@ -53,7 +53,7 @@ AR_UNet:
 
 DeepLabV3plus:
   backbone: Xception
-  batch_size: 8
+  batch_size: 16
   epoch: 100
   criterion:
     name: CrossEntropyLoss
@@ -68,5 +68,10 @@ DeepLabV3plus:
       size: !!python/tuple [769, 769]
       scale: !!python/tuple [0.25, 1.0]
       ratio: !!python/tuple [1.0, 1.0]
+    ColorJitter:
+      brightness: 0.5
+      contrast: 0.5
+      saturation: 0.5
+      hue: 0
     RandomHorizontalFlip:
   pretrained_weights: weights/DeepLabV3plus_best.pth
