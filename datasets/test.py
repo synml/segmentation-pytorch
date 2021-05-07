@@ -9,10 +9,14 @@ def show_dataset(images: torch.Tensor, targets: torch.Tensor):
         plt.subplot(nrows, ncols, index)
         plt.title(title)
         plt.imshow(image)
-        plt.xticks([])
-        plt.yticks([])
 
     to_pil_image = torchvision.transforms.ToPILImage()
+    plt.rcParams['figure.figsize'] = (17, 6)
+    plt.rcParams['figure.autolayout'] = True
+    plt.rcParams['xtick.bottom'] = False
+    plt.rcParams['xtick.labelbottom'] = False
+    plt.rcParams['ytick.left'] = False
+    plt.rcParams['ytick.labelleft'] = False
 
     assert images.shape[0] == targets.shape[0]
     for i in range(images.shape[0]):
