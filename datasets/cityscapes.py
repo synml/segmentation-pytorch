@@ -19,7 +19,6 @@ class Cityscapes:
         self.num_classes = 19
         self.valid_classes = [7, 8, 11, 12, 13, 17, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 31, 32, 33]
 
-    # Cityscapes 데이터셋 설정
     def get_dataloader(self, split: str):
         root = self.cfg['dataset']['root']
         batch_size = self.cfg[self.cfg['model']['name']]['batch_size']
@@ -73,7 +72,6 @@ class Cityscapes:
             mask[mask == i] = self.valid_classes[i]
         return mask
 
-    # Cityscapes 데이터셋 라벨 색상 가져오기
     def get_cityscapes_colormap(self) -> np.ndarray:
         colormap = np.array([
             [128, 64, 128],

@@ -40,7 +40,6 @@ if __name__ == '__main__':
     for images, targets in tqdm.tqdm(valloader, desc='Demo'):
         images = images.to(device)
 
-        # 예측
         with torch.cuda.amp.autocast(enabled=amp_enabled):
             with torch.no_grad():
                 output = model(images)

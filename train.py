@@ -46,7 +46,6 @@ if __name__ == '__main__':
             iter = len(trainloader) * epoch + batch_idx
             images, targets = images.to(device), targets.to(device)
 
-            # 순전파 + 역전파 + 최적화
             optimizer.zero_grad(set_to_none=True)
             with torch.cuda.amp.autocast(enabled=amp_enabled):
                 output = model(images)
