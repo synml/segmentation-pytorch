@@ -38,9 +38,7 @@ if __name__ == '__main__':
     os.makedirs(result_dir, exist_ok=True)
     os.makedirs(groundtruth_dir, exist_ok=True)
     for images, targets in tqdm.tqdm(valloader, desc='Demo'):
-        # target의 정규화를 해제 (0~1 값을 0~255 값으로 변경) + 채널 차원 제거
-        targets.mul_(255).squeeze_(dim=1)
-        images, targets = images.to(device), targets.type(torch.LongTensor)
+        images = images.to(device)
 
         # 예측
         with torch.cuda.amp.autocast(enabled=amp_enabled):

@@ -16,9 +16,7 @@ def evaluate(model, testloader, criterion, num_classes: int, amp_enabled: bool, 
     val_loss = 0
     inference_time = 0
     for images, targets in tqdm.tqdm(testloader, desc='Eval', leave=False):
-        # target의 정규화를 해제 (0~1 값을 0~255 값으로 변경) + 채널 차원 제거
-        targets.mul_(255).squeeze_(dim=1)
-        images, targets = images.to(device), targets.to(device, dtype=torch.int64)
+        images, targets = images.to(device), targets.to(device)
 
         # 예측
         with torch.cuda.amp.autocast(enabled=amp_enabled):

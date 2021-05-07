@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 import torchvision
 import torchvision.transforms.functional as F
@@ -24,21 +25,17 @@ class Transforms:
             self.augmentation = torchvision.transforms.Compose(compose_items)
 
     def __call__(self, image, target):
-        transform = torchvision.transforms.Compose([
-            torchvision.transforms.ToTensor(),
-            torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        to_tensor_normalize = torchvision.transforms.Compose([
+            ToTensor(),
+            Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ])
-        target_transform = torchvision.transforms.ToTensor()
-
-        image = transform(image)
-        target = target_transform(target)
+        data = {'image': image, 'target': target}
 
         if self.augmentation is not None:
-            data = {'image': image, 'target': target}
             data = self.augmentation(data)
-            return data['image'], data['target']
-        else:
-            return image, target
+
+        data = to_tensor_normalize(data)
+        return data['image'], data['target']
 
 
 class ColorJitter(torchvision.transforms.ColorJitter):
@@ -91,4 +88,20 @@ class Resize(torchvision.transforms.Resize):
     def forward(self, data: dict):
         data['image'] = F.resize(data['image'], self.size, F.InterpolationMode.BILINEAR)
         data['target'] = F.resize(data['target'], self.size, F.InterpolationMode.NEAREST)
+        return data
+
+
+class Normalize(torchvision.transforms.Normalize):
+    def __init__(self, mean, std):
+        super(Normalize, self).__init__(mean, std)
+
+    def forward(self, data: dict):
+        data['image'] = F.normalize(data['image'], self.mean, self.std)
+        return data
+
+
+class ToTensor(torchvision.transforms.ToTensor):
+    def __call__(self, data: dict):
+        data['image'] = F.to_tensor(data['image'])
+        data['target'] = torch.as_tensor(np.array(data['target']), dtype=torch.int64)
         return data

@@ -43,12 +43,8 @@ if __name__ == '__main__':
         model.train()
 
         for batch_idx, (images, targets) in enumerate(tqdm.tqdm(trainloader, desc='Train', leave=False)):
-            # iter 계산
             iter = len(trainloader) * epoch + batch_idx
-
-            # target의 정규화를 해제 (0~1 값을 0~255 값으로 변경) + 채널 차원 제거
-            targets.mul_(255).squeeze_(dim=1)
-            images, targets = images.to(device), targets.to(device, dtype=torch.int64)
+            images, targets = images.to(device), targets.to(device)
 
             # 순전파 + 역전파 + 최적화
             optimizer.zero_grad(set_to_none=True)
