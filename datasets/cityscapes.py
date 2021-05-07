@@ -1,3 +1,5 @@
+import platform
+
 import numpy as np
 import torch
 import torch.utils.data
@@ -21,7 +23,10 @@ class Cityscapes:
     def get_dataloader(self, split: str):
         root = self.cfg['dataset']['root']
         batch_size = self.cfg[self.cfg['model']['name']]['batch_size']
-        num_workers = self.cfg['dataset']['num_workers']
+        if platform.system() == 'Windows':
+            num_workers = 0
+        else:
+            num_workers = self.cfg['dataset']['num_workers']
         size = self.cfg[self.cfg['model']['name']]['augmentation']['size']
         scale = self.cfg[self.cfg['model']['name']]['augmentation']['scale']
         ratio = self.cfg[self.cfg['model']['name']]['augmentation']['ratio']
