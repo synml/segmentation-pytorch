@@ -21,10 +21,9 @@ UNet:
     lr: 0.001
     weight_decay: 0.00001
   scheduler:
-    name: ReduceLROnPlateau
-    factor: 0.5
-    patience: 5
-    min_lr: 0.00005
+    name: CosineAnnealingWarmRestarts
+    T_0: 1860
+    T_mult: 2
   augmentation:
     RandomResizedCrop:
       size: !!python/tuple [769, 769]
@@ -48,10 +47,9 @@ AR_UNet:
     lr: 0.0005
     weight_decay: 0.00001
   scheduler:
-    name: ReduceLROnPlateau
-    factor: 0.5
-    patience: 5
-    min_lr: 0.00005
+    name: CosineAnnealingWarmRestarts
+    T_0: 1860
+    T_mult: 2
   augmentation:
     RandomResizedCrop:
       size: !!python/tuple [769, 769]
@@ -76,7 +74,8 @@ DeepLabV3plus:
     lr: 0.001
   scheduler:
     name: CosineAnnealingWarmRestarts
-    T_0: 1000
+    T_0: 1860
+    T_mult: 2
   augmentation:
     RandomResizedCrop:
       size: !!python/tuple [769, 769]

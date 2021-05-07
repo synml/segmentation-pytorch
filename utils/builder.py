@@ -79,7 +79,9 @@ class Builder:
         cfg_scheduler = self.cfg[self.cfg['model']['name']]['scheduler']
 
         if cfg_scheduler['name'] == 'CosineAnnealingWarmRestarts':
-            scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=cfg_scheduler['T_0'])
+            scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer,
+                                                                             T_0=cfg_scheduler['T_0'],
+                                                                             T_mult=cfg_scheduler['T_mult'])
         else:
             raise NotImplementedError('Wrong scheduler name.')
         return scheduler
