@@ -4,18 +4,37 @@ import torchvision.transforms.functional as F
 
 
 class Transforms:
-    def __init__(self, size: tuple[int, int], scale: tuple[float, float], ratio: tuple[float, float]):
-        self.random_resized_crop = RandomResizedCrop(size, scale, ratio)
+    def __init__(self, cfg: dict, augmentation=False):
+        if not augmentation:
+            self.augmentation = None
+        else:
+            cfg_augmentation: dict = cfg[cfg['model']['name']]['augmentation']
+            compose_items = []
+            for key, value in cfg_augmentation.items():
+                if key == 'RandomHorizontalFlip':
+                    compose_items.append(RandomHorizontalFlip())
+                elif key == 'RandomResizedCrop':
+                    compose_items.append(RandomResizedCrop(value['size'], value['scale'], value['ratio']))
+                else:
+                    raise NotImplementedError('Wrong augmentation.')
+            self.augmentation = torchvision.transforms.Compose(compose_items)
 
     def __call__(self, image, target):
-        image = torchvision.transforms.ToTensor()(image)
-        image = torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])(image)
-        target = torchvision.transforms.ToTensor()(target)
+        transform = torchvision.transforms.Compose([
+            torchvision.transforms.ToTensor(),
+            torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        ])
+        target_transform = torchvision.transforms.ToTensor()
 
-        data = {'image': image, 'target': target}
-        data = RandomHorizontalFlip()(data)
-        data = self.random_resized_crop(data)
-        return data['image'], data['target']
+        image = transform(image)
+        target = target_transform(target)
+
+        if self.augmentation is not None:
+            data = {'image': image, 'target': target}
+            data = self.augmentation(data)
+            return data['image'], data['target']
+        else:
+            return image, target
 
 
 class RandomHorizontalFlip(torchvision.transforms.RandomHorizontalFlip):

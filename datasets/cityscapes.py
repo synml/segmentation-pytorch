@@ -27,20 +27,14 @@ class Cityscapes:
             num_workers = 0
         else:
             num_workers = self.cfg['dataset']['num_workers']
-        size = self.cfg[self.cfg['model']['name']]['augmentation']['size']
-        scale = self.cfg[self.cfg['model']['name']]['augmentation']['scale']
-        ratio = self.cfg[self.cfg['model']['name']]['augmentation']['ratio']
-        transform = torchvision.transforms.Compose([
-            torchvision.transforms.ToTensor(),
-            torchvision.transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-        ])
 
         if split == 'train':
             dataset = torchvision.datasets.Cityscapes(root=root,
                                                       split='train',
                                                       mode='fine',
                                                       target_type='semantic',
-                                                      transforms=datasets.transforms.Transforms(size, scale, ratio))
+                                                      transforms=datasets.transforms.Transforms(self.cfg,
+                                                                                                augmentation=True))
             dataloader = torch.utils.data.DataLoader(dataset,
                                                      batch_size=batch_size,
                                                      shuffle=True,
@@ -51,8 +45,7 @@ class Cityscapes:
                                                       split='val',
                                                       mode='fine',
                                                       target_type='semantic',
-                                                      transform=transform,
-                                                      target_transform=torchvision.transforms.ToTensor())
+                                                      transforms=datasets.transforms.Transforms(self.cfg))
             dataloader = torch.utils.data.DataLoader(dataset,
                                                      batch_size=batch_size,
                                                      shuffle=False,
@@ -62,8 +55,7 @@ class Cityscapes:
                                                       split='test',
                                                       mode='fine',
                                                       target_type='semantic',
-                                                      transform=transform,
-                                                      target_transform=torchvision.transforms.ToTensor())
+                                                      transforms=datasets.transforms.Transforms(self.cfg))
             dataloader = torch.utils.data.DataLoader(dataset,
                                                      batch_size=batch_size,
                                                      shuffle=False,
