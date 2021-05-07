@@ -53,7 +53,7 @@ class Builder:
         return model
 
     def build_criterion(self, ignore_index: int) -> nn.Module:
-        cfg_criterion: dict = self.cfg[self.cfg['model']['name']]['criterion']
+        cfg_criterion = self.cfg[self.cfg['model']['name']]['criterion']
 
         if cfg_criterion['name'] == 'CrossEntropyLoss':
             criterion = nn.CrossEntropyLoss(ignore_index=ignore_index)
@@ -62,27 +62,26 @@ class Builder:
         return criterion
 
     def build_optimizer(self, model: torch.nn.Module) -> torch.optim.Optimizer:
-        cfg_optim: dict = self.cfg[self.cfg['model']['name']]['optimizer']
+        cfg_optim = self.cfg[self.cfg['model']['name']]['optimizer']
 
         if cfg_optim['name'] == 'SGD':
             optimizer = torch.optim.SGD(model.parameters(), lr=cfg_optim['lr'],
                                         momentum=cfg_optim['momentum'], weight_decay=cfg_optim['weight_decay'])
         elif cfg_optim['name'] == 'Adam':
             optimizer = torch.optim.Adam(model.parameters(), lr=cfg_optim['lr'], weight_decay=cfg_optim['weight_decay'])
+        elif cfg_optim['name'] == 'AdamW':
+            optimizer = torch.optim.AdamW(model.parameters(), lr=cfg_optim['lr'])
         else:
             raise NotImplementedError('Wrong optimizer name.')
         return optimizer
 
     def build_scheduler(self, optimizer: torch.optim.Optimizer):
-        cfg_scheduler: dict = self.cfg[self.cfg['model']['name']]['scheduler']
+        cfg_model_name = self.cfg['model']['name']
+        cfg_scheduler = self.cfg[self.cfg['model']['name']]['scheduler']
 
-        if cfg_scheduler['name'] == 'ReduceLROnPlateau':
-            scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=cfg_scheduler['factor'],
-                                                                   patience=cfg_scheduler['patience'],
-                                                                   min_lr=cfg_scheduler['min_lr'])
-        elif cfg_scheduler['name'] == 'CosineAnnealingLR':
-            scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer,
-                                                                   T_max=self.cfg[self.cfg['model']['name']]['epoch'])
+        if cfg_scheduler['name'] == 'CosineAnnealingWarmRestarts':
+            scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer,
+                                                                             T_0=self.cfg[cfg_model_name]['epoch'])
         else:
             raise NotImplementedError('Wrong scheduler name.')
         return scheduler

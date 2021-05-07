@@ -58,14 +58,10 @@ DeepLabV3plus:
   criterion:
     name: CrossEntropyLoss
   optimizer:
-    name: Adam
+    name: AdamW
     lr: 0.001
-    weight_decay: 0.00001
   scheduler:
-    name: ReduceLROnPlateau
-    factor: 0.5
-    patience: 5
-    min_lr: 0.00005
+    name: CosineAnnealingWarmRestarts
   augmentation:
     size: !!python/tuple [769, 769]
     scale: !!python/tuple [0.25, 1.0]

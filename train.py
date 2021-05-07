@@ -59,6 +59,9 @@ if __name__ == '__main__':
             scaler.step(optimizer)
             scaler.update()
 
+            # lr scheduler의 step을 진행
+            scheduler.step()
+
             # 손실값 출력
             log_loss.set_description_str(f'Loss: {loss.item():.4f}')
 
@@ -70,13 +73,6 @@ if __name__ == '__main__':
                                              amp_enabled, device)
         writer.add_scalar('Validation loss', val_loss, epoch)
         writer.add_scalar('mIoU', miou, epoch)
-
-        # lr scheduler의 step을 진행
-        writer.add_scalar('lr', optimizer.param_groups[0]['lr'], epoch)
-        if cfg[model_name]['scheduler']['name'] == 'ReduceLROnPlateau':
-            scheduler.step(val_loss)
-        else:
-            scheduler.step()
 
         # Best mIoU를 가진 모델을 저장
         os.makedirs('weights', exist_ok=True)
