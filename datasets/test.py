@@ -4,7 +4,7 @@ import torchvision
 
 
 # 데이터셋 불러오는 코드 검증 (Shape: [batch, channel, height, width])
-def show_dataset(images: torch.Tensor, targets: torch.Tensor, cmap):
+def show_dataset(images: torch.Tensor, targets: torch.Tensor):
     to_pil_image = torchvision.transforms.ToPILImage()
     plt.rcParams['figure.figsize'] = (17, 6)
     plt.rcParams['figure.autolayout'] = True
@@ -19,5 +19,5 @@ def show_dataset(images: torch.Tensor, targets: torch.Tensor, cmap):
         axs[0].set_title('Input image')
         axs[0].imshow(to_pil_image(images[i].cpu()))
         axs[1].set_title('Groundtruth')
-        axs[1].imshow(targets[i].cpu(), cmap=cmap, vmin=0, vmax=cmap.N)
+        axs[1].imshow(targets[i].cpu())
         plt.show()
