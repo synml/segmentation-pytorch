@@ -1,4 +1,5 @@
 import os
+import platform
 import shutil
 
 shutil.rmtree('demo', ignore_errors=True)
@@ -9,4 +10,6 @@ shutil.rmtree('__pycache__', ignore_errors=True)
 shutil.rmtree('datasets/__pycache__', ignore_errors=True)
 shutil.rmtree('models/backbone/__pycache__', ignore_errors=True)
 shutil.rmtree('utils/__pycache__', ignore_errors=True)
-os.system('clear')
+
+if platform.system() != 'Windows':
+    os.system('clear')
