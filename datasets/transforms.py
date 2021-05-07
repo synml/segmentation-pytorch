@@ -14,10 +14,10 @@ class Transforms:
             for k, v in cfg_augmentation.items():
                 if k == 'ColorJitter':
                     compose_items.append(ColorJitter(v['brightness'], v['contrast'], v['saturation'], v['hue']))
+                elif k == 'RandomCrop':
+                    compose_items.append(RandomCrop(v['size']))
                 elif k == 'RandomHorizontalFlip':
                     compose_items.append(RandomHorizontalFlip())
-                elif k == 'RandomResizedCrop':
-                    compose_items.append(RandomResizedCrop(v['size'], v['scale'], v['ratio']))
                 elif k == 'Resize':
                     compose_items.append(Resize(v['size']))
                 else:
@@ -58,6 +58,17 @@ class ColorJitter(torchvision.transforms.ColorJitter):
         return data
 
 
+class RandomCrop(torchvision.transforms.RandomCrop):
+    def __init__(self, size: tuple[int, int]):
+        super().__init__(size)
+
+    def forward(self, data: dict):
+        i, j, h, w = self.get_params(data['image'], self.size)
+        data['image'] = F.crop(data['image'], i, j, h, w)
+        data['target'] = F.crop(data['target'], i, j, h, w)
+        return data
+
+
 class RandomHorizontalFlip(torchvision.transforms.RandomHorizontalFlip):
     def __init__(self):
         super().__init__()
@@ -66,18 +77,6 @@ class RandomHorizontalFlip(torchvision.transforms.RandomHorizontalFlip):
         if torch.rand(1) < self.p:
             data['image'] = F.hflip(data['image'])
             data['target'] = F.hflip(data['target'])
-        return data
-
-
-class RandomResizedCrop(torchvision.transforms.RandomResizedCrop):
-    def __init__(self, size: tuple[int, int], scale: tuple[float, float], ratio: tuple[float, float]):
-        super().__init__(size, scale, ratio)
-
-    def forward(self, data: dict):
-        i, j, h, w = self.get_params(data['image'], self.scale, self.ratio)
-
-        data['image'] = F.resized_crop(data['image'], i, j, h, w, self.size, F.InterpolationMode.BILINEAR)
-        data['target'] = F.resized_crop(data['target'], i, j, h, w, self.size, F.InterpolationMode.NEAREST)
         return data
 
 

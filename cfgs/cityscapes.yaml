@@ -25,10 +25,8 @@ UNet:
     T_0: 1860
     T_mult: 2
   augmentation:
-    RandomResizedCrop:
+    RandomCrop:
       size: !!python/tuple [769, 769]
-      scale: !!python/tuple [0.25, 1.0]
-      ratio: !!python/tuple [1.0, 1.0]
     ColorJitter:
       brightness: 0.5
       contrast: 0.5
@@ -51,10 +49,8 @@ AR_UNet:
     T_0: 1860
     T_mult: 2
   augmentation:
-    RandomResizedCrop:
+    RandomCrop:
       size: !!python/tuple [769, 769]
-      scale: !!python/tuple [0.25, 1.0]
-      ratio: !!python/tuple [1.0, 1.0]
     ColorJitter:
       brightness: 0.5
       contrast: 0.5
@@ -77,10 +73,8 @@ DeepLabV3plus:
     T_0: 1860
     T_mult: 2
   augmentation:
-    RandomResizedCrop:
+    RandomCrop:
       size: !!python/tuple [769, 769]
-      scale: !!python/tuple [0.25, 1.0]
-      ratio: !!python/tuple [1.0, 1.0]
     ColorJitter:
       brightness: 0.5
       contrast: 0.5
