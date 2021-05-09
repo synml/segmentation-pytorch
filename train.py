@@ -43,7 +43,7 @@ if __name__ == '__main__':
         model.train()
 
         for batch_idx, (images, targets) in enumerate(tqdm.tqdm(trainloader, desc='Train', leave=False)):
-            iter = len(trainloader) * epoch + batch_idx
+            iters = len(trainloader) * epoch + batch_idx
             images, targets = images.to(device), targets.to(device)
 
             optimizer.zero_grad(set_to_none=True)
@@ -55,14 +55,14 @@ if __name__ == '__main__':
             scaler.update()
 
             # lr scheduler의 step을 진행
-            writer.add_scalar('lr', optimizer.param_groups[0]['lr'], iter)
+            writer.add_scalar('lr', optimizer.param_groups[0]['lr'], iters)
             scheduler.step()
 
             # 손실값 출력
             log_loss.set_description_str(f'Loss: {loss.item():.4f}')
 
             # Tensorboard에 학습 과정 기록
-            writer.add_scalar('Train loss', loss.item(), iter)
+            writer.add_scalar('Train loss', loss.item(), iters)
 
         # 모델 평가
         val_loss, _, miou, _ = eval.evaluate(model, valloader, criterion, dataset_impl.num_classes,

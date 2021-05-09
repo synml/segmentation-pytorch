@@ -62,7 +62,7 @@ AR_UNet:
 DeepLabV3plus:
   backbone: ResNet101
   batch_size: 16
-  epoch: 249
+  epoch: 300
   criterion:
     name: CrossEntropyLoss
   optimizer:
@@ -70,7 +70,7 @@ DeepLabV3plus:
     lr: 0.001
   scheduler:
     name: CosineAnnealingWarmRestarts
-    T_0: 1860
+    T_0: 3720
     T_mult: 2
   augmentation:
     RandomCrop:
