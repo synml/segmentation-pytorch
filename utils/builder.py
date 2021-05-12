@@ -16,6 +16,7 @@ def load_cfg() -> dict:
     with open(main['cfg']) as f:
         cfg = yaml.load(f, Loader=yaml.FullLoader)
     cfg['model']['name'] = main['model']
+    cfg['resume_training'] = main['resume_training']
     return cfg
 
 
@@ -42,12 +43,14 @@ class Builder:
             model = models.ar_unet.AR_UNet(num_classes)
         elif cfg_model_name == 'DeepLabV3plus':
             model = models.deeplabv3plus.DeepLabV3plus(self.cfg[cfg_model_name]['backbone'], 16, num_classes)
+        elif cfg_model_name == 'Proposed':
+            model = models.proposed.Proposed(self.cfg[cfg_model_name]['backbone'], 16, num_classes)
         else:
             raise NotImplementedError('Wrong model name.')
 
         if pretrained:
             pretrained_weights_path = self.cfg[cfg_model_name]['pretrained_weights']
-            if os.path.exists(pretrained_weights_path):
+            if os.path.isfile(pretrained_weights_path):
                 model.load_state_dict(torch.load(pretrained_weights_path))
             else:
                 print(f'FileNotFound: pretrained_weights ({cfg_model_name})')

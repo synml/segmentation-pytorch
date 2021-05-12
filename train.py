@@ -32,11 +32,26 @@ if __name__ == '__main__':
     # 4. Tensorboard
     writer = torch.utils.tensorboard.SummaryWriter(os.path.join('runs', model_name))
 
+    # Resume training at checkpoint
+    if cfg['resume_training'] is not None:
+        path = cfg['resume_training']
+        if not os.path.isfile(path):
+            raise FileNotFoundError(f'Checkpoint file. ({path})')
+        checkpoint = torch.load(path)
+        model.load_state_dict(checkpoint['model_state_dict'])
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        start_epoch = checkpoint['epoch'] + 1
+        prev_miou = checkpoint['miou']
+        prev_val_loss = checkpoint['val_loss']
+        print(f'Resume training. {path}')
+    else:
+        start_epoch = 0
+        prev_miou = 0.0
+        prev_val_loss = 100
+
     # 5. Train and evaluate
-    prev_miou = 0.0
-    prev_val_loss = 100
     log_loss = tqdm.tqdm(total=0, position=2, bar_format='{desc}', leave=False)
-    for epoch in tqdm.tqdm(range(cfg[model_name]['epoch']), desc='Epoch'):
+    for epoch in tqdm.tqdm(range(start_epoch, cfg[model_name]['epoch']), desc='Epoch'):
         if utils.train_interupter.train_interupter():
             print('Train interrupt occurs.')
             break
@@ -72,9 +87,11 @@ if __name__ == '__main__':
 
         # Checkpoint 저장
         os.makedirs('weights', exist_ok=True)
-        torch.save({'epoch': epoch,
-                    'model_state_dict': model.state_dict(),
-                    'optimizer_state_dict': optimizer.state_dict()},
+        torch.save({'model_state_dict': model.state_dict(),
+                    'optimizer_state_dict': optimizer.state_dict(),
+                    'epoch': epoch,
+                    'miou': miou,
+                    'val_loss': val_loss},
                    os.path.join('weights', f'{model_name}_checkpoint.pth'))
 
         # Best mIoU를 가진 모델을 저장
