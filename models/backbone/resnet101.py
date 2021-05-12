@@ -37,6 +37,7 @@ class ResNet101(nn.Module):
         x = self.layer1(x)
         self.low_level_feature.append(x)
         x = self.layer2(x)
+        self.low_level_feature.append(x)
         x = self.layer3(x)
         x = self.layer4(x)
         return x
