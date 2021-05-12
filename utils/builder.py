@@ -6,6 +6,7 @@ import yaml
 
 import datasets
 import models
+import utils
 
 
 def load_cfg() -> dict:
@@ -57,6 +58,8 @@ class Builder:
 
         if cfg_criterion['name'] == 'CrossEntropyLoss':
             criterion = nn.CrossEntropyLoss(ignore_index=ignore_index)
+        elif cfg_criterion['name'] == 'FocalLoss':
+            criterion = utils.loss.FocalLoss(ignore_index=ignore_index)
         else:
             raise NotImplementedError('Wrong criterion name.')
         return criterion
@@ -78,10 +81,8 @@ class Builder:
     def build_scheduler(self, optimizer: torch.optim.Optimizer):
         cfg_scheduler = self.cfg[self.cfg['model']['name']]['scheduler']
 
-        if cfg_scheduler['name'] == 'CosineAnnealingWarmRestarts':
-            scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer,
-                                                                             T_0=cfg_scheduler['T_0'],
-                                                                             T_mult=cfg_scheduler['T_mult'])
+        if cfg_scheduler['name'] == 'PolyLR':
+            scheduler = utils.lr_scheduler.PolyLR(optimizer, cfg_scheduler['max_iter'])
         else:
             raise NotImplementedError('Wrong scheduler name.')
         return scheduler
