@@ -33,9 +33,9 @@ if __name__ == '__main__':
     writer = torch.utils.tensorboard.SummaryWriter(os.path.join('runs', model_name))
 
     # 5. Train and evaluate
-    log_loss = tqdm.tqdm(total=0, position=2, bar_format='{desc}', leave=False)
     prev_miou = 0.0
     prev_val_loss = 100
+    log_loss = tqdm.tqdm(total=0, position=2, bar_format='{desc}', leave=False)
     for epoch in tqdm.tqdm(range(cfg[model_name]['epoch']), desc='Epoch'):
         if utils.train_interupter.train_interupter():
             print('Train interrupt occurs.')
