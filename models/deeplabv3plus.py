@@ -41,6 +41,11 @@ class DeepLabV3plus(nn.Module):
         x = F.interpolate(x, size=size, mode='bilinear', align_corners=False)
         return x
 
+    def freeze_bn(self):
+        for m in self.modules():
+            if isinstance(m, nn.BatchNorm2d):
+                m.eval()
+
 
 class Decoder(nn.Module):
     def __init__(self, num_classes: int) -> None:
