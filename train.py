@@ -70,8 +70,14 @@ if __name__ == '__main__':
         writer.add_scalar('Validation loss', val_loss, epoch)
         writer.add_scalar('mIoU', miou, epoch)
 
-        # Best mIoU를 가진 모델을 저장
+        # Checkpoint 저장
         os.makedirs('weights', exist_ok=True)
+        torch.save({'epoch': epoch,
+                    'model_state_dict': model.state_dict(),
+                    'optimizer_state_dict': optimizer.state_dict()},
+                   os.path.join('weights', f'{model_name}_checkpoint.pth'))
+
+        # Best mIoU를 가진 모델을 저장
         if miou > prev_miou:
             torch.save(model.state_dict(), os.path.join('weights', f'{model_name}_best.pth'))
             prev_miou = miou
