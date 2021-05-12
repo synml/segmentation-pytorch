@@ -64,8 +64,9 @@ DeepLabV3plus:
   criterion:
     name: CrossEntropyLoss
   optimizer:
-    name: AdamW
+    name: Adam
     lr: 0.001
+    weight_decay: 0
   scheduler:
     name: PolyLR
     max_iter: 55800
