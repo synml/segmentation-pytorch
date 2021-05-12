@@ -53,15 +53,15 @@ class Decoder(nn.Module):
 
     def forward(self, x: torch.Tensor, low_level_feature: list[torch.Tensor]) -> torch.Tensor:
         low_level_feature1 = self.compress_low_level_feature1(low_level_feature.pop())
-        low_level_feature2 = self.compress_low_level_feature2(low_level_feature.pop())
-
         x = F.interpolate(x, size=low_level_feature1.size()[2:], mode='bilinear', align_corners=False)
         x = torch.cat((x, low_level_feature1), dim=1)
         x = self.decode1(x)
 
+        low_level_feature2 = self.compress_low_level_feature2(low_level_feature.pop())
         x = F.interpolate(x, size=low_level_feature2.size()[2:], mode='bilinear', align_corners=False)
         x = torch.cat((x, low_level_feature2), dim=1)
         x = self.decode2(x)
+
         x = self.classifier(x)
         return x
 
@@ -74,7 +74,7 @@ class Decoder(nn.Module):
 
     def make_decoder(self, in_channels: int, out_channels: int) -> nn.Sequential:
         return nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=5, stride=1, padding=1, bias=False),
+            nn.Conv2d(in_channels, out_channels, kernel_size=5, stride=1, padding=2, bias=False),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True)
         )
