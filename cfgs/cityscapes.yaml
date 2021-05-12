@@ -60,7 +60,7 @@ AR_UNet:
 DeepLabV3plus:
   backbone: ResNet101
   batch_size: 16
-  epoch: 300
+  epoch: 100
   criterion:
     name: CrossEntropyLoss
   optimizer:
@@ -68,7 +68,7 @@ DeepLabV3plus:
     lr: 0.001
   scheduler:
     name: PolyLR
-    max_iter: 55800
+    max_iter: 18600
   augmentation:
     RandomCrop:
       size: !!python/tuple [769, 769]
