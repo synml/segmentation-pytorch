@@ -52,8 +52,8 @@ class Decoder(nn.Module):
         super(Decoder, self).__init__()
         self.compress_low_level_feature1 = self.make_compressor(512, 64)
         self.compress_low_level_feature2 = self.make_compressor(256, 32)
-        self.decode1 = self.make_decoder(256 + 64, 256)
-        self.decode2 = self.make_decoder(256 + 32, 256)
+        self.decode1 = self.make_decoder(256 + 64, 256, 0.5)
+        self.decode2 = self.make_decoder(256 + 32, 256, 0.1)
         self.classifier = nn.Conv2d(256, num_classes, kernel_size=1)
 
     def forward(self, x: torch.Tensor, low_level_feature: list[torch.Tensor]) -> torch.Tensor:
@@ -77,11 +77,12 @@ class Decoder(nn.Module):
             nn.ReLU(inplace=True)
         )
 
-    def make_decoder(self, in_channels: int, out_channels: int) -> nn.Sequential:
+    def make_decoder(self, in_channels: int, out_channels: int, dropout_p: float) -> nn.Sequential:
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=5, stride=1, padding=2, bias=False),
             nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True)
+            nn.ReLU(inplace=True),
+            nn.Dropout(dropout_p)
         )
 
 
