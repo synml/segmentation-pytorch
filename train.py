@@ -48,8 +48,8 @@ if __name__ == '__main__':
 
             optimizer.zero_grad(set_to_none=True)
             with torch.cuda.amp.autocast(enabled=amp_enabled):
-                output = model(images)
-                loss = criterion(output, targets)
+                outputs = model(images)
+                loss = criterion(outputs, targets)
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()

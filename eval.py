@@ -21,17 +21,17 @@ def evaluate(model, testloader, criterion, num_classes: int, amp_enabled: bool, 
             torch.cuda.synchronize()
             start_time = time.time()
             with torch.no_grad():
-                output = model(images)
+                outputs = model(images)
             torch.cuda.synchronize()
             inference_time += time.time() - start_time
 
-            val_loss += criterion(output, targets).item()
+            val_loss += criterion(outputs, targets).item()
 
             # Segmentation map 만들기
-            output = torch.argmax(output, dim=1)
+            outputs = torch.argmax(outputs, dim=1)
 
         # 혼동행렬 업데이트
-        evaluator.update_matrix(targets, output)
+        evaluator.update_matrix(targets, outputs)
 
     # 평가 지표 가져오기
     iou, miou = evaluator.get_scores()

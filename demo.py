@@ -42,12 +42,12 @@ if __name__ == '__main__':
 
         with torch.cuda.amp.autocast(enabled=amp_enabled):
             with torch.no_grad():
-                output = model(images)
-                output = torch.argmax(output, dim=1)
+                outputs = model(images)
+                outputs = torch.argmax(outputs, dim=1)
 
         # 1 배치단위 처리
-        assert targets.shape[0] == output.shape[0]
+        assert targets.shape[0] == outputs.shape[0]
         for i in range(targets.shape[0]):
-            plt.imsave(os.path.join(result_dir, image_names[step]), output[i].cpu(), cmap=cmap, vmin=0, vmax=cmap.N)
+            plt.imsave(os.path.join(result_dir, image_names[step]), outputs[i].cpu(), cmap=cmap, vmin=0, vmax=cmap.N)
             plt.imsave(os.path.join(groundtruth_dir, image_names[step]), targets[i], cmap=cmap, vmin=0, vmax=cmap.N)
             step += 1
