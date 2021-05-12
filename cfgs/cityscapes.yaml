@@ -21,9 +21,8 @@ UNet:
     lr: 0.001
     weight_decay: 0.00001
   scheduler:
-    name: CosineAnnealingWarmRestarts
-    T_0: 1860
-    T_mult: 2
+    name: PolyLR
+    max_iter: 55800
   augmentation:
     RandomCrop:
       size: !!python/tuple [769, 769]
@@ -45,9 +44,8 @@ AR_UNet:
     lr: 0.0005
     weight_decay: 0.00001
   scheduler:
-    name: CosineAnnealingWarmRestarts
-    T_0: 1860
-    T_mult: 2
+    name: PolyLR
+    max_iter: 55800
   augmentation:
     RandomCrop:
       size: !!python/tuple [769, 769]
@@ -69,9 +67,8 @@ DeepLabV3plus:
     name: AdamW
     lr: 0.001
   scheduler:
-    name: CosineAnnealingWarmRestarts
-    T_0: 3720
-    T_mult: 2
+    name: PolyLR
+    max_iter: 55800
   augmentation:
     RandomCrop:
       size: !!python/tuple [769, 769]
