@@ -39,7 +39,8 @@ if __name__ == '__main__':
             raise FileNotFoundError(f'Checkpoint file. ({path})')
         checkpoint = torch.load(path)
         model.load_state_dict(checkpoint['model_state_dict'])
-        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        if not cfg['fine_tuning_batchnorm']:
+            optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         start_epoch = checkpoint['epoch'] + 1
         prev_miou = checkpoint['miou']
         prev_val_loss = checkpoint['val_loss']

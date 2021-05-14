@@ -1,3 +1,4 @@
 cfg: cfgs/cityscapes.yaml
 model: DeepLabV3plus
 resume_training:
+fine_tuning_batchnorm: True
