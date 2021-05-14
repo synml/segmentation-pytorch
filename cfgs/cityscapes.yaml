@@ -65,13 +65,13 @@ DeepLabV3plus:
     name: CrossEntropyLoss
   optimizer:
     name: AdamW
-    lr: 0.0004
+    lr: 0.001
   scheduler:
     name: PolyLR
     max_iter: 18600
   augmentation:
-    RandomCrop:
-      size: !!python/tuple [769, 769]
+    Resize:
+      size: !!python/tuple [768, 1536]
     ColorJitter:
       brightness: 0.5
       contrast: 0.5
