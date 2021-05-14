@@ -71,7 +71,7 @@ DeepLabV3plus:
     max_iter: 18600
   augmentation:
     Resize:
-      size: !!python/tuple [640, 1280]
+      size: !!python/tuple [576, 1152]
     ColorJitter:
       brightness: 0.5
       contrast: 0.5
