@@ -49,15 +49,15 @@ class Block(nn.Module):
         else:
             shortcut = x
 
-        out = self.relu1(x)
-        out = self.sepconv1(out)
-        out = self.relu2(out)
-        out = self.sepconv2(out)  # forward hook
-        out = self.relu3(out)
-        out = self.sepconv3(out)
+        x = self.relu1(x)
+        x = self.sepconv1(x)
+        x = self.relu2(x)
+        x = self.sepconv2(x)  # forward hook
+        x = self.relu3(x)
+        x = self.sepconv3(x)
 
-        out += shortcut
-        return out
+        x += shortcut
+        return x
 
 
 class Xception(nn.Module):
@@ -75,12 +75,16 @@ class Xception(nn.Module):
             raise NotImplementedError('Wrong output_stride.')
 
         # Entry flow
-        self.conv1 = nn.Conv2d(3, 32, kernel_size=3, stride=2, padding=1, bias=False)
-        self.bn1 = nn.BatchNorm2d(32)
-        self.relu1 = nn.ReLU(inplace=True)
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1, bias=False)
-        self.bn2 = nn.BatchNorm2d(64)
-        self.relu2 = nn.ReLU(inplace=True)
+        self.conv1 = nn.Sequential(
+            nn.Conv2d(3, 32, kernel_size=3, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(32),
+            nn.ReLU(inplace=True)
+        )
+        self.conv2 = nn.Sequential(
+            nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1, bias=False),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True)
+        )
         self.block1 = Block(64, 128, 2, dilation=1, skip_connection_type='conv')
         self.block2 = Block(128, 256, 2, dilation=1, skip_connection_type='conv')
         self.block3 = Block(256, 728, entry_block3_stride, dilation=1, skip_connection_type='conv')
@@ -108,20 +112,12 @@ class Xception(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # Entry flow
         x = self.conv1(x)
-        x = self.bn1(x)
-        x = self.relu1(x)
         x = self.conv2(x)
-        x = self.bn2(x)
-        x = self.relu2(x)
         x = self.block1(x)
         x = self.block2(x)
-        self.low_level_feature.append(self.block2.hook_layer)
         x = self.block3(x)
 
-        # Middle flow
         x = self.middle_flow(x)
-
-        # Exit flow
         x = self.exit_flow(x)
         return x
 
