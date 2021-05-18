@@ -12,8 +12,8 @@ def evaluate(model, testloader, criterion, num_classes: int, amp_enabled: bool, 
     model.eval()
 
     evaluator = utils.metrics.Evaluator(num_classes)
-    val_loss = 0
-    inference_time = 0
+    val_loss = 0.0
+    inference_time = 0.0
     for images, targets in tqdm.tqdm(testloader, desc='Eval', leave=False):
         images, targets = images.to(device), targets.to(device)
 

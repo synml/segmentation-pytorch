@@ -26,17 +26,18 @@ class Transforms:
                     raise NotImplementedError('Wrong augmentation.')
             self.augmentation = torchvision.transforms.Compose(compose_items)
 
-    def __call__(self, image, target):
-        to_tensor_normalize = torchvision.transforms.Compose([
+        self.to_tensor_normalize = torchvision.transforms.Compose([
             ToTensor(),
             Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ])
+
+    def __call__(self, image, target):
         data = {'image': image, 'target': target}
 
         if self.augmentation is not None:
             data = self.augmentation(data)
 
-        data = to_tensor_normalize(data)
+        data = self.to_tensor_normalize(data)
         return data['image'], data['target']
 
 

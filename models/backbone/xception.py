@@ -6,7 +6,7 @@ import models
 
 class SeparableConv2d(nn.Module):
     def __init__(self, in_channels: int, out_channels: int, kernel_size: int, stride=1, padding=0, dilation=1,
-                 bias=True, activation: nn.Module = None) -> None:
+                 bias=True, activation: nn.Module = None):
         super(SeparableConv2d, self).__init__()
         self.depthwise = nn.Conv2d(in_channels, in_channels, kernel_size, stride, padding, dilation,
                                    groups=in_channels, bias=bias)
@@ -27,7 +27,7 @@ class SeparableConv2d(nn.Module):
 
 class Block(nn.Module):
     def __init__(self, in_channels: int, out_channels: int, stride: int, dilation: int,
-                 skip_connection_type: str, grow_first=True, hook_layer=False) -> None:
+                 skip_connection_type: str, grow_first=True, hook_layer=False):
         super(Block, self).__init__()
         if hook_layer:
             self.hook_layer = hook_layer
@@ -75,7 +75,7 @@ class Block(nn.Module):
 
 
 class Xception(nn.Module):
-    def __init__(self, output_stride: int) -> None:
+    def __init__(self, output_stride: int):
         super(Xception, self).__init__()
         if output_stride == 16:
             entry_block3_stride = 2

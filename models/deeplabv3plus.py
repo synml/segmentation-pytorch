@@ -9,7 +9,7 @@ import models.backbone
 
 
 class DeepLabV3plus(nn.Module):
-    def __init__(self, backbone: str, output_stride: int, num_classes: int) -> None:
+    def __init__(self, backbone: str, output_stride: int, num_classes: int):
         super(DeepLabV3plus, self).__init__()
         # Backbone
         if backbone == 'ResNet101':
@@ -48,7 +48,7 @@ class DeepLabV3plus(nn.Module):
 
 
 class Decoder(nn.Module):
-    def __init__(self, num_classes: int) -> None:
+    def __init__(self, num_classes: int):
         super(Decoder, self).__init__()
         low_level_feature_channels = 48
         self.compress_low_level_feature = nn.Sequential(
@@ -69,7 +69,7 @@ class Decoder(nn.Module):
         x = self.classifier(x)
         return x
 
-    def make_decoder(self, in_channels: int, out_channels: int) -> nn.Sequential:
+    def make_decoder(self, in_channels: int, out_channels: int):
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False),
             nn.BatchNorm2d(out_channels),

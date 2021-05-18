@@ -32,7 +32,7 @@ class UNet(nn.Module):
         # Classifier
         self.classifier = nn.Conv2d(64, num_classes, kernel_size=1)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         # Encoder
         encode1 = self.encode1(x)
         encode2 = self.encode2(F.max_pool2d(encode1, 2))

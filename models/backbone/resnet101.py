@@ -6,7 +6,7 @@ import models
 
 
 class ResNet101(nn.Module):
-    def __init__(self, output_stride: int) -> None:
+    def __init__(self, output_stride: int):
         super(ResNet101, self).__init__()
         if output_stride == 16:
             replace_stride_with_dilation = [False, False, True]

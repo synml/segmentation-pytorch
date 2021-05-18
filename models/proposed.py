@@ -9,7 +9,7 @@ import models.backbone
 
 
 class Proposed(nn.Module):
-    def __init__(self, backbone: str, output_stride: int, num_classes: int) -> None:
+    def __init__(self, backbone: str, output_stride: int, num_classes: int):
         super(Proposed, self).__init__()
         # Backbone
         if backbone == 'ResNet101':
@@ -48,7 +48,7 @@ class Proposed(nn.Module):
 
 
 class Decoder(nn.Module):
-    def __init__(self, num_classes: int) -> None:
+    def __init__(self, num_classes: int):
         super(Decoder, self).__init__()
         self.compress_low_level_feature1 = self.make_compressor(512, 64)
         self.compress_low_level_feature2 = self.make_compressor(256, 32)
@@ -77,7 +77,7 @@ class Decoder(nn.Module):
             nn.ReLU(inplace=True)
         )
 
-    def make_decoder(self, in_channels: int, out_channels: int, dropout_p: float) -> nn.Sequential:
+    def make_decoder(self, in_channels: int, out_channels: int, dropout_p: float):
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=5, stride=1, padding=2, bias=False),
             nn.BatchNorm2d(out_channels),
