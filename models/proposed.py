@@ -1,3 +1,5 @@
+from typing import List
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -5,17 +7,23 @@ import torchvision
 
 import models
 import models.backbone
+import utils
 
 
 class Proposed(nn.Module):
     def __init__(self, backbone: str, output_stride: int, num_classes: int):
         super(Proposed, self).__init__()
+        self.low_level_feature = []
+
         # Backbone
         if backbone == 'ResNet101':
             self.backbone = models.backbone.resnet101.ResNet101(output_stride)
+            self.backbone.layer1.register_forward_hook(utils.hooks.get_feature_maps(self.low_level_feature))
+            self.backbone.layer2.register_forward_hook(utils.hooks.get_feature_maps(self.low_level_feature))
         elif backbone == 'Xception':
-            self.backbone = models.backbone.xception.Xception(output_stride)
-            self.backbone.load_state_dict(torch.load('weights/xception_65_imagenet.pth'))
+            self.backbone = models.backbone.xception.xception(output_stride, pretrained=True)
+            self.backbone.block2.sepconv2.register_forward_hook(utils.hooks.get_feature_maps(self.low_level_feature))
+            self.backbone.block3.sepconv2.register_forward_hook(utils.hooks.get_feature_maps(self.low_level_feature))
         else:
             raise NotImplementedError('Wrong backbone.')
 
@@ -29,14 +37,14 @@ class Proposed(nn.Module):
         self.aspp = torchvision.models.segmentation.deeplabv3.ASPP(2048, atrous_rates, 256)
 
         # Decoder
-        self.decoder = Decoder(num_classes)
+        self.decoder = Decoder(backbone, num_classes)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         size = x.size()[2:]
 
         x = self.backbone(x)
         x = self.aspp(x)
-        x = self.decoder(x, self.backbone.low_level_feature)
+        x = self.decoder(x, self.low_level_feature)
         x = F.interpolate(x, size=size, mode='bilinear', align_corners=False)
         return x
 
@@ -47,15 +55,21 @@ class Proposed(nn.Module):
 
 
 class Decoder(nn.Module):
-    def __init__(self, num_classes: int):
+    def __init__(self, backbone: str, num_classes: int):
         super(Decoder, self).__init__()
-        self.compress_low_level_feature1 = self.make_compressor(512, 64)
+        if backbone == 'ResNet101':
+            self.compress_low_level_feature1 = self.make_compressor(512, 64)
+        elif backbone == 'Xception':
+            self.compress_low_level_feature1 = self.make_compressor(728, 64)
+        else:
+            raise NotImplementedError('Wrong backbone.')
+
         self.compress_low_level_feature2 = self.make_compressor(256, 32)
         self.decode1 = self.make_decoder(256 + 64, 256, 0.5)
         self.decode2 = self.make_decoder(256 + 32, 256, 0.1)
         self.classifier = nn.Conv2d(256, num_classes, kernel_size=1)
 
-    def forward(self, x: torch.Tensor, low_level_feature: list) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, low_level_feature: List[torch.Tensor]) -> torch.Tensor:
         low_level_feature1 = self.compress_low_level_feature1(low_level_feature.pop())
         x = F.interpolate(x, size=low_level_feature1.size()[2:], mode='bilinear', align_corners=False)
         x = torch.cat((x, low_level_feature1), dim=1)
