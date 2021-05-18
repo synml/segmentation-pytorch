@@ -1,3 +1,5 @@
+from typing import List
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -5,16 +7,21 @@ import torchvision
 
 import models
 import models.backbone
+import utils
 
 
 class DeepLabV3plus(nn.Module):
     def __init__(self, backbone: str, output_stride: int, num_classes: int):
         super(DeepLabV3plus, self).__init__()
+        self.low_level_feature = []
+
         # Backbone
         if backbone == 'ResNet101':
             self.backbone = models.backbone.resnet101.ResNet101(output_stride)
+            self.backbone.layer1.register_forward_hook(utils.hooks.get_feature_maps(self.low_level_feature))
         elif backbone == 'Xception':
             self.backbone = models.backbone.xception.xception(output_stride, pretrained=True)
+            self.backbone.block2.sepconv2.register_forward_hook(utils.hooks.get_feature_maps(self.low_level_feature))
         else:
             raise NotImplementedError('Wrong backbone.')
 
@@ -35,7 +42,7 @@ class DeepLabV3plus(nn.Module):
 
         x = self.backbone(x)
         x = self.aspp(x)
-        x = self.decoder(x, self.backbone.low_level_feature)
+        x = self.decoder(x, self.low_level_feature)
         x = F.interpolate(x, size=size, mode='bilinear', align_corners=False)
         return x
 
@@ -52,8 +59,7 @@ class Decoder(nn.Module):
         self.decode1 = self.make_decoder(256 + 48, 256)
         self.classifier = nn.Conv2d(256, num_classes, kernel_size=1)
 
-    def forward(self, x: torch.Tensor, low_level_feature: list) -> torch.Tensor:
-        low_level_feature.pop()
+    def forward(self, x: torch.Tensor, low_level_feature: List[torch.Tensor]) -> torch.Tensor:
         low_level_feature = self.compress_low_level_feature(low_level_feature.pop())
 
         x = F.interpolate(x, size=low_level_feature.size()[2:], mode='bilinear', align_corners=False)

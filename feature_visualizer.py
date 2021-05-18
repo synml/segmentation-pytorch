@@ -8,12 +8,6 @@ import tqdm
 import utils
 
 
-def get_feature_maps(feature_maps: dict, name: str):
-    def hook(module, input, output):
-        feature_maps[name] = output.detach()
-    return hook
-
-
 if __name__ == '__main__':
     # 0. Load cfg and create components builder
     cfg = utils.builder.load_cfg()
@@ -41,33 +35,29 @@ if __name__ == '__main__':
     # 모델의 각 계층에 특징맵을 받아오는 hook을 등록
     feature_maps = {}
     if model_name == 'UNet':
-        model.encode1.register_forward_hook(get_feature_maps(feature_maps, 'encode1'))
-        model.encode2.register_forward_hook(get_feature_maps(feature_maps, 'encode2'))
-        model.encode3.register_forward_hook(get_feature_maps(feature_maps, 'encode3'))
-        model.encode4.register_forward_hook(get_feature_maps(feature_maps, 'encode4'))
-        model.encode_end.register_forward_hook(get_feature_maps(feature_maps, 'encode_end'))
-        model.decode4.register_forward_hook(get_feature_maps(feature_maps, 'decode4'))
-        model.decode3.register_forward_hook(get_feature_maps(feature_maps, 'decode3'))
-        model.decode2.register_forward_hook(get_feature_maps(feature_maps, 'decode2'))
-        model.decode1.register_forward_hook(get_feature_maps(feature_maps, 'decode1'))
-        model.classifier.register_forward_hook(get_feature_maps(feature_maps, 'classifier'))
+        model.encode1.register_forward_hook(utils.hooks.get_feature_maps_with_name(feature_maps, 'encode1'))
+        model.encode2.register_forward_hook(utils.hooks.get_feature_maps_with_name(feature_maps, 'encode2'))
+        model.encode3.register_forward_hook(utils.hooks.get_feature_maps_with_name(feature_maps, 'encode3'))
+        model.encode4.register_forward_hook(utils.hooks.get_feature_maps_with_name(feature_maps, 'encode4'))
+        model.encode_end.register_forward_hook(utils.hooks.get_feature_maps_with_name(feature_maps, 'encode_end'))
+        model.decode4.register_forward_hook(utils.hooks.get_feature_maps_with_name(feature_maps, 'decode4'))
+        model.decode3.register_forward_hook(utils.hooks.get_feature_maps_with_name(feature_maps, 'decode3'))
+        model.decode2.register_forward_hook(utils.hooks.get_feature_maps_with_name(feature_maps, 'decode2'))
+        model.decode1.register_forward_hook(utils.hooks.get_feature_maps_with_name(feature_maps, 'decode1'))
+        model.classifier.register_forward_hook(utils.hooks.get_feature_maps_with_name(feature_maps, 'classifier'))
     elif model_name == 'AR_UNet':
-        model.initial_conv.register_forward_hook(get_feature_maps(feature_maps, 'initial_conv'))
-        model.encode1.register_forward_hook(get_feature_maps(feature_maps, 'encode1'))
-        model.encode2.register_forward_hook(get_feature_maps(feature_maps, 'encode2'))
-        model.encode3.register_forward_hook(get_feature_maps(feature_maps, 'encode3'))
-        model.encode4.register_forward_hook(get_feature_maps(feature_maps, 'encode4'))
-        model.aspp.register_forward_hook(get_feature_maps(feature_maps, 'aspp'))
-        model.decode3.register_forward_hook(get_feature_maps(feature_maps, 'decode3'))
-        model.decode2.register_forward_hook(get_feature_maps(feature_maps, 'decode2'))
-        model.decode1.register_forward_hook(get_feature_maps(feature_maps, 'decode1'))
-        model.classifier.register_forward_hook(get_feature_maps(feature_maps, 'classifier'))
-    elif model_name == 'ResNet34':
-        model.initial_conv.register_forward_hook(get_feature_maps(feature_maps, 'initial_conv'))
-        model.layer1.register_forward_hook(get_feature_maps(feature_maps, 'layer1'))
-        model.layer2.register_forward_hook(get_feature_maps(feature_maps, 'layer2'))
-        model.layer3.register_forward_hook(get_feature_maps(feature_maps, 'layer3'))
-        model.layer4.register_forward_hook(get_feature_maps(feature_maps, 'layer4'))
+        model.initial_conv.register_forward_hook(utils.hooks.get_feature_maps_with_name(feature_maps, 'initial_conv'))
+        model.encode1.register_forward_hook(utils.hooks.get_feature_maps_with_name(feature_maps, 'encode1'))
+        model.encode2.register_forward_hook(utils.hooks.get_feature_maps_with_name(feature_maps, 'encode2'))
+        model.encode3.register_forward_hook(utils.hooks.get_feature_maps_with_name(feature_maps, 'encode3'))
+        model.encode4.register_forward_hook(utils.hooks.get_feature_maps_with_name(feature_maps, 'encode4'))
+        model.aspp.register_forward_hook(utils.hooks.get_feature_maps_with_name(feature_maps, 'aspp'))
+        model.decode3.register_forward_hook(utils.hooks.get_feature_maps_with_name(feature_maps, 'decode3'))
+        model.decode2.register_forward_hook(utils.hooks.get_feature_maps_with_name(feature_maps, 'decode2'))
+        model.decode1.register_forward_hook(utils.hooks.get_feature_maps_with_name(feature_maps, 'decode1'))
+        model.classifier.register_forward_hook(utils.hooks.get_feature_maps_with_name(feature_maps, 'classifier'))
+    else:
+        raise NotImplementedError('Wrong model_name.')
 
     # 예측
     with torch.cuda.amp.autocast(enabled=amp_enabled):
