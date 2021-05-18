@@ -52,7 +52,7 @@ class Block(nn.Module):
         out = self.relu1(x)
         out = self.sepconv1(out)
         out = self.relu2(out)
-        out = self.sepconv2(out)    # hook
+        out = self.sepconv2(out)  # hook
         out = self.relu3(out)
         out = self.sepconv3(out)
 
