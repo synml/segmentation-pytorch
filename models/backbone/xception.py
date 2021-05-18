@@ -52,7 +52,7 @@ class Block(nn.Module):
         out = self.relu1(x)
         out = self.sepconv1(out)
         out = self.relu2(out)
-        out = self.sepconv2(out)  # hook
+        out = self.sepconv2(out)  # forward hook
         out = self.relu3(out)
         out = self.sepconv3(out)
 
@@ -86,22 +86,10 @@ class Xception(nn.Module):
         self.block3 = Block(256, 728, entry_block3_stride, dilation=1, skip_connection_type='conv')
 
         # Middle flow
-        self.block4 = Block(728, 728, 1, middle_block_dilation, skip_connection_type='sum')
-        self.block5 = Block(728, 728, 1, middle_block_dilation, skip_connection_type='sum')
-        self.block6 = Block(728, 728, 1, middle_block_dilation, skip_connection_type='sum')
-        self.block7 = Block(728, 728, 1, middle_block_dilation, skip_connection_type='sum')
-        self.block8 = Block(728, 728, 1, middle_block_dilation, skip_connection_type='sum')
-        self.block9 = Block(728, 728, 1, middle_block_dilation, skip_connection_type='sum')
-        self.block10 = Block(728, 728, 1, middle_block_dilation, skip_connection_type='sum')
-        self.block11 = Block(728, 728, 1, middle_block_dilation, skip_connection_type='sum')
-        self.block12 = Block(728, 728, 1, middle_block_dilation, skip_connection_type='sum')
-        self.block13 = Block(728, 728, 1, middle_block_dilation, skip_connection_type='sum')
-        self.block14 = Block(728, 728, 1, middle_block_dilation, skip_connection_type='sum')
-        self.block15 = Block(728, 728, 1, middle_block_dilation, skip_connection_type='sum')
-        self.block16 = Block(728, 728, 1, middle_block_dilation, skip_connection_type='sum')
-        self.block17 = Block(728, 728, 1, middle_block_dilation, skip_connection_type='sum')
-        self.block18 = Block(728, 728, 1, middle_block_dilation, skip_connection_type='sum')
-        self.block19 = Block(728, 728, 1, middle_block_dilation, skip_connection_type='sum')
+        layers = []
+        for _ in range(16):
+            layers.append(Block(728, 728, 1, middle_block_dilation, skip_connection_type='sum'))
+        self.middle_flow = nn.Sequential(*layers)
 
         # Exit flow
         self.exit_flow = nn.Sequential(
@@ -131,22 +119,7 @@ class Xception(nn.Module):
         x = self.block3(x)
 
         # Middle flow
-        x = self.block4(x)
-        x = self.block5(x)
-        x = self.block6(x)
-        x = self.block7(x)
-        x = self.block8(x)
-        x = self.block9(x)
-        x = self.block10(x)
-        x = self.block11(x)
-        x = self.block12(x)
-        x = self.block13(x)
-        x = self.block14(x)
-        x = self.block15(x)
-        x = self.block16(x)
-        x = self.block17(x)
-        x = self.block18(x)
-        x = self.block19(x)
+        x = self.middle_flow(x)
 
         # Exit flow
         x = self.exit_flow(x)
