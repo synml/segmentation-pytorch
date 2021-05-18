@@ -104,16 +104,18 @@ class Xception(nn.Module):
         self.block19 = Block(728, 728, 1, middle_block_dilation, skip_connection_type='sum')
 
         # Exit flow
-        self.block20 = Block(728, 1024, 1, exit_block_dilations[0], skip_connection_type='conv', grow_first=False)
-        self.conv3 = SeparableConv2d(1024, 1536, 3, 1, exit_block_dilations[1], exit_block_dilations[1],
-                                     bias=False, activation=nn.ReLU(inplace=True))
-        self.relu3 = nn.ReLU(inplace=True)
-        self.conv4 = SeparableConv2d(1536, 1536, 3, 1, exit_block_dilations[1], exit_block_dilations[1],
-                                     bias=False, activation=nn.ReLU(inplace=True))
-        self.relu4 = nn.ReLU(inplace=True)
-        self.conv5 = SeparableConv2d(1536, 2048, 3, 1, exit_block_dilations[1], exit_block_dilations[1],
-                                     bias=False, activation=nn.ReLU(inplace=True))
-        self.relu5 = nn.ReLU(inplace=True)
+        self.exit_flow = nn.Sequential(
+            Block(728, 1024, 1, exit_block_dilations[0], skip_connection_type='conv', grow_first=False),
+            SeparableConv2d(1024, 1536, 3, 1, exit_block_dilations[1], exit_block_dilations[1], bias=False,
+                            activation=nn.ReLU(inplace=True)),
+            nn.ReLU(inplace=True),
+            SeparableConv2d(1536, 1536, 3, 1, exit_block_dilations[1], exit_block_dilations[1], bias=False,
+                            activation=nn.ReLU(inplace=True)),
+            nn.ReLU(inplace=True),
+            SeparableConv2d(1536, 2048, 3, 1, exit_block_dilations[1], exit_block_dilations[1], bias=False,
+                            activation=nn.ReLU(inplace=True)),
+            nn.ReLU(inplace=True)
+        )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # Entry flow
@@ -147,13 +149,7 @@ class Xception(nn.Module):
         x = self.block19(x)
 
         # Exit flow
-        x = self.block20(x)
-        x = self.conv3(x)
-        x = self.relu3(x)
-        x = self.conv4(x)
-        x = self.relu4(x)
-        x = self.conv5(x)
-        x = self.relu5(x)
+        x = self.exit_flow(x)
         return x
 
 
