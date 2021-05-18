@@ -15,7 +15,9 @@ def load_cfg() -> dict:
 
     with open(main['cfg']) as f:
         cfg = yaml.load(f, Loader=yaml.FullLoader)
+    cfg['model'] = {}
     cfg['model']['name'] = main['model']
+    cfg['model']['amp_enabled'] = main['amp_enabled']
     cfg['resume_training'] = main['resume_training']
     cfg['fine_tuning_batchnorm'] = main['fine_tuning_batchnorm']
     return cfg
