@@ -20,13 +20,8 @@ class SeparableConv2d(nn.Sequential):
 
 class Block(nn.Module):
     def __init__(self, in_channels: int, out_channels: int, stride: int, dilation: int,
-                 skip_connection_type: str, grow_first=True, hook_layer=False):
+                 skip_connection_type: str, grow_first=True):
         super(Block, self).__init__()
-        if hook_layer:
-            self.hook_layer = hook_layer
-        else:
-            self.hook_layer = None
-
         if skip_connection_type == 'conv':
             self.shortcut = nn.Conv2d(in_channels, out_channels, 1, stride, bias=False)
             self.shortcut_bn = nn.BatchNorm2d(out_channels)
@@ -57,9 +52,7 @@ class Block(nn.Module):
         out = self.relu1(x)
         out = self.sepconv1(out)
         out = self.relu2(out)
-        out = self.sepconv2(out)
-        if self.hook_layer is not None:
-            self.hook_layer = out
+        out = self.sepconv2(out)    # hook
         out = self.relu3(out)
         out = self.sepconv3(out)
 
@@ -81,8 +74,6 @@ class Xception(nn.Module):
         else:
             raise NotImplementedError('Wrong output_stride.')
 
-        self.low_level_feature = []
-
         # Entry flow
         self.conv1 = nn.Conv2d(3, 32, kernel_size=3, stride=2, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(32)
@@ -91,7 +82,7 @@ class Xception(nn.Module):
         self.bn2 = nn.BatchNorm2d(64)
         self.relu2 = nn.ReLU(inplace=True)
         self.block1 = Block(64, 128, 2, dilation=1, skip_connection_type='conv')
-        self.block2 = Block(128, 256, 2, dilation=1, skip_connection_type='conv', hook_layer=True)
+        self.block2 = Block(128, 256, 2, dilation=1, skip_connection_type='conv')
         self.block3 = Block(256, 728, entry_block3_stride, dilation=1, skip_connection_type='conv')
 
         # Middle flow
