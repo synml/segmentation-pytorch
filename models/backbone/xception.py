@@ -23,13 +23,14 @@ class Block(nn.Module):
                  skip_connection_type: str, grow_first=True):
         super(Block, self).__init__()
         if skip_connection_type == 'conv':
-            self.shortcut = nn.Conv2d(in_channels, out_channels, 1, stride, bias=False)
-            self.shortcut_bn = nn.BatchNorm2d(out_channels)
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_channels, out_channels, 1, stride, bias=False),
+                nn.BatchNorm2d(out_channels)
+            )
         elif skip_connection_type == 'sum':
             self.shortcut = None
-            self.shortcut_bn = None
         else:
-            raise NotImplementedError('Wrong skip_connection_type.')
+            raise ValueError('Wrong skip_connection_type.')
 
         if grow_first:
             mid_channels = out_channels
@@ -45,7 +46,6 @@ class Block(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if self.shortcut is not None:
             shortcut = self.shortcut(x)
-            shortcut = self.shortcut_bn(shortcut)
         else:
             shortcut = x
 
