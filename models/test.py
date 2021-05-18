@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import ptflops
 import torch
 import torch.nn as nn
@@ -5,7 +7,7 @@ import torch.utils.tensorboard
 import torchsummary
 
 
-def test_model(model: nn.Module, input_size: tuple[int, int, int], device):
+def test_model(model: nn.Module, input_size: Tuple[int, int, int], device):
     model.eval()
 
     torchsummary.torchsummary.summary(model, input_size)

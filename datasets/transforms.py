@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import numpy as np
 import torch
 import torchvision
@@ -59,7 +61,7 @@ class ColorJitter(torchvision.transforms.ColorJitter):
 
 
 class RandomCrop(torchvision.transforms.RandomCrop):
-    def __init__(self, size: tuple[int, int]):
+    def __init__(self, size: Tuple[int, int]):
         super().__init__(size)
 
     def forward(self, data: dict):
@@ -81,7 +83,7 @@ class RandomHorizontalFlip(torchvision.transforms.RandomHorizontalFlip):
 
 
 class Resize(torchvision.transforms.Resize):
-    def __init__(self, size: tuple[int, int]):
+    def __init__(self, size: Tuple[int, int]):
         super(Resize, self).__init__(size)
 
     def forward(self, data: dict):

@@ -56,7 +56,7 @@ class Decoder(nn.Module):
         self.decode2 = self.make_decoder(256 + 32, 256, 0.1)
         self.classifier = nn.Conv2d(256, num_classes, kernel_size=1)
 
-    def forward(self, x: torch.Tensor, low_level_feature: list[torch.Tensor]) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, low_level_feature: list) -> torch.Tensor:
         low_level_feature1 = self.compress_low_level_feature1(low_level_feature.pop())
         x = F.interpolate(x, size=low_level_feature1.size()[2:], mode='bilinear', align_corners=False)
         x = torch.cat((x, low_level_feature1), dim=1)
