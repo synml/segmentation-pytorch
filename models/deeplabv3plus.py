@@ -50,13 +50,8 @@ class DeepLabV3plus(nn.Module):
 class Decoder(nn.Module):
     def __init__(self, num_classes: int):
         super(Decoder, self).__init__()
-        low_level_feature_channels = 48
-        self.compress_low_level_feature = nn.Sequential(
-            nn.Conv2d(256, low_level_feature_channels, kernel_size=1, bias=False),
-            nn.BatchNorm2d(low_level_feature_channels),
-            nn.ReLU(inplace=True)
-        )
-        self.decode1 = self.make_decoder(256 + low_level_feature_channels, 256)
+        self.compress_low_level_feature = self.make_compressor(256, 48)
+        self.decode1 = self.make_decoder(256 + 48, 256)
         self.classifier = nn.Conv2d(256, num_classes, kernel_size=1)
 
     def forward(self, x: torch.Tensor, low_level_feature: list) -> torch.Tensor:
@@ -68,6 +63,13 @@ class Decoder(nn.Module):
         x = self.decode1(x)
         x = self.classifier(x)
         return x
+
+    def make_compressor(self, in_channels: int, out_channels: int):
+        return nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True)
+        )
 
     def make_decoder(self, in_channels: int, out_channels: int):
         return nn.Sequential(
