@@ -122,7 +122,16 @@ class Xception(nn.Module):
         return x
 
 
+def xception(output_stride: int, pretrained: bool = False):
+    model = Xception(output_stride)
+    if pretrained:
+        state_dict = torch.hub.load_state_dict_from_url('https://github.com/synml/pytorch-semantic-segmentation'
+                                                        '/releases/download/v1.4.3-weights/xception_65_imagenet.pth')
+        model.load_state_dict(state_dict)
+    return model
+
+
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = Xception(output_stride=16).to(device)
+    model = xception(output_stride=16, pretrained=True).to(device)
     models.test.test_model(model, (3, 400, 800), device)
