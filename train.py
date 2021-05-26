@@ -39,8 +39,12 @@ if __name__ == '__main__':
             raise FileNotFoundError(f'Checkpoint file. ({path})')
         checkpoint = torch.load(path)
         model.load_state_dict(checkpoint['model_state_dict'])
-        if not cfg['fine_tuning_batchnorm']:
+        if cfg['fine_tuning_batchnorm']:
+            model.freeze_bn()
+        else:
             optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
+        scaler.load_state_dict(checkpoint['scaler_state_dict'])
         start_epoch = checkpoint['epoch'] + 1
         prev_miou = checkpoint['miou']
         prev_val_loss = checkpoint['val_loss']
@@ -90,6 +94,8 @@ if __name__ == '__main__':
         os.makedirs('weights', exist_ok=True)
         torch.save({'model_state_dict': model.state_dict(),
                     'optimizer_state_dict': optimizer.state_dict(),
+                    'scheduler_state_dict': scheduler.state_dict(),
+                    'scaler_state_dict': scaler.state_dict(),
                     'epoch': epoch,
                     'miou': miou,
                     'val_loss': val_loss},
