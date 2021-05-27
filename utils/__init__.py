@@ -1,4 +1,5 @@
 import utils.builder
+import utils.checkpoint_extractor
 import utils.hooks
 import utils.loss
 import utils.lr_scheduler

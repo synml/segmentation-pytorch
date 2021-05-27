@@ -35,8 +35,6 @@ if __name__ == '__main__':
     # Resume training at checkpoint
     if cfg['resume_training'] is not None:
         path = cfg['resume_training']
-        if not os.path.isfile(path):
-            raise FileNotFoundError(f'Checkpoint file. ({path})')
         checkpoint = torch.load(path)
         model.load_state_dict(checkpoint['model_state_dict'])
         if cfg['fine_tuning_batchnorm']:
