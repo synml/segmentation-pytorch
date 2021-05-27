@@ -54,7 +54,7 @@ if __name__ == '__main__':
         prev_miou = 0.0
         prev_val_loss = 100
 
-    # 5. Train and evaluate
+    # Train and evaluate
     log_loss = tqdm.tqdm(total=0, position=2, bar_format='{desc}', leave=False)
     for epoch in tqdm.tqdm(range(start_epoch, cfg[model_name]['epoch']), desc='Epoch'):
         if utils.train_interupter.train_interupter():
@@ -74,23 +74,19 @@ if __name__ == '__main__':
             scaler.step(optimizer)
             scaler.update()
 
-            # lr scheduler의 step을 진행
+            # print/write training loss
+            log_loss.set_description_str(f'Loss: {loss.item():.4f}')
+            writer.add_scalar('loss/training', loss.item(), iters)
+
             writer.add_scalar('lr', optimizer.param_groups[0]['lr'], iters)
             scheduler.step()
 
-            # 손실값 출력
-            log_loss.set_description_str(f'Loss: {loss.item():.4f}')
-
-            # Tensorboard에 학습 과정 기록
-            writer.add_scalar('Train loss', loss.item(), iters)
-
-        # 모델 평가
         val_loss, _, miou, _ = eval.evaluate(model, valloader, criterion, dataset_impl.num_classes,
                                              amp_enabled, device)
-        writer.add_scalar('Validation loss', val_loss, epoch)
-        writer.add_scalar('mIoU', miou, epoch)
+        writer.add_scalar('loss/validation', val_loss, epoch)
+        writer.add_scalar('metrics/mIoU', miou, epoch)
 
-        # Checkpoint 저장
+        # Save checkpoint
         os.makedirs('weights', exist_ok=True)
         torch.save({'model_state_dict': model.state_dict(),
                     'optimizer_state_dict': optimizer.state_dict(),
@@ -101,12 +97,12 @@ if __name__ == '__main__':
                     'val_loss': val_loss},
                    os.path.join('weights', f'{model_name}_checkpoint.pth'))
 
-        # Best mIoU를 가진 모델을 저장
+        # Save best mIoU model
         if miou > prev_miou:
             torch.save(model.state_dict(), os.path.join('weights', f'{model_name}_best.pth'))
             prev_miou = miou
 
-        # Best val_loss를 가진 모델을 저장
+        # Save best val_loss model
         if val_loss < prev_val_loss:
             torch.save(model.state_dict(), os.path.join('weights', f'{model_name}_val_best.pth'))
             prev_val_loss = val_loss
