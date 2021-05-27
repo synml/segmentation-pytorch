@@ -26,7 +26,7 @@ UNet:
       saturation: 0.5
       hue: 0
     RandomHorizontalFlip:
-  pretrained_weights: weights/UNet_best.pth
+  pretrained_weights: weights/UNet_best_miou.pth
 
 AR_UNet:
   batch_size: 8
@@ -49,7 +49,7 @@ AR_UNet:
       saturation: 0.5
       hue: 0
     RandomHorizontalFlip:
-  pretrained_weights: weights/Proposed_best.pth
+  pretrained_weights: weights/Proposed_best_miou.pth
 
 DeepLabV3plus:
   backbone: ResNet101
@@ -75,4 +75,4 @@ DeepLabV3plus:
       saturation: 0.5
       hue: 0
     RandomHorizontalFlip:
-  pretrained_weights: weights/DeepLabV3plus_best.pth
+  pretrained_weights: weights/DeepLabV3plus_best_miou.pth
