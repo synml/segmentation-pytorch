@@ -13,11 +13,11 @@ if __name__ == '__main__':
     builder = utils.builder.Builder(cfg)
 
     # 1. Dataset
-    dataset_impl, valset, valloader = builder.build_dataset('val')
+    valset, valloader = builder.build_dataset('val')
 
     # 2. Model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = builder.build_model(dataset_impl.num_classes, pretrained=True).to(device)
+    model = builder.build_model(valset.num_classes, pretrained=True).to(device)
     model_name = cfg['model']['name']
     amp_enabled = cfg['model']['amp_enabled']
     print(f'Activated model: {model_name}')
@@ -29,7 +29,7 @@ if __name__ == '__main__':
         image_names.append(image_name)
 
     # label colormap 설정
-    cmap = matplotlib.colors.ListedColormap(dataset_impl.get_cityscapes_colormap())
+    cmap = matplotlib.colors.ListedColormap(valset.get_cityscapes_colormap())
 
     # 예측 결과 저장
     step = 0

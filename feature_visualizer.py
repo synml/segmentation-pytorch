@@ -14,11 +14,11 @@ if __name__ == '__main__':
     builder = utils.builder.Builder(cfg)
 
     # 1. Dataset
-    dataset_impl, valset, _ = builder.build_dataset('val')
+    valset, _ = builder.build_dataset('val')
 
     # 2. Model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = builder.build_model(dataset_impl.num_classes, pretrained=True).to(device)
+    model = builder.build_model(valset.num_classes, pretrained=True).to(device)
     model_name = cfg['model']['name']
     amp_enabled = cfg['model']['amp_enabled']
     print(f'Activated model: {model_name}')

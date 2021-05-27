@@ -52,25 +52,25 @@ if __name__ == '__main__':
     builder = utils.builder.Builder(cfg)
 
     # 1. Dataset
-    dataset_impl, _, valloader = builder.build_dataset('val')
+    valset, valloader = builder.build_dataset('val')
 
     # 2. Model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = builder.build_model(dataset_impl.num_classes, pretrained=True).to(device)
+    model = builder.build_model(valset.num_classes, pretrained=True).to(device)
     model_name = cfg['model']['name']
     amp_enabled = cfg['model']['amp_enabled']
     print(f'Activated model: {model_name}')
 
     # 3. Loss function
-    criterion = builder.build_criterion(dataset_impl.ignore_index)
+    criterion = builder.build_criterion(valset.ignore_index)
 
     # 모델 평가
-    val_loss, iou, miou, fps = evaluate(model, valloader, criterion, dataset_impl.num_classes,
+    val_loss, iou, miou, fps = evaluate(model, valloader, criterion, valset.num_classes,
                                         amp_enabled, device)
 
     # 평가 결과를 csv 파일로 저장
     os.makedirs('result', exist_ok=True)
-    class_names = dataset_impl.class_names
+    class_names = valset.class_names
     with open(os.path.join('result', f'{model_name}.csv'), mode='w') as f:
         writer = csv.writer(f, delimiter=',', lineterminator='\n')
 

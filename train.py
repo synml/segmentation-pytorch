@@ -13,18 +13,18 @@ if __name__ == '__main__':
     builder = utils.builder.Builder(cfg)
 
     # 1. Dataset
-    dataset_impl, _, trainloader = builder.build_dataset('train')
-    _, _, valloader = builder.build_dataset('val')
+    trainset, trainloader = builder.build_dataset('train')
+    _, valloader = builder.build_dataset('val')
 
     # 2. Model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = builder.build_model(dataset_impl.num_classes).to(device)
+    model = builder.build_model(trainset.num_classes).to(device)
     model_name = cfg['model']['name']
     amp_enabled = cfg['model']['amp_enabled']
     print(f'Activated model: {model_name}')
 
     # 3. Loss function, optimizer, lr scheduler, scaler
-    criterion = builder.build_criterion(dataset_impl.ignore_index)
+    criterion = builder.build_criterion(trainset.ignore_index)
     optimizer = builder.build_optimizer(model)
     scheduler = builder.build_scheduler(optimizer)
     scaler = torch.cuda.amp.GradScaler(enabled=amp_enabled)
@@ -79,7 +79,7 @@ if __name__ == '__main__':
             writer.add_scalar('lr', optimizer.param_groups[0]['lr'], iters)
             scheduler.step()
 
-        val_loss, _, miou, _ = eval.evaluate(model, valloader, criterion, dataset_impl.num_classes, amp_enabled, device)
+        val_loss, _, miou, _ = eval.evaluate(model, valloader, criterion, trainset.num_classes, amp_enabled, device)
         writer.add_scalar('loss/validation', val_loss, epoch)
         writer.add_scalar('metrics/mIoU', miou, epoch)
 
