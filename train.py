@@ -75,35 +75,40 @@ if __name__ == '__main__':
             scaler.update()
 
             # print/write training loss
-            log_loss.set_description_str(f'Loss: {loss.item():.4f}')
             writer.add_scalar('loss/training', loss.item(), iters)
+            log_loss.set_description_str(f'Loss: {loss.item():.4f}')
 
             writer.add_scalar('lr', optimizer.param_groups[0]['lr'], iters)
             scheduler.step()
 
-        val_loss, _, miou, _ = eval.evaluate(model, valloader, criterion, dataset_impl.num_classes,
-                                             amp_enabled, device)
+        val_loss, _, miou, _ = eval.evaluate(model, valloader, criterion, dataset_impl.num_classes, amp_enabled, device)
         writer.add_scalar('loss/validation', val_loss, epoch)
         writer.add_scalar('metrics/mIoU', miou, epoch)
 
-        # Save checkpoint
-        os.makedirs('weights', exist_ok=True)
-        torch.save({'model_state_dict': model.state_dict(),
-                    'optimizer_state_dict': optimizer.state_dict(),
-                    'scheduler_state_dict': scheduler.state_dict(),
-                    'scaler_state_dict': scaler.state_dict(),
-                    'epoch': epoch,
-                    'miou': miou,
-                    'val_loss': val_loss},
-                   os.path.join('weights', f'{model_name}_checkpoint.pth'))
+        # Make checkpoint
+        checkpoint = {
+            'model_state_dict': model.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict(),
+            'scheduler_state_dict': scheduler.state_dict(),
+            'scaler_state_dict': scaler.state_dict(),
+            'epoch': epoch,
+            'miou': miou,
+            'val_loss': val_loss,
+            'model_best_miou': None,
+            'model_best_val_loss': None
+        }
 
         # Save best mIoU model
         if miou > prev_miou:
-            torch.save(model.state_dict(), os.path.join('weights', f'{model_name}_best.pth'))
+            checkpoint['model_best_miou'] = model.state_dict()
             prev_miou = miou
 
         # Save best val_loss model
         if val_loss < prev_val_loss:
-            torch.save(model.state_dict(), os.path.join('weights', f'{model_name}_val_best.pth'))
+            checkpoint['model_best_val_loss'] = model.state_dict()
             prev_val_loss = val_loss
+
+        # Save checkpoint
+        os.makedirs('weights', exist_ok=True)
+        torch.save(checkpoint, os.path.join('weights', f'{model_name}_checkpoint.pth'))
     writer.close()
