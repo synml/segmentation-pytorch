@@ -74,8 +74,8 @@ class Builder:
         cfg_optim = self.cfg[self.cfg['model']['name']]['optimizer']
 
         if cfg_optim['name'] == 'SGD':
-            optimizer = torch.optim.SGD(model.parameters(), lr=cfg_optim['lr'],
-                                        momentum=cfg_optim['momentum'], weight_decay=cfg_optim['weight_decay'])
+            optimizer = torch.optim.SGD(model.parameters(), lr=cfg_optim['lr'], momentum=cfg_optim['momentum'],
+                                        weight_decay=cfg_optim['weight_decay'], nesterov=cfg_optim['nesterov'])
         elif cfg_optim['name'] == 'Adam':
             optimizer = torch.optim.Adam(model.parameters(), lr=cfg_optim['lr'], weight_decay=cfg_optim['weight_decay'])
         elif cfg_optim['name'] == 'AdamW':
