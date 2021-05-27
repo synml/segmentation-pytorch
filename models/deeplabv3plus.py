@@ -50,6 +50,8 @@ class DeepLabV3plus(nn.Module):
         for m in self.modules():
             if isinstance(m, nn.BatchNorm2d):
                 m.eval()
+                for param in m.parameters():
+                    param.requires_grad = False
 
 
 class Decoder(nn.Module):
