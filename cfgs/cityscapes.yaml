@@ -2,7 +2,6 @@
 dataset:
   name: Cityscapes
   root: ../../data/cityscapes
-  image_size: !!python/tuple [1024, 2048]
   num_workers: 8
 
 # Model definitions

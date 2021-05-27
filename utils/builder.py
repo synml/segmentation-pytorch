@@ -1,7 +1,9 @@
 import os
+import platform
 
 import torch
 import torch.nn as nn
+import torch.utils.data
 import yaml
 
 import datasets
@@ -27,15 +29,34 @@ class Builder:
     def __init__(self, cfg: dict):
         self.cfg = cfg
 
-    def build_dataset(self, split: str):
+    def build_dataset(self, dataset_type: str):
         cfg_dataset = self.cfg['dataset']
+        root = self.cfg['dataset']['root']
+        batch_size = self.cfg[self.cfg['model']['name']]['batch_size']
+        if platform.system() == 'Windows':
+            num_workers = 0
+        else:
+            num_workers = self.cfg['dataset']['num_workers']
+        if dataset_type == 'train':
+            transforms = datasets.transforms.Transforms(self.cfg, augmentation=True)
+            shuffle = True
+            pin_memory = True
+        else:
+            transforms = datasets.transforms.Transforms(self.cfg)
+            shuffle = False
+            pin_memory = False
 
+        # Dataset
         if cfg_dataset['name'] == 'Cityscapes':
-            dataset_impl = datasets.cityscapes.Cityscapes(self.cfg)
-            dataset, dataloader = dataset_impl.get_dataloader(split)
+            dataset = datasets.cityscapes.Cityscapes(root, dataset_type, mode='fine', target_type='semantic',
+                                                     transforms=transforms)
         else:
             raise NotImplementedError('Wrong dataset name.')
-        return dataset_impl, dataset, dataloader
+
+        # Dataloader
+        dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=shuffle,
+                                                 num_workers=num_workers, pin_memory=pin_memory)
+        return dataset, dataloader
 
     def build_model(self, num_classes: int, pretrained=False) -> torch.nn.Module:
         cfg_model_name = self.cfg['model']['name']

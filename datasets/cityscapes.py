@@ -1,16 +1,19 @@
-import platform
+from typing import Callable, List, Optional, Union
 
 import numpy as np
-import torch
-import torch.utils.data
 import torchvision
 
-import datasets
 
-
-class Cityscapes:
-    def __init__(self, cfg: dict):
-        self.cfg = cfg
+class Cityscapes(torchvision.datasets.Cityscapes):
+    def __init__(self,
+                 root: str,
+                 split: str = "train",
+                 mode: str = "fine",
+                 target_type: Union[List[str], str] = "instance",
+                 transform: Optional[Callable] = None,
+                 target_transform: Optional[Callable] = None,
+                 transforms: Optional[Callable] = None):
+        super(Cityscapes, self).__init__(root, split, mode, target_type, transform, target_transform, transforms)
         self.class_names = ['road', 'sidewalk', 'building', 'wall', 'fence',
                             'pole', 'traffic light', 'traffic sign', 'vegetation', 'terrain',
                             'sky', 'person', 'rider', 'car', 'truck',
@@ -18,53 +21,8 @@ class Cityscapes:
         self.ignore_index = 255
         self.num_classes = 19
         self.valid_classes = [7, 8, 11, 12, 13, 17, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 31, 32, 33]
-
-    def get_dataloader(self, split: str):
-        root = self.cfg['dataset']['root']
-        batch_size = self.cfg[self.cfg['model']['name']]['batch_size']
-        if platform.system() == 'Windows':
-            num_workers = 0
-        else:
-            num_workers = self.cfg['dataset']['num_workers']
-
-        if split == 'train':
-            dataset = torchvision.datasets.Cityscapes(root=root,
-                                                      split='train',
-                                                      mode='fine',
-                                                      target_type='semantic',
-                                                      transforms=datasets.transforms.Transforms(self.cfg,
-                                                                                                augmentation=True))
-            dataloader = torch.utils.data.DataLoader(dataset,
-                                                     batch_size=batch_size,
-                                                     shuffle=True,
-                                                     num_workers=num_workers,
-                                                     pin_memory=True)
-        elif split == 'val':
-            dataset = torchvision.datasets.Cityscapes(root=root,
-                                                      split='val',
-                                                      mode='fine',
-                                                      target_type='semantic',
-                                                      transforms=datasets.transforms.Transforms(self.cfg))
-            dataloader = torch.utils.data.DataLoader(dataset,
-                                                     batch_size=batch_size,
-                                                     shuffle=False,
-                                                     num_workers=num_workers)
-        elif split == 'test':
-            dataset = torchvision.datasets.Cityscapes(root=root,
-                                                      split='test',
-                                                      mode='fine',
-                                                      target_type='semantic',
-                                                      transforms=datasets.transforms.Transforms(self.cfg))
-            dataloader = torch.utils.data.DataLoader(dataset,
-                                                     batch_size=batch_size,
-                                                     shuffle=False,
-                                                     num_workers=num_workers)
-        else:
-            raise ValueError('Wrong split.')
-
-        dataset.images.sort()
-        dataset.targets.sort()
-        return dataset, dataloader
+        self.images.sort()
+        self.targets.sort()
 
     # Testset의 segmentation map을 labelID로 인코딩
     def encode_test_segmap(self, mask: np.ndarray):
