@@ -53,6 +53,7 @@ AR_UNet:
 
 DeepLabV3plus:
   backbone: ResNet101
+  output_stride: 16
   batch_size: 16
   epoch: 100
   criterion:

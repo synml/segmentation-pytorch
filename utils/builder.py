@@ -66,9 +66,11 @@ class Builder:
         elif cfg_model_name == 'AR_UNet':
             model = models.ar_unet.AR_UNet(num_classes)
         elif cfg_model_name == 'DeepLabV3plus':
-            model = models.deeplabv3plus.DeepLabV3plus(self.cfg[cfg_model_name]['backbone'], 16, num_classes)
+            model = models.deeplabv3plus.DeepLabV3plus(self.cfg[cfg_model_name]['backbone'],
+                                                       self.cfg[cfg_model_name]['output_stride'], num_classes)
         elif cfg_model_name == 'Proposed':
-            model = models.proposed.Proposed(self.cfg[cfg_model_name]['backbone'], 16, num_classes)
+            model = models.proposed.Proposed(self.cfg[cfg_model_name]['backbone'],
+                                             self.cfg[cfg_model_name]['output_stride'], num_classes)
         else:
             raise NotImplementedError('Wrong model name.')
 
