@@ -11,7 +11,7 @@ class AR_UNet(nn.Module):
         super(AR_UNet, self).__init__()
         # Backbone
         backbone = torchvision.models.resnet34(pretrained=True)
-        self.initial_conv = self.make_initial_conv(3, 64)
+        self.initial_conv = self.make_double_conv(3, 64)
         self.encode1 = backbone.layer1  # 64
         self.encode2 = backbone.layer2  # 128, 1/2
         self.encode3 = backbone.layer3  # 256, 1/4
@@ -22,13 +22,13 @@ class AR_UNet(nn.Module):
 
         # Decoder
         self.upconv3 = nn.ConvTranspose2d(512, 256, kernel_size=2, stride=2)
-        self.decode3 = self.make_decoder(512, 256)
+        self.decode3 = self.make_double_conv(512, 256)
 
         self.upconv2 = nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2)
-        self.decode2 = self.make_decoder(256, 128)
+        self.decode2 = self.make_double_conv(256, 128)
 
         self.upconv1 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
-        self.decode1 = self.make_decoder(128, 64)
+        self.decode1 = self.make_double_conv(128, 64)
 
         # Classifier
         self.classifier = nn.Conv2d(64, num_classes, kernel_size=1)
@@ -38,10 +38,10 @@ class AR_UNet(nn.Module):
         encode1 = self.encode1(self.initial_conv(x))
         encode2 = self.encode2(encode1)
         encode3 = self.encode3(encode2)
-        encode_end = self.aspp(self.encode4(encode3))
+        encode4 = self.aspp(self.encode4(encode3))
 
         # Decoder
-        out = self.decode3(torch.cat([self.upconv3(encode_end), encode3], dim=1))
+        out = self.decode3(torch.cat([self.upconv3(encode4), encode3], dim=1))
         out = self.decode2(torch.cat([self.upconv2(out), encode2], dim=1))
         out = self.decode1(torch.cat([self.upconv1(out), encode1], dim=1))
 
@@ -49,17 +49,7 @@ class AR_UNet(nn.Module):
         out = self.classifier(out)
         return out
 
-    def make_decoder(self, in_channels: int, out_channels: int):
-        return nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True)
-        )
-
-    def make_initial_conv(self, in_channels: int, out_channels: int):
+    def make_double_conv(self, in_channels: int, out_channels: int):
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(out_channels),
