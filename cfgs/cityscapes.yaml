@@ -52,7 +52,7 @@ AR_UNet:
   pretrained_weights: weights/Proposed_best_miou.pth
 
 DeepLabV3plus:
-  backbone: ResNet101
+  backbone: Xception
   output_stride: 16
   batch_size: 16
   epoch: 100

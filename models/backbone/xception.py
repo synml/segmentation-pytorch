@@ -18,7 +18,7 @@ class SeparableConv2d(nn.Sequential):
         super(SeparableConv2d, self).__init__(*modules)
 
 
-class Block(nn.Module):
+class Block(nn.Sequential):
     def __init__(self, in_channels: int, out_channels: int, stride: int, dilation: int,
                  skip_connection_type: str, grow_first=True):
         super(Block, self).__init__()
@@ -60,7 +60,7 @@ class Block(nn.Module):
         return x
 
 
-class Xception(nn.Module):
+class Xception(nn.Sequential):
     def __init__(self, output_stride: int):
         super(Xception, self).__init__()
         if output_stride == 16:
