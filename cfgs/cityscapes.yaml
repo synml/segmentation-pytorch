@@ -54,7 +54,7 @@ AR_UNet:
 DeepLabV3plus:
   backbone: Xception
   output_stride: 16
-  batch_size: 16
+  batch_size: 14
   epoch: 100
   criterion:
     name: CrossEntropyLoss

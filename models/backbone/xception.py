@@ -18,7 +18,7 @@ class SeparableConv2d(nn.Sequential):
         super(SeparableConv2d, self).__init__(*modules)
 
 
-class Block(nn.Sequential):
+class Block(nn.Module):
     def __init__(self, in_channels: int, out_channels: int, stride: int, dilation: int,
                  skip_connection_type: str, grow_first=True):
         super(Block, self).__init__()
