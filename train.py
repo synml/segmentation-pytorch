@@ -4,6 +4,7 @@ import torch.utils.data
 import torch.utils.tensorboard
 import tqdm
 
+import datasets
 import eval
 import utils
 
@@ -72,7 +73,6 @@ if __name__ == '__main__':
             scaler.step(optimizer)
             scaler.update()
 
-            # print/write training loss
             writer.add_scalar('loss/training', loss.item(), iters)
             log_loss.set_description_str(f'Loss: {loss.item():.4f}')
 
@@ -83,7 +83,18 @@ if __name__ == '__main__':
         writer.add_scalar('loss/validation', val_loss, epoch)
         writer.add_scalar('metrics/mIoU', miou, epoch)
 
-        # Make checkpoint
+        images, targets = valloader.__iter__().__next__()
+        images, targets = images[:4].to(device), targets[:4]
+        with torch.no_grad():
+            outputs = model(images)
+            outputs = torch.argmax(outputs, dim=1)
+        writer.add_images('eval/0Groundtruth',
+                          datasets.test.decode_segmap(targets, trainset.get_colormap(), trainset.num_classes,
+                                                      trainset.ignore_index), epoch)
+        writer.add_images('eval/1' + model_name,
+                          datasets.test.decode_segmap(outputs.cpu(), trainset.get_colormap(), trainset.num_classes,
+                                                      trainset.ignore_index), epoch)
+
         checkpoint = {
             'model_state_dict': model.state_dict(),
             'optimizer_state_dict': optimizer.state_dict(),

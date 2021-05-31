@@ -1,5 +1,6 @@
 import os
 
+import numpy as np
 import matplotlib.colors
 import matplotlib.pyplot as plt
 import torch.utils.data
@@ -29,7 +30,7 @@ if __name__ == '__main__':
         image_names.append(image_name)
 
     # label colormap 설정
-    cmap = matplotlib.colors.ListedColormap(valset.get_cityscapes_colormap())
+    cmap = matplotlib.colors.ListedColormap(np.divide(valset.get_colormap(), 255).tolist())
 
     # 예측 결과 저장
     step = 0

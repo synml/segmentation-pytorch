@@ -30,7 +30,7 @@ class Cityscapes(torchvision.datasets.Cityscapes):
             mask[mask == i] = self.valid_classes[i]
         return mask
 
-    def get_cityscapes_colormap(self) -> np.ndarray:
+    def get_colormap(self) -> np.ndarray:
         colormap = np.array([
             [128, 64, 128],
             [244, 35, 232],
@@ -51,6 +51,6 @@ class Cityscapes(torchvision.datasets.Cityscapes):
             [0, 80, 100],
             [0, 0, 230],
             [119, 11, 32],
-            [0, 0, 0]
+            [0, 0, 0]   # ignore_index (255)
         ])
-        return np.divide(colormap, 255).tolist()
+        return colormap
