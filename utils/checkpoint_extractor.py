@@ -3,7 +3,7 @@ import torch
 
 if __name__ == '__main__':
     checkpoint_name = input('Enter checkpoint name >>> ')
-    checkpoint_path = '../weights/' + checkpoint_name
+    checkpoint_path = '../weights/' + checkpoint_name + '.pth'
     checkpoint = torch.load(checkpoint_path)
 
     # Extract pretrained weight
