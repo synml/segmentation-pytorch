@@ -60,7 +60,7 @@ class Block(nn.Sequential):
         return x
 
 
-class Xception(nn.Sequential):
+class Xception(nn.Module):
     def __init__(self, output_stride: int):
         super(Xception, self).__init__()
         if output_stride == 16:
