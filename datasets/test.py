@@ -26,7 +26,7 @@ def show_dataset(images: torch.Tensor, targets: torch.Tensor):
 
 # Decode segmentation maps to color images
 def decode_segmap(masks: torch.Tensor, colormap: np.ndarray, num_classes: int, ignore_index: int = None):
-    masks = masks.numpy()
+    masks = masks.cpu().numpy()
 
     decoded_masks = []
     for i, mask in enumerate(masks):

@@ -1,11 +1,10 @@
 import os
 
-import numpy as np
-import matplotlib.colors
-import matplotlib.pyplot as plt
 import torch.utils.data
+import torchvision
 import tqdm
 
+import datasets
 import utils
 
 if __name__ == '__main__':
@@ -23,16 +22,13 @@ if __name__ == '__main__':
     amp_enabled = cfg['model']['amp_enabled']
     print(f'Activated model: {model_name}')
 
-    # 이미지 이름 불러오기
+    # Load image names
     image_names = []
     for image_path in valset.images:
         image_name = image_path.replace('\\', '/').split('/')[-1]
         image_names.append(image_name)
 
-    # label colormap 설정
-    cmap = matplotlib.colors.ListedColormap(np.divide(valset.get_colormap(), 255).tolist())
-
-    # 예측 결과 저장
+    # Save segmentation results
     step = 0
     result_dir = os.path.join('demo', model_name.lower())
     groundtruth_dir = os.path.join('demo', 'groundtruth')
@@ -46,9 +42,13 @@ if __name__ == '__main__':
                 outputs = model(images)
                 outputs = torch.argmax(outputs, dim=1)
 
+        targets = datasets.test.decode_segmap(targets, valset.get_colormap(), valset.num_classes, valset.ignore_index)
+        outputs = datasets.test.decode_segmap(outputs, valset.get_colormap(),
+                                              valset.num_classes, valset.ignore_index)
+
         # 1 배치단위 처리
-        assert targets.shape[0] == outputs.shape[0]
+        assert targets.shape == outputs.shape
         for i in range(targets.shape[0]):
-            plt.imsave(os.path.join(result_dir, image_names[step]), outputs[i].cpu(), cmap=cmap, vmin=0, vmax=cmap.N)
-            plt.imsave(os.path.join(groundtruth_dir, image_names[step]), targets[i], cmap=cmap, vmin=0, vmax=cmap.N)
+            torchvision.utils.save_image(targets[i], os.path.join(groundtruth_dir, image_names[step]))
+            torchvision.utils.save_image(outputs[i], os.path.join(result_dir, image_names[step]))
             step += 1
