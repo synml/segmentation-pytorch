@@ -95,29 +95,25 @@ if __name__ == '__main__':
                           datasets.test.decode_segmap(outputs.cpu(), trainset.get_colormap(), trainset.num_classes,
                                                       trainset.ignore_index), epoch)
 
-        checkpoint = {
+        # Save checkpoint
+        os.makedirs('weights', exist_ok=True)
+        torch.save({
             'model_state_dict': model.state_dict(),
             'optimizer_state_dict': optimizer.state_dict(),
             'scheduler_state_dict': scheduler.state_dict(),
             'scaler_state_dict': scaler.state_dict(),
             'epoch': epoch,
             'miou': miou,
-            'val_loss': val_loss,
-            'model_best_miou': None,
-            'model_best_val_loss': None
-        }
+            'val_loss': val_loss
+        }, os.path.join('weights', f'{model_name}_checkpoint.pth'))
 
         # Save best mIoU model
         if miou > prev_miou:
-            checkpoint['model_best_miou'] = model.state_dict()
+            torch.save(model.state_dict(), os.path.join('weights', f'{model_name}_best_miou.pth'))
             prev_miou = miou
 
         # Save best val_loss model
         if val_loss < prev_val_loss:
-            checkpoint['model_best_val_loss'] = model.state_dict()
+            torch.save(model.state_dict(), os.path.join('weights', f'{model_name}_best_val_loss.pth'))
             prev_val_loss = val_loss
-
-        # Save checkpoint
-        os.makedirs('weights', exist_ok=True)
-        torch.save(checkpoint, os.path.join('weights', f'{model_name}_checkpoint.pth'))
     writer.close()
