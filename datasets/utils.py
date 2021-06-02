@@ -4,7 +4,12 @@ import torch
 import torchvision
 
 
-def decode_segmap_to_color_image(masks: torch.Tensor, colormap: np.ndarray, num_classes: int, ignore_index: int = None):
+def decode_segmap_to_color_image(
+        masks: torch.Tensor,
+        colormap: np.ndarray,
+        num_classes: int,
+        ignore_index: int = None,
+        ignore_color: np.ndarray = None):
     masks = masks.cpu().numpy()
 
     decoded_masks = []
@@ -19,9 +24,9 @@ def decode_segmap_to_color_image(masks: torch.Tensor, colormap: np.ndarray, num_
             g[mask == i] = colormap[i, 1]
             b[mask == i] = colormap[i, 2]
         if ignore_index is not None:
-            r[mask == ignore_index] = colormap[num_classes, 0]
-            g[mask == ignore_index] = colormap[num_classes, 1]
-            b[mask == ignore_index] = colormap[num_classes, 2]
+            r[mask == ignore_index] = ignore_color[0]
+            g[mask == ignore_index] = ignore_color[1]
+            b[mask == ignore_index] = ignore_color[2]
 
         rgb = np.zeros((3, mask.shape[0], mask.shape[1]))
         rgb[0, :, :] = r / 255.0

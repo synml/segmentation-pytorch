@@ -43,10 +43,10 @@ if __name__ == '__main__':
                 outputs = torch.argmax(outputs, dim=1)
 
         targets = datasets.utils.decode_segmap_to_color_image(
-            targets, valset.get_colormap(), valset.num_classes, valset.ignore_index
+            targets, valset.colors, valset.num_classes, valset.ignore_index
         )
         outputs = datasets.utils.decode_segmap_to_color_image(
-            outputs, valset.get_colormap(), valset.num_classes, valset.ignore_index
+            outputs, valset.colors, valset.num_classes, valset.ignore_index
         )
 
         # process per 1 batch
