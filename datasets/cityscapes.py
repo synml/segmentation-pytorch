@@ -16,11 +16,11 @@ class Cityscapes(torchvision.datasets.Cityscapes):
                  transforms: Optional[Callable] = None):
         super(Cityscapes, self).__init__(root, split, mode, target_type, transform, target_transform, transforms)
         self.class_names, self.test_ids, self.colors, \
-            self.num_classes, self.ignore_index, self.ignore_color = self.get_class_info()
+            self.num_classes, self.ignore_index, self.ignore_color = self._get_class_info()
         self.images.sort()
         self.targets.sort()
 
-    def get_class_info(self):
+    def _get_class_info(self):
         class_names = []
         test_ids = []
         colors = []

@@ -23,7 +23,7 @@ def decode_segmap_to_color_image(
             r[mask == i] = colormap[i, 0]
             g[mask == i] = colormap[i, 1]
             b[mask == i] = colormap[i, 2]
-        if ignore_index is not None:
+        if ignore_index and ignore_color is not None:
             r[mask == ignore_index] = ignore_color[0]
             g[mask == ignore_index] = ignore_color[1]
             b[mask == ignore_index] = ignore_color[2]
