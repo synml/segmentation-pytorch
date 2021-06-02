@@ -89,10 +89,10 @@ if __name__ == '__main__':
             outputs = model(images)
             outputs = torch.argmax(outputs, dim=1)
         targets = datasets.utils.decode_segmap_to_color_image(
-            targets, trainset.colors, trainset.num_classes, trainset.ignore_index
+            targets, trainset.colors, trainset.num_classes, trainset.ignore_index, trainset.ignore_color
         )
         outputs = datasets.utils.decode_segmap_to_color_image(
-            outputs, trainset.colors, trainset.num_classes, trainset.ignore_index
+            outputs, trainset.colors, trainset.num_classes, trainset.ignore_index, trainset.ignore_color
         )
         if epoch == 0:
             writer.add_images('eval/0Groundtruth', targets, epoch)
