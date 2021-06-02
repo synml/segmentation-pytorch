@@ -84,18 +84,19 @@ if __name__ == '__main__':
         writer.add_scalar('metrics/mIoU', miou, epoch)
 
         images, targets = valloader.__iter__().__next__()
-        images, targets = images[:4].to(device), targets[:4]
+        images, targets = images[2:4].to(device), targets[2:4]
         with torch.no_grad():
             outputs = model(images)
             outputs = torch.argmax(outputs, dim=1)
-        writer.add_images('eval/0Groundtruth',
-                          datasets.utils.decode_segmap(targets, trainset.get_colormap(), trainset.num_classes,
-                                                       trainset.ignore_index),
-                          epoch)
-        writer.add_images('eval/1' + model_name,
-                          datasets.utils.decode_segmap(outputs.cpu(), trainset.get_colormap(), trainset.num_classes,
-                                                       trainset.ignore_index),
-                          epoch)
+        targets = datasets.utils.decode_segmap_to_color_image(
+            targets, trainset.get_colormap(), trainset.num_classes, trainset.ignore_index
+        )
+        outputs = datasets.utils.decode_segmap_to_color_image(
+            outputs, trainset.get_colormap(), trainset.num_classes, trainset.ignore_index
+        )
+        if epoch == 0:
+            writer.add_images('eval/0Groundtruth', targets, epoch)
+        writer.add_images('eval/1' + model_name, outputs, epoch)
 
         # Save checkpoint
         os.makedirs('weights', exist_ok=True)

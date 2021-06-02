@@ -25,8 +25,7 @@ class Cityscapes(torchvision.datasets.Cityscapes):
         self.images.sort()
         self.targets.sort()
 
-    # Testset의 segmentation map을 labelID로 인코딩
-    def decode_test_segmap(self, masks: torch.Tensor):
+    def decode_segmap_to_test_id(self, masks: torch.Tensor):
         masks = masks.cpu().numpy()
 
         decoded_masks = []

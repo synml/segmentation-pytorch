@@ -4,8 +4,7 @@ import torch
 import torchvision
 
 
-# Decode segmentation maps to color images
-def decode_segmap(masks: torch.Tensor, colormap: np.ndarray, num_classes: int, ignore_index: int = None):
+def decode_segmap_to_color_image(masks: torch.Tensor, colormap: np.ndarray, num_classes: int, ignore_index: int = None):
     masks = masks.cpu().numpy()
 
     decoded_masks = []
