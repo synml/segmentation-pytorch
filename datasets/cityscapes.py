@@ -1,6 +1,7 @@
 from typing import Callable, List, Optional, Union
 
 import numpy as np
+import torch
 import torchvision
 
 
@@ -25,10 +26,16 @@ class Cityscapes(torchvision.datasets.Cityscapes):
         self.targets.sort()
 
     # Testset의 segmentation map을 labelID로 인코딩
-    def encode_test_segmap(self, mask: np.ndarray):
-        for i in range(19):
-            mask[mask == i] = self.valid_classes[i]
-        return mask
+    def decode_test_segmap(self, masks: torch.Tensor):
+        masks = masks.cpu().numpy()
+
+        decoded_masks = []
+        for mask in masks:
+            for i in range(self.num_classes):
+                mask[mask == i] = self.valid_classes[i]
+            decoded_masks.append(mask)
+        decoded_masks = torch.from_numpy(np.array(decoded_masks))
+        return decoded_masks
 
     def get_colormap(self) -> np.ndarray:
         colormap = np.array([

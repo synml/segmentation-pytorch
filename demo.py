@@ -42,11 +42,10 @@ if __name__ == '__main__':
                 outputs = model(images)
                 outputs = torch.argmax(outputs, dim=1)
 
-        targets = datasets.test.decode_segmap(targets, valset.get_colormap(), valset.num_classes, valset.ignore_index)
-        outputs = datasets.test.decode_segmap(outputs, valset.get_colormap(),
-                                              valset.num_classes, valset.ignore_index)
+        targets = datasets.utils.decode_segmap(targets, valset.get_colormap(), valset.num_classes, valset.ignore_index)
+        outputs = datasets.utils.decode_segmap(outputs, valset.get_colormap(), valset.num_classes, valset.ignore_index)
 
-        # 1 배치단위 처리
+        # process per 1 batch
         assert targets.shape == outputs.shape
         for i in range(targets.shape[0]):
             torchvision.utils.save_image(targets[i], os.path.join(groundtruth_dir, image_names[step]))

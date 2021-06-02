@@ -89,11 +89,13 @@ if __name__ == '__main__':
             outputs = model(images)
             outputs = torch.argmax(outputs, dim=1)
         writer.add_images('eval/0Groundtruth',
-                          datasets.test.decode_segmap(targets, trainset.get_colormap(), trainset.num_classes,
-                                                      trainset.ignore_index), epoch)
+                          datasets.utils.decode_segmap(targets, trainset.get_colormap(), trainset.num_classes,
+                                                       trainset.ignore_index),
+                          epoch)
         writer.add_images('eval/1' + model_name,
-                          datasets.test.decode_segmap(outputs.cpu(), trainset.get_colormap(), trainset.num_classes,
-                                                      trainset.ignore_index), epoch)
+                          datasets.utils.decode_segmap(outputs.cpu(), trainset.get_colormap(), trainset.num_classes,
+                                                       trainset.ignore_index),
+                          epoch)
 
         # Save checkpoint
         os.makedirs('weights', exist_ok=True)

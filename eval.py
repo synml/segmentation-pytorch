@@ -27,20 +27,20 @@ def evaluate(model, testloader, criterion, num_classes: int, amp_enabled: bool, 
 
             val_loss += criterion(outputs, targets).item()
 
-            # Segmentation map 만들기
+            # Make segmentation map
             outputs = torch.argmax(outputs, dim=1)
 
-        # 혼동행렬 업데이트
+        # Update confusion matrix
         evaluator.update_matrix(targets, outputs)
 
-    # 평가 지표 가져오기
-    iou, miou = evaluator.get_scores()
-
-    # 평균 validation loss 계산
+    # Calculate average validation loss for batches
     val_loss /= len(testloader)
 
-    # 추론 시간과 fps를 계산 (추론 시간 단위: sec)
-    inference_time /= len(testloader.dataset)
+    # Get evaluation metrics
+    iou, miou = evaluator.get_scores()
+
+    # Calculate inference time and fps (inference time unit: seconds)
+    inference_time /= len(testloader)
     fps = 1 / inference_time
 
     return val_loss, iou, miou, fps
@@ -64,17 +64,16 @@ if __name__ == '__main__':
     # 3. Loss function
     criterion = builder.build_criterion(valset.ignore_index)
 
-    # 모델 평가
-    val_loss, iou, miou, fps = evaluate(model, valloader, criterion, valset.num_classes,
-                                        amp_enabled, device)
+    # Evaluate model
+    val_loss, iou, miou, fps = evaluate(model, valloader, criterion, valset.num_classes, amp_enabled, device)
 
-    # 평가 결과를 csv 파일로 저장
+    # Save evaluation result as csv file
     os.makedirs('result', exist_ok=True)
     class_names = valset.class_names
     with open(os.path.join('result', f'{model_name}.csv'), mode='w') as f:
         writer = csv.writer(f, delimiter=',', lineterminator='\n')
-
         writer.writerow(['Class Number', 'Class Name', 'IoU'])
+
         for class_num, iou_value in enumerate(iou):
             writer.writerow([class_num, class_names[class_num], iou_value])
         writer.writerow(['mIoU', miou, ' '])
