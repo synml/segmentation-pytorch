@@ -27,8 +27,8 @@ class FocalLoss(nn.Module):
 
 
 if __name__ == '__main__':
-    input = torch.randn(3, 5)
-    target = torch.randint(5, (3,), dtype=torch.int64)
+    input = torch.randn(2, 5)
+    target = torch.randint(5, (2,), dtype=torch.int64)
     loss1 = F.cross_entropy(input, target, reduction='none')
     loss2 = FocalLoss(reduction='none')(input, target)
     print(loss1)
