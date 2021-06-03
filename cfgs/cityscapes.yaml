@@ -74,3 +74,27 @@ DeepLabV3plus:
       hue: 0
     RandomHorizontalFlip:
   pretrained_weights: weights/DeepLabV3plus_best_miou.pth
+
+Proposed:
+  backbone: Xception
+  output_stride: 16
+  batch_size: 8
+  epoch: 100
+  criterion:
+    name: CrossEntropyLoss
+  optimizer:
+    name: AdamW
+    lr: 0.001
+  scheduler:
+    name: PolyLR
+    max_iter: 37200
+  augmentation:
+    RandomCrop:
+      size: !!python/tuple [769, 769]
+    ColorJitter:
+      brightness: 0.5
+      contrast: 0.5
+      saturation: 0.5
+      hue: 0
+    RandomHorizontalFlip:
+  pretrained_weights: weights/Proposed_best_miou.pth
