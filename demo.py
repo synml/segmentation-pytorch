@@ -28,6 +28,13 @@ if __name__ == '__main__':
         image_name = image_path.replace('\\', '/').split('/')[-1]
         image_names.append(image_name)
 
+    # Select outputing groundtruth
+    gt = input('Do you also output groundtruth ([y]/n)? ')
+    if gt == 'n':
+        gt = False
+    else:
+        gt = True
+
     # Save segmentation results
     step = 0
     result_dir = os.path.join('demo', model_name.lower())
@@ -42,16 +49,17 @@ if __name__ == '__main__':
                 outputs = model(images)
                 outputs = torch.argmax(outputs, dim=1)
 
-        targets = datasets.utils.decode_segmap_to_color_image(
-            targets, valset.colors, valset.num_classes, valset.ignore_index, valset.ignore_color
-        )
+        if gt:
+            targets = datasets.utils.decode_segmap_to_color_image(
+                targets, valset.colors, valset.num_classes, valset.ignore_index, valset.ignore_color
+            )
         outputs = datasets.utils.decode_segmap_to_color_image(
             outputs, valset.colors, valset.num_classes, valset.ignore_index, valset.ignore_color
         )
 
         # process per 1 batch
-        assert targets.shape == outputs.shape
         for i in range(targets.shape[0]):
-            torchvision.utils.save_image(targets[i], os.path.join(groundtruth_dir, image_names[step]))
+            if gt:
+                torchvision.utils.save_image(targets[i], os.path.join(groundtruth_dir, image_names[step]))
             torchvision.utils.save_image(outputs[i], os.path.join(result_dir, image_names[step]))
             step += 1
