@@ -43,7 +43,7 @@ if __name__ == '__main__':
         else:
             optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
             scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
-        scaler.load_state_dict(checkpoint['scaler_state_dict'])
+            scaler.load_state_dict(checkpoint['scaler_state_dict'])
         start_epoch = checkpoint['epoch'] + 1
         prev_miou = checkpoint['miou']
         prev_val_loss = checkpoint['val_loss']
