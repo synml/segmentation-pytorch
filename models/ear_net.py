@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import torchvision
 
 import models
-from models.backbone.xception import SeparableConv2d
+import models.modules
 
 
 class EAR_Net(nn.Module):
@@ -20,7 +20,7 @@ class EAR_Net(nn.Module):
 
         # ASPP
         atrous_rates = (3, 6, 9)
-        self.aspp = torchvision.models.segmentation.deeplabv3.ASPP(2048, atrous_rates, 256)
+        self.aspp = models.modules.aspp.ASPPwDSConv(2048, atrous_rates, 256)
 
         # Decoder
         self.compress_low_level_feature3 = self.make_compressor(1024, 64)
@@ -31,7 +31,7 @@ class EAR_Net(nn.Module):
         self.decode1 = self.make_decoder(144, 64)
 
         # Classifier
-        self.classifier = SeparableConv2d(64, num_classes, kernel_size=1)
+        self.classifier = models.modules.conv.SeparableConv2d(64, num_classes, kernel_size=1)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         input_size = x.size()
@@ -64,27 +64,31 @@ class EAR_Net(nn.Module):
 
     def make_stem_block(self, in_channels: int, out_channels: int):
         return nn.Sequential(
-            SeparableConv2d(in_channels, out_channels // 2, kernel_size=3, stride=2, padding=1, bias=False),
+            models.modules.conv.SeparableConv2d(in_channels, out_channels // 2, kernel_size=3,
+                                                stride=2, padding=1, bias=False),
             nn.BatchNorm2d(out_channels // 2),
             nn.ReLU(inplace=True),
-            SeparableConv2d(out_channels // 2, out_channels, kernel_size=3, stride=1, padding=1, bias=False),
+            models.modules.conv.SeparableConv2d(out_channels // 2, out_channels, kernel_size=3,
+                                                stride=1, padding=1, bias=False),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True)
         )
 
     def make_compressor(self, in_channels: int, out_channels: int):
         return nn.Sequential(
-            SeparableConv2d(in_channels, out_channels, kernel_size=1, bias=False),
+            models.modules.conv.SeparableConv2d(in_channels, out_channels, kernel_size=1, bias=False),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True)
         )
 
     def make_decoder(self, in_channels: int, out_channels: int):
         return nn.Sequential(
-            SeparableConv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False),
+            models.modules.conv.SeparableConv2d(in_channels, out_channels, kernel_size=3,
+                                                stride=1, padding=1, bias=False),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
-            SeparableConv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False),
+            models.modules.conv.SeparableConv2d(out_channels, out_channels, kernel_size=3,
+                                                stride=1, padding=1, bias=False),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True)
         )

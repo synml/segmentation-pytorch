@@ -2,20 +2,7 @@ import torch
 import torch.nn as nn
 
 import models
-
-
-class SeparableConv2d(nn.Sequential):
-    def __init__(self, in_channels: int, out_channels: int, kernel_size: int, stride=1, padding=0, dilation=1,
-                 bias=True, activation: nn.Module = None):
-        modules = [
-            nn.Conv2d(in_channels, in_channels, kernel_size, stride, padding, dilation, in_channels, bias),
-            nn.BatchNorm2d(in_channels),
-            nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=bias),
-            nn.BatchNorm2d(out_channels)
-        ]
-        if activation is not None:
-            modules.insert(2, activation)
-        super(SeparableConv2d, self).__init__(*modules)
+import models.modules.conv
 
 
 class Block(nn.Module):
@@ -37,11 +24,14 @@ class Block(nn.Module):
         else:
             mid_channels = in_channels
         self.relu1 = nn.ReLU()
-        self.sepconv1 = SeparableConv2d(in_channels, mid_channels, 3, 1, dilation, dilation, bias=False)
+        self.sepconv1 = models.modules.conv.SeparableConv2d(in_channels, mid_channels, 3, 1,
+                                                            dilation, dilation, bias=False)
         self.relu2 = nn.ReLU(inplace=True)
-        self.sepconv2 = SeparableConv2d(mid_channels, out_channels, 3, 1, dilation, dilation, bias=False)
+        self.sepconv2 = models.modules.conv.SeparableConv2d(mid_channels, out_channels, 3, 1,
+                                                            dilation, dilation, bias=False)
         self.relu3 = nn.ReLU(inplace=True)
-        self.sepconv3 = SeparableConv2d(out_channels, out_channels, 3, stride, dilation, dilation, bias=False)
+        self.sepconv3 = models.modules.conv.SeparableConv2d(out_channels, out_channels, 3, stride,
+                                                            dilation, dilation, bias=False)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if self.shortcut is not None:
@@ -98,14 +88,14 @@ class Xception(nn.Module):
         # Exit flow
         self.exit_flow = nn.Sequential(
             Block(728, 1024, 1, exit_block_dilations[0], skip_connection_type='conv', grow_first=False),
-            SeparableConv2d(1024, 1536, 3, 1, exit_block_dilations[1], exit_block_dilations[1], bias=False,
-                            activation=nn.ReLU(inplace=True)),
+            models.modules.conv.SeparableConv2d(1024, 1536, 3, 1, exit_block_dilations[1], exit_block_dilations[1],
+                                                bias=False, activation=nn.ReLU(inplace=True)),
             nn.ReLU(inplace=True),
-            SeparableConv2d(1536, 1536, 3, 1, exit_block_dilations[1], exit_block_dilations[1], bias=False,
-                            activation=nn.ReLU(inplace=True)),
+            models.modules.conv.SeparableConv2d(1536, 1536, 3, 1, exit_block_dilations[1], exit_block_dilations[1],
+                                                bias=False, activation=nn.ReLU(inplace=True)),
             nn.ReLU(inplace=True),
-            SeparableConv2d(1536, 2048, 3, 1, exit_block_dilations[1], exit_block_dilations[1], bias=False,
-                            activation=nn.ReLU(inplace=True)),
+            models.modules.conv.SeparableConv2d(1536, 2048, 3, 1, exit_block_dilations[1], exit_block_dilations[1],
+                                                bias=False, activation=nn.ReLU(inplace=True)),
             nn.ReLU(inplace=True)
         )
 
