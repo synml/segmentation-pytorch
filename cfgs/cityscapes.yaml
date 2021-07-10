@@ -29,7 +29,7 @@ UNet:
   pretrained_weights: weights/UNet_best_miou.pth
 
 EAR_Net:
-  batch_size: 16
+  batch_size: 8
   epoch: 100
   criterion:
     name: FocalLoss
@@ -40,7 +40,7 @@ EAR_Net:
     lr: 0.001
   scheduler:
     name: PolyLR
-    max_iter: 18600
+    max_iter: 37200
   augmentation:
     RandomCrop:
       size: !!python/tuple [1024, 512]

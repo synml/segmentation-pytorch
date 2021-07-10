@@ -11,7 +11,7 @@ class EAR_Net(nn.Module):
     def __init__(self, num_classes: int):
         super(EAR_Net, self).__init__()
         # Backbone
-        backbone = torchvision.models.resnext50_32x4d(pretrained=True)
+        backbone = torchvision.models.resnet50(pretrained=True)
         self.stem_block = self.make_stem_block(3, 64)
         self.encode1 = backbone.layer1
         self.encode2 = backbone.layer2
