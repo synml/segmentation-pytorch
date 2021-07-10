@@ -63,7 +63,7 @@ class Builder:
 
         if cfg_model_name == 'UNet':
             model = models.unet.UNet(num_classes)
-        elif cfg_model_name == 'AR_UNet':
+        elif cfg_model_name == 'EAR_Net':
             model = models.ear_net.EAR_Net(num_classes)
         elif cfg_model_name == 'DeepLabV3plus':
             model = models.deeplabv3plus.DeepLabV3plus(self.cfg[cfg_model_name]['backbone'],
@@ -88,7 +88,8 @@ class Builder:
         if cfg_criterion['name'] == 'CrossEntropyLoss':
             criterion = nn.CrossEntropyLoss(ignore_index=ignore_index)
         elif cfg_criterion['name'] == 'FocalLoss':
-            criterion = utils.loss.FocalLoss(ignore_index=ignore_index)
+            criterion = utils.loss.FocalLoss(ignore_index=ignore_index,
+                                             alpha=cfg_criterion['alpha'], gamma=cfg_criterion['gamma'])
         else:
             raise NotImplementedError('Wrong criterion name.')
         return criterion

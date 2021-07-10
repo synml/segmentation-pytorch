@@ -28,28 +28,29 @@ UNet:
     RandomHorizontalFlip:
   pretrained_weights: weights/UNet_best_miou.pth
 
-AR_UNet:
-  batch_size: 8
+EAR_Net:
+  batch_size: 16
   epoch: 100
   criterion:
-    name: CrossEntropyLoss
+    name: FocalLoss
+    alpha: 1
+    gamma: 1
   optimizer:
-    name: Adam
-    lr: 0.0005
-    weight_decay: 0.00001
+    name: AdamW
+    lr: 0.001
   scheduler:
     name: PolyLR
-    max_iter: 55800
+    max_iter: 18600
   augmentation:
     RandomCrop:
-      size: !!python/tuple [769, 769]
+      size: !!python/tuple [1024, 512]
     ColorJitter:
       brightness: 0.5
       contrast: 0.5
       saturation: 0.5
       hue: 0
     RandomHorizontalFlip:
-  pretrained_weights: weights/Proposed_best_miou.pth
+  pretrained_weights: weights/EAR_Net_best_miou.pth
 
 DeepLabV3plus:
   backbone: Xception
