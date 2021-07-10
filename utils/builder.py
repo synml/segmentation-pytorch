@@ -33,6 +33,7 @@ class Builder:
         cfg_dataset = self.cfg['dataset']
         root = self.cfg['dataset']['root']
         batch_size = self.cfg[self.cfg['model']['name']]['batch_size']
+        pin_memory = False
         if platform.system() == 'Windows':
             num_workers = 0
         else:
@@ -40,11 +41,9 @@ class Builder:
         if dataset_type == 'train':
             transforms = datasets.transforms.Transforms(self.cfg, augmentation=True)
             shuffle = True
-            pin_memory = True
         else:
             transforms = datasets.transforms.Transforms(self.cfg)
             shuffle = False
-            pin_memory = False
 
         # Dataset
         if cfg_dataset['name'] == 'Cityscapes':
