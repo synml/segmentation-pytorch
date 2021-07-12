@@ -25,7 +25,6 @@ if __name__ == '__main__':
         if not torch.distributed.is_initialized():
             raise RuntimeError('Distributed Data-Parallel is not initialized.')
         local_rank = 0
-        torch.distributed.destroy_process_group()
     else:
         local_rank = None
 
@@ -34,13 +33,10 @@ if __name__ == '__main__':
     _, valloader = builder.build_dataset('val')
 
     # 2. Model
+    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    model = builder.build_model(trainset.num_classes).to(device)
     if cfg['ddp']:
-        torch.cuda.set_device(local_rank)
-        model = builder.build_model(trainset.num_classes)
         model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[local_rank], output_device=local_rank)
-    else:
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        model = builder.build_model(trainset.num_classes).to(device)
     model_name = cfg['model']['name']
     amp_enabled = cfg['model']['amp_enabled']
     print(f'Activated model: {model_name}')
