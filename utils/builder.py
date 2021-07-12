@@ -54,7 +54,12 @@ class Builder:
             raise NotImplementedError('Wrong dataset name.')
 
         # Dataloader
-        dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=shuffle,
+        if self.cfg['ddp'] and dataset_type == 'train':
+            sampler = torch.utils.data.DistributedSampler(dataset)
+            shuffle = False
+        else:
+            sampler = None
+        dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, sampler=sampler,
                                                  num_workers=num_workers, pin_memory=pin_memory)
         return dataset, dataloader
 

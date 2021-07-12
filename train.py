@@ -34,7 +34,7 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu', local_rank)
     model = builder.build_model(trainset.num_classes).to(device)
     if cfg['ddp']:
-        model = torch.nn.parallel.DistributedDataParallel(model, device_ids=None, output_device=None)
+        model = torch.nn.parallel.DistributedDataParallel(model)
     model_name = cfg['model']['name']
     amp_enabled = cfg['model']['amp_enabled']
     print(f'Activated model: {model_name}')
@@ -75,6 +75,7 @@ if __name__ == '__main__':
             print('Train interrupt occurs.')
             break
         model.train()
+        trainloader.sampler.set_epoch(epoch)
 
         for batch_idx, (images, targets) in enumerate(tqdm.tqdm(trainloader, desc='Train', leave=False)):
             iters = len(trainloader) * epoch + batch_idx
@@ -135,3 +136,4 @@ if __name__ == '__main__':
             torch.save(model.state_dict(), os.path.join('weights', f'{model_name}_best_val_loss.pth'))
             prev_val_loss = val_loss
     writer.close()
+    torch.distributed.destroy_process_group()
