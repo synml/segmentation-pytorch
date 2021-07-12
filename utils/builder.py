@@ -22,6 +22,7 @@ def load_cfg() -> dict:
     cfg['model']['amp_enabled'] = main['amp_enabled']
     cfg['resume_training'] = main['resume_training']
     cfg['fine_tuning_batchnorm'] = main['fine_tuning_batchnorm']
+    cfg['ddp'] = main['ddp']
     return cfg
 
 
