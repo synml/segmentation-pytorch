@@ -1,5 +1,4 @@
 import os
-import warnings
 
 import torch.distributed
 import torch.utils.data
@@ -17,26 +16,25 @@ if __name__ == '__main__':
 
     # Distributed Data-Parallel Training (DDP)
     if cfg['ddp']:
-        if torch.distributed.is_nccl_available():
-            torch.distributed.init_process_group(backend='nccl', init_method='env://')
-        else:
-            warnings.warn('NCCL backend is not available. will use gloo instead.')
-            torch.distributed.init_process_group(backend='gloo', init_method='env://')
-        if not torch.distributed.is_initialized():
-            raise RuntimeError('Distributed Data-Parallel is not initialized.')
-        local_rank = 0
+        assert torch.distributed.is_nccl_available(), 'NCCL backend is not available.'
+        torch.distributed.init_process_group(backend='nccl', init_method='env://')
+        assert torch.distributed.is_initialized(), 'Distributed Data-Parallel is not initialized.'
+        local_rank = torch.distributed.get_rank()
+        world_size = torch.distributed.get_world_size()
+        print("local_rank: ", local_rank)
+        print("world_size: ", world_size)
     else:
-        local_rank = None
+        local_rank = 0
 
     # 1. Dataset
     trainset, trainloader = builder.build_dataset('train')
     _, valloader = builder.build_dataset('val')
 
     # 2. Model
-    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu', local_rank)
     model = builder.build_model(trainset.num_classes).to(device)
     if cfg['ddp']:
-        model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[local_rank], output_device=local_rank)
+        model = torch.nn.parallel.DistributedDataParallel(model, device_ids=None, output_device=None)
     model_name = cfg['model']['name']
     amp_enabled = cfg['model']['amp_enabled']
     print(f'Activated model: {model_name}')
