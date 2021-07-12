@@ -21,8 +21,8 @@ if __name__ == '__main__':
         assert torch.distributed.is_initialized(), 'Distributed Data-Parallel is not initialized.'
         local_rank = torch.distributed.get_rank()
         world_size = torch.distributed.get_world_size()
-        print("local_rank: ", local_rank)
-        print("world_size: ", world_size)
+        print("local_rank:", local_rank)
+        print("world_size:", world_size)
     else:
         local_rank = 0
 
