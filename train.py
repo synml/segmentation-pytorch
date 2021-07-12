@@ -51,7 +51,11 @@ if __name__ == '__main__':
     # Resume training at checkpoint
     if cfg['resume_training'] is not None:
         path = cfg['resume_training']
-        checkpoint = torch.load(path)
+        if cfg['ddp']:
+            torch.distributed.barrier()
+            checkpoint = torch.load(path, map_location={'cuda:0': f'cuda:{local_rank}'})
+        else:
+            checkpoint = torch.load(path)
         model.load_state_dict(checkpoint['model_state_dict'])
         if cfg['fine_tuning_batchnorm']:
             model.freeze_bn()
@@ -115,25 +119,26 @@ if __name__ == '__main__':
         writer.add_images('eval/1' + model_name, outputs, epoch)
 
         # Save checkpoint
-        os.makedirs('weights', exist_ok=True)
-        torch.save({
-            'model_state_dict': model.state_dict(),
-            'optimizer_state_dict': optimizer.state_dict(),
-            'scheduler_state_dict': scheduler.state_dict(),
-            'scaler_state_dict': scaler.state_dict(),
-            'epoch': epoch,
-            'miou': miou,
-            'val_loss': val_loss
-        }, os.path.join('weights', f'{model_name}_checkpoint.pth'))
+        if local_rank == 0:
+            os.makedirs('weights', exist_ok=True)
+            torch.save({
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'scheduler_state_dict': scheduler.state_dict(),
+                'scaler_state_dict': scaler.state_dict(),
+                'epoch': epoch,
+                'miou': miou,
+                'val_loss': val_loss
+            }, os.path.join('weights', f'{model_name}_checkpoint.pth'))
 
-        # Save best mIoU model
-        if miou > prev_miou:
-            torch.save(model.state_dict(), os.path.join('weights', f'{model_name}_best_miou.pth'))
-            prev_miou = miou
+            # Save best mIoU model
+            if miou > prev_miou:
+                torch.save(model.state_dict(), os.path.join('weights', f'{model_name}_best_miou.pth'))
+                prev_miou = miou
 
-        # Save best val_loss model
-        if val_loss < prev_val_loss:
-            torch.save(model.state_dict(), os.path.join('weights', f'{model_name}_best_val_loss.pth'))
-            prev_val_loss = val_loss
+            # Save best val_loss model
+            if val_loss < prev_val_loss:
+                torch.save(model.state_dict(), os.path.join('weights', f'{model_name}_best_val_loss.pth'))
+                prev_val_loss = val_loss
     writer.close()
     torch.distributed.destroy_process_group()
