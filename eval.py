@@ -41,7 +41,7 @@ def evaluate(model, testloader, criterion, num_classes: int, amp_enabled: bool, 
     inference_time /= len(testloader)
     fps = 1 / inference_time
 
-    return val_loss.item(), iou, miou, fps.item()
+    return val_loss.item(), iou, miou.item(), fps.item()
 
 
 if __name__ == '__main__':
@@ -75,7 +75,7 @@ if __name__ == '__main__':
         writer.writerow(['Class Number', 'Class Name', 'IoU'])
 
         for class_num, iou_value in enumerate(iou):
-            writer.writerow([class_num, class_names[class_num], iou_value])
+            writer.writerow([class_num, class_names[class_num], iou_value.item()])
         writer.writerow(['mIoU', miou, ' '])
         writer.writerow(['Validation loss', val_loss, ' '])
         writer.writerow(['FPS', fps, ' '])
