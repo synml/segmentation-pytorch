@@ -15,14 +15,13 @@ if __name__ == '__main__':
     builder = utils.builder.Builder(cfg)
 
     # Distributed Data-Parallel Training (DDP)
-    if cfg['ddp_enabled']:
+    ddp_enabled = cfg['ddp_enabled']
+    if ddp_enabled:
         assert torch.distributed.is_nccl_available(), 'NCCL backend is not available.'
         torch.distributed.init_process_group(backend='nccl', init_method='env://')
-        ddp_enabled = True
         local_rank = torch.distributed.get_rank()
         world_size = torch.distributed.get_world_size()
     else:
-        ddp_enabled = False
         local_rank = 0
         world_size = 0
 
@@ -44,7 +43,7 @@ if __name__ == '__main__':
         model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
     model_name = cfg['model']['name']
     amp_enabled = cfg['model']['amp_enabled']
-    print(f'Activated model: {model_name}')
+    print(f'Activated model: {model_name} (rank{local_rank})')
 
     # 3. Loss function, optimizer, lr scheduler, scaler
     criterion = builder.build_criterion(trainset.ignore_index)
@@ -70,14 +69,17 @@ if __name__ == '__main__':
         start_epoch = checkpoint['epoch'] + 1
         prev_miou = checkpoint['miou']
         prev_val_loss = checkpoint['val_loss']
-        print(f'Resume training. {path}')
+        print(f'Resume training. {path} (rank{local_rank})')
     else:
         start_epoch = 0
         prev_miou = 0.0
-        prev_val_loss = 100
+        prev_val_loss = 2 ** 32 - 1
 
     # 4. Tensorboard
-    writer = torch.utils.tensorboard.SummaryWriter(os.path.join('runs', model_name))
+    if local_rank == 0:
+        writer = torch.utils.tensorboard.SummaryWriter(os.path.join('runs', model_name))
+    else:
+        writer = None
 
     # 5. Train and evaluate
     for epoch in tqdm.tqdm(range(start_epoch, cfg[model_name]['epoch']),
@@ -109,22 +111,24 @@ if __name__ == '__main__':
                 torch.distributed.all_gather_multigpu(
                     [lrs], [torch.tensor(optimizer.param_groups[0]['lr'], device=device)]
                 )
-                assert len(losses) == len(lrs)
-                for i in range(len(losses)):
-                    writer.add_scalar(f'loss/training (rank{i})', losses[i].item(), iters)
-                    writer.add_scalar(f'lr/rank{i}', lrs[i].item(), iters)
+                if writer is not None:
+                    assert len(losses) == len(lrs)
+                    for i in range(len(losses)):
+                        writer.add_scalar(f'loss/training (rank{i})', losses[i].item(), iters)
+                        writer.add_scalar(f'lr/rank{i}', lrs[i].item(), iters)
             else:
-                writer.add_scalar('loss/training', loss.item(), iters)
-                writer.add_scalar('lr', optimizer.param_groups[0]['lr'], iters)
-                scheduler.step()
+                writer.add_scalar(f'loss/training (rank{local_rank})', loss.item(), iters)
+                writer.add_scalar(f'lr/rank{local_rank}', optimizer.param_groups[0]['lr'], iters)
+
+            scheduler.step()
 
         # Evaluate
         val_loss, _, miou, _ = eval.evaluate(model, valloader, criterion, trainset.num_classes, amp_enabled, device)
         writer.add_scalar('loss/validation', val_loss, epoch)
         writer.add_scalar('metrics/mIoU', miou, epoch)
 
-        if local_rank == 0:
-            # Write predicted segmentation map
+        # Write predicted segmentation map
+        if writer is not None:
             images, targets = valloader.__iter__().__next__()
             images, targets = images[2:4].to(device), targets[2:4]
             with torch.no_grad():
@@ -140,6 +144,7 @@ if __name__ == '__main__':
                 writer.add_images('eval/0Groundtruth', targets, epoch)
             writer.add_images('eval/1' + model_name, outputs, epoch)
 
+        if local_rank == 0:
             # Save checkpoint
             os.makedirs('weights', exist_ok=True)
             torch.save({
