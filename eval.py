@@ -12,10 +12,17 @@ import utils
 def evaluate(model, valloader, criterion, num_classes: int, amp_enabled: bool, ddp_enabled: bool, device):
     model.eval()
 
+    if ddp_enabled:
+        local_rank = torch.distributed.get_rank()
+        world_size = torch.distributed.get_world_size()
+    else:
+        local_rank = 0
+        world_size = 0
+
     evaluator = utils.metrics.Evaluator(num_classes, device)
     inference_time = torch.zeros(1, device=device)
     val_loss = torch.zeros(1, device=device)
-    for images, targets in tqdm.tqdm(valloader, desc='Eval', leave=False):
+    for images, targets in tqdm.tqdm(valloader, desc='Eval', leave=False, disable=False if local_rank == 0 else True):
         images, targets = images.to(device), targets.to(device)
 
         with torch.cuda.amp.autocast(enabled=amp_enabled):
@@ -36,11 +43,10 @@ def evaluate(model, valloader, criterion, num_classes: int, amp_enabled: bool, d
         val_loss_list = [val_loss]
         confusion_matrix_list = [evaluator.confusion_matrix]
         inference_time_list = [inference_time]
-        torch.distributed.reduce_multigpu(val_loss_list, dst=0, op=torch.distributed.ReduceOp.SUM)
-        torch.distributed.reduce_multigpu(confusion_matrix_list, dst=0, op=torch.distributed.ReduceOp.SUM)
-        torch.distributed.reduce_multigpu(inference_time_list, dst=0, op=torch.distributed.ReduceOp.SUM)
-        local_rank = torch.distributed.get_rank()
-        world_size = torch.distributed.get_world_size()
+        torch.distributed.all_reduce_multigpu(val_loss_list, op=torch.distributed.ReduceOp.SUM)
+        torch.distributed.all_reduce_multigpu(confusion_matrix_list, op=torch.distributed.ReduceOp.SUM)
+        torch.distributed.all_reduce_multigpu(inference_time_list, op=torch.distributed.ReduceOp.SUM)
+
         if local_rank == 0:
             val_loss = val_loss_list[0] / (len(valloader) * world_size)
             evaluator.confusion_matrix = confusion_matrix_list[0]
