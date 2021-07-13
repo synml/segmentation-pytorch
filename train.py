@@ -15,16 +15,16 @@ if __name__ == '__main__':
     builder = utils.builder.Builder(cfg)
 
     # Distributed Data-Parallel Training (DDP)
-    if cfg['ddp']:
+    if cfg['ddp_enabled']:
         assert torch.distributed.is_nccl_available(), 'NCCL backend is not available.'
         torch.distributed.init_process_group(backend='nccl', init_method='env://')
-        assert torch.distributed.is_initialized(), 'Distributed Data-Parallel is not initialized.'
+        ddp_enabled = True
         local_rank = torch.distributed.get_rank()
         world_size = torch.distributed.get_world_size()
-        print("local_rank:", local_rank)
-        print("world_size:", world_size)
     else:
+        ddp_enabled = False
         local_rank = 0
+        world_size = 0
 
     # 1. Dataset
     trainset, trainloader = builder.build_dataset('train')
@@ -53,7 +53,7 @@ if __name__ == '__main__':
     # Resume training at checkpoint
     if cfg['resume_training'] is not None:
         path = cfg['resume_training']
-        if cfg['ddp']:
+        if ddp_enabled:
             torch.distributed.barrier()
             checkpoint = torch.load(path, map_location={'cuda:0': f'cuda:{local_rank}'})
         else:
@@ -83,8 +83,9 @@ if __name__ == '__main__':
         if utils.train_interupter.train_interupter():
             print('Train interrupt occurs.')
             break
+        if ddp_enabled:
+            trainloader.sampler.set_epoch(epoch)
         model.train()
-        trainloader.sampler.set_epoch(epoch)
 
         for batch_idx, (images, targets) in enumerate(tqdm.tqdm(trainloader, desc='Train', leave=False)):
             iters = len(trainloader) * epoch + batch_idx

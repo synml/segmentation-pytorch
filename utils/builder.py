@@ -22,7 +22,7 @@ def load_cfg() -> dict:
     cfg['model']['amp_enabled'] = main['amp_enabled']
     cfg['resume_training'] = main['resume_training']
     cfg['fine_tuning_batchnorm'] = main['fine_tuning_batchnorm']
-    cfg['ddp'] = main['ddp']
+    cfg['ddp_enabled'] = main['ddp_enabled']
     return cfg
 
 
@@ -54,7 +54,7 @@ class Builder:
             raise NotImplementedError('Wrong dataset name.')
 
         # Dataloader
-        if self.cfg['ddp'] and dataset_type == 'train':
+        if self.cfg['ddp_enabled'] and dataset_type == 'train':
             sampler = torch.utils.data.DistributedSampler(dataset)
             shuffle = False
         else:

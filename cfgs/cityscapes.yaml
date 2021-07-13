@@ -65,7 +65,7 @@ DeepLabV3plus:
     lr: 0.001
   scheduler:
     name: PolyLR
-    max_iter: 37200
+    max_iter: 24800
   augmentation:
     RandomCrop:
       size: !!python/tuple [769, 769]
