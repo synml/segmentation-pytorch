@@ -37,7 +37,7 @@ if __name__ == '__main__':
     else:
         device = torch.device('cpu')
     model = builder.build_model(trainset.num_classes).to(device)
-    if cfg['ddp']:
+    if ddp_enabled:
         model = torch.nn.parallel.DistributedDataParallel(model)
         model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
     model_name = cfg['model']['name']
@@ -78,8 +78,11 @@ if __name__ == '__main__':
     writer = torch.utils.tensorboard.SummaryWriter(os.path.join('runs', model_name))
 
     # 5. Train and evaluate
-    log_loss = tqdm.tqdm(total=0, position=2, bar_format='{desc}', leave=False)
-    for epoch in tqdm.tqdm(range(start_epoch, cfg[model_name]['epoch']), desc='Epoch'):
+    if local_rank == 0:
+        disable_tqdm = False
+    else:
+        disable_tqdm = True
+    for epoch in tqdm.tqdm(range(start_epoch, cfg[model_name]['epoch']), desc='Epoch', disable=disable_tqdm):
         if utils.train_interupter.train_interupter():
             print('Train interrupt occurs.')
             break
@@ -87,7 +90,8 @@ if __name__ == '__main__':
             trainloader.sampler.set_epoch(epoch)
         model.train()
 
-        for batch_idx, (images, targets) in enumerate(tqdm.tqdm(trainloader, desc='Train', leave=False)):
+        for batch_idx, (images, targets) in enumerate(tqdm.tqdm(trainloader, desc='Batch',
+                                                                leave=False, disable=disable_tqdm)):
             iters = len(trainloader) * epoch + batch_idx
             images, targets = images.to(device), targets.to(device)
 
@@ -100,8 +104,6 @@ if __name__ == '__main__':
             scaler.update()
 
             writer.add_scalar('loss/training', loss.item(), iters)
-            log_loss.set_description_str(f'Loss: {loss.item():.4f}')
-
             writer.add_scalar('lr', optimizer.param_groups[0]['lr'], iters)
             scheduler.step()
 
