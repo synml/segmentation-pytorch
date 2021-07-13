@@ -45,9 +45,6 @@ if __name__ == '__main__':
     scheduler = builder.build_scheduler(optimizer)
     scaler = torch.cuda.amp.GradScaler(enabled=amp_enabled)
 
-    # 4. Tensorboard
-    writer = torch.utils.tensorboard.SummaryWriter(os.path.join('runs', model_name))
-
     # Resume training at checkpoint
     if cfg['resume_training'] is not None:
         path = cfg['resume_training']
@@ -72,7 +69,10 @@ if __name__ == '__main__':
         prev_miou = 0.0
         prev_val_loss = 100
 
-    # Train and evaluate
+    # 4. Tensorboard
+    writer = torch.utils.tensorboard.SummaryWriter(os.path.join('runs', model_name))
+
+    # 5. Train and evaluate
     log_loss = tqdm.tqdm(total=0, position=2, bar_format='{desc}', leave=False)
     for epoch in tqdm.tqdm(range(start_epoch, cfg[model_name]['epoch']), desc='Epoch'):
         if utils.train_interupter.train_interupter():
