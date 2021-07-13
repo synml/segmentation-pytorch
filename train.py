@@ -26,16 +26,18 @@ if __name__ == '__main__':
         local_rank = 0
         world_size = 0
 
-    # 1. Dataset
-    trainset, trainloader = builder.build_dataset('train')
-    _, valloader = builder.build_dataset('val')
-
-    # 2. Model
+    # Device
     if torch.cuda.is_available():
         torch.cuda.set_device(local_rank)
         device = torch.device('cuda', local_rank)
     else:
         device = torch.device('cpu')
+
+    # 1. Dataset
+    trainset, trainloader = builder.build_dataset('train')
+    _, valloader = builder.build_dataset('val')
+
+    # 2. Model
     model = builder.build_model(trainset.num_classes).to(device)
     if ddp_enabled:
         model = torch.nn.parallel.DistributedDataParallel(model)
@@ -78,11 +80,8 @@ if __name__ == '__main__':
     writer = torch.utils.tensorboard.SummaryWriter(os.path.join('runs', model_name))
 
     # 5. Train and evaluate
-    if local_rank == 0:
-        disable_tqdm = False
-    else:
-        disable_tqdm = True
-    for epoch in tqdm.tqdm(range(start_epoch, cfg[model_name]['epoch']), desc='Epoch', disable=disable_tqdm):
+    for epoch in tqdm.tqdm(range(start_epoch, cfg[model_name]['epoch']),
+                           desc='Epoch', disable=False if local_rank == 0 else True):
         if utils.train_interupter.train_interupter():
             print('Train interrupt occurs.')
             break
@@ -90,8 +89,8 @@ if __name__ == '__main__':
             trainloader.sampler.set_epoch(epoch)
         model.train()
 
-        for batch_idx, (images, targets) in enumerate(tqdm.tqdm(trainloader, desc='Batch',
-                                                                leave=False, disable=disable_tqdm)):
+        for batch_idx, (images, targets) in enumerate(tqdm.tqdm(trainloader, desc='Batch', leave=False,
+                                                                disable=False if local_rank == 0 else True)):
             iters = len(trainloader) * epoch + batch_idx
             images, targets = images.to(device), targets.to(device)
 
@@ -103,31 +102,45 @@ if __name__ == '__main__':
             scaler.step(optimizer)
             scaler.update()
 
-            writer.add_scalar('loss/training', loss.item(), iters)
-            writer.add_scalar('lr', optimizer.param_groups[0]['lr'], iters)
-            scheduler.step()
+            if ddp_enabled:
+                losses = [torch.zeros(1, device=device) for _ in range(world_size)]
+                lrs = [torch.zeros(1, device=device) for _ in range(world_size)]
+                torch.distributed.all_gather_multigpu([losses], [loss])
+                torch.distributed.all_gather_multigpu(
+                    [lrs], [torch.tensor(optimizer.param_groups[0]['lr'], device=device)]
+                )
+                assert len(losses) == len(lrs)
+                for i in range(len(losses)):
+                    writer.add_scalar(f'loss/training (rank{i})', losses[i].item(), iters)
+                    writer.add_scalar(f'lr/rank{i}', lrs[i].item(), iters)
+            else:
+                writer.add_scalar('loss/training', loss.item(), iters)
+                writer.add_scalar('lr', optimizer.param_groups[0]['lr'], iters)
+                scheduler.step()
 
+        # Evaluate
         val_loss, _, miou, _ = eval.evaluate(model, valloader, criterion, trainset.num_classes, amp_enabled, device)
         writer.add_scalar('loss/validation', val_loss, epoch)
         writer.add_scalar('metrics/mIoU', miou, epoch)
 
-        images, targets = valloader.__iter__().__next__()
-        images, targets = images[2:4].to(device), targets[2:4]
-        with torch.no_grad():
-            outputs = model(images)
-            outputs = torch.argmax(outputs, dim=1)
-        targets = datasets.utils.decode_segmap_to_color_image(
-            targets, trainset.colors, trainset.num_classes, trainset.ignore_index, trainset.ignore_color
-        )
-        outputs = datasets.utils.decode_segmap_to_color_image(
-            outputs, trainset.colors, trainset.num_classes, trainset.ignore_index, trainset.ignore_color
-        )
-        if epoch == 0:
-            writer.add_images('eval/0Groundtruth', targets, epoch)
-        writer.add_images('eval/1' + model_name, outputs, epoch)
-
-        # Save checkpoint
         if local_rank == 0:
+            # Write predicted segmentation map
+            images, targets = valloader.__iter__().__next__()
+            images, targets = images[2:4].to(device), targets[2:4]
+            with torch.no_grad():
+                outputs = model(images)
+                outputs = torch.argmax(outputs, dim=1)
+            targets = datasets.utils.decode_segmap_to_color_image(
+                targets, trainset.colors, trainset.num_classes, trainset.ignore_index, trainset.ignore_color
+            )
+            outputs = datasets.utils.decode_segmap_to_color_image(
+                outputs, trainset.colors, trainset.num_classes, trainset.ignore_index, trainset.ignore_color
+            )
+            if epoch == 0:
+                writer.add_images('eval/0Groundtruth', targets, epoch)
+            writer.add_images('eval/1' + model_name, outputs, epoch)
+
+            # Save checkpoint
             os.makedirs('weights', exist_ok=True)
             torch.save({
                 'model_state_dict': model.state_dict(),
