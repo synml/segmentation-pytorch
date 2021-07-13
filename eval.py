@@ -8,13 +8,13 @@ import tqdm
 import utils
 
 
-def evaluate(model, testloader, criterion, num_classes: int, amp_enabled: bool, ddp_enabled: bool, device):
+def evaluate(model, valloader, criterion, num_classes: int, amp_enabled: bool, ddp_enabled: bool, device):
     model.eval()
 
     evaluator = utils.metrics.Evaluator(num_classes, device)
     inference_time = torch.zeros(1, device=device)
     val_loss = torch.zeros(1, device=device)
-    for images, targets in tqdm.tqdm(testloader, desc='Eval', leave=False):
+    for images, targets in tqdm.tqdm(valloader, desc='Eval', leave=False):
         images, targets = images.to(device), targets.to(device)
 
         with torch.cuda.amp.autocast(enabled=amp_enabled):
@@ -32,13 +32,13 @@ def evaluate(model, testloader, criterion, num_classes: int, amp_enabled: bool, 
         evaluator.update_matrix(targets, outputs)
 
     # Calculate average validation loss for batches
-    val_loss /= len(testloader)
+    val_loss /= len(valloader)
 
     # Get evaluation metrics
     iou, miou = evaluator.get_scores()
 
     # Calculate inference time and fps (inference time unit: seconds)
-    inference_time /= len(testloader)
+    inference_time /= len(valloader)
     fps = 1 / inference_time
 
     return val_loss.item(), iou, miou.item(), fps.item()
