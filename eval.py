@@ -11,7 +11,7 @@ import utils
 def evaluate(model, testloader, criterion, num_classes: int, amp_enabled: bool, ddp_enabled: bool, device):
     model.eval()
 
-    evaluator = utils.metrics.Evaluator(num_classes)
+    evaluator = utils.metrics.Evaluator(num_classes, device)
     inference_time = torch.zeros(1, device=device)
     val_loss = torch.zeros(1, device=device)
     for images, targets in tqdm.tqdm(testloader, desc='Eval', leave=False):
