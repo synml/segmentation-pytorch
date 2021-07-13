@@ -8,15 +8,17 @@ import datasets
 import utils
 
 if __name__ == '__main__':
-    # 0. Load cfg and create components builder
+    # Load cfg and create components builder
     cfg = utils.builder.load_cfg()
     builder = utils.builder.Builder(cfg)
+
+    # Device
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # 1. Dataset
     valset, valloader = builder.build_dataset('val')
 
     # 2. Model
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = builder.build_model(valset.num_classes, pretrained=True).to(device)
     model_name = cfg['model']['name']
     amp_enabled = cfg['model']['amp_enabled']

@@ -10,7 +10,7 @@ import eval
 import utils
 
 if __name__ == '__main__':
-    # 0. Load cfg and create components builder
+    # Load cfg and create components builder
     cfg = utils.builder.load_cfg()
     builder = utils.builder.Builder(cfg)
 
@@ -123,7 +123,8 @@ if __name__ == '__main__':
             scheduler.step()
 
         # Evaluate
-        val_loss, _, miou, _ = eval.evaluate(model, valloader, criterion, trainset.num_classes, amp_enabled, device)
+        val_loss, _, miou, _ = eval.evaluate(model, valloader, criterion, trainset.num_classes,
+                                             amp_enabled, ddp_enabled, device)
         writer.add_scalar('loss/validation', val_loss, epoch)
         writer.add_scalar('metrics/mIoU', miou, epoch)
 

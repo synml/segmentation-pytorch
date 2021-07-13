@@ -8,12 +8,12 @@ import tqdm
 import utils
 
 
-def evaluate(model, testloader, criterion, num_classes: int, amp_enabled: bool, device):
+def evaluate(model, testloader, criterion, num_classes: int, amp_enabled: bool, ddp_enabled: bool, device):
     model.eval()
 
     evaluator = utils.metrics.Evaluator(num_classes)
-    val_loss = 0.0
-    inference_time = 0.0
+    inference_time = torch.zeros(1, device=device)
+    val_loss = torch.zeros(1, device=device)
     for images, targets in tqdm.tqdm(testloader, desc='Eval', leave=False):
         images, targets = images.to(device), targets.to(device)
 
@@ -23,7 +23,7 @@ def evaluate(model, testloader, criterion, num_classes: int, amp_enabled: bool, 
                 outputs = model(images)
             inference_time += time.time() - start_time
 
-            val_loss += criterion(outputs, targets).item()
+            val_loss += criterion(outputs, targets)
 
             # Make segmentation map
             outputs = torch.argmax(outputs, dim=1)
@@ -41,19 +41,21 @@ def evaluate(model, testloader, criterion, num_classes: int, amp_enabled: bool, 
     inference_time /= len(testloader)
     fps = 1 / inference_time
 
-    return val_loss, iou, miou, fps
+    return val_loss.item(), iou, miou, fps.item()
 
 
 if __name__ == '__main__':
-    # 0. Load cfg and create components builder
+    # Load cfg and create components builder
     cfg = utils.builder.load_cfg()
     builder = utils.builder.Builder(cfg)
+
+    # Device
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # 1. Dataset
     valset, valloader = builder.build_dataset('val')
 
     # 2. Model
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = builder.build_model(valset.num_classes, pretrained=True).to(device)
     model_name = cfg['model']['name']
     amp_enabled = cfg['model']['amp_enabled']
@@ -63,7 +65,7 @@ if __name__ == '__main__':
     criterion = builder.build_criterion(valset.ignore_index)
 
     # Evaluate model
-    val_loss, iou, miou, fps = evaluate(model, valloader, criterion, valset.num_classes, amp_enabled, device)
+    val_loss, iou, miou, fps = evaluate(model, valloader, criterion, valset.num_classes, amp_enabled, False, device)
 
     # Save evaluation result as csv file
     os.makedirs('result', exist_ok=True)
