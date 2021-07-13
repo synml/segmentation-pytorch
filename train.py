@@ -31,7 +31,11 @@ if __name__ == '__main__':
     _, valloader = builder.build_dataset('val')
 
     # 2. Model
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu', local_rank)
+    if torch.cuda.is_available():
+        torch.cuda.set_device(local_rank)
+        device = torch.device('cuda', local_rank)
+    else:
+        device = torch.device('cpu')
     model = builder.build_model(trainset.num_classes).to(device)
     if cfg['ddp']:
         model = torch.nn.parallel.DistributedDataParallel(model)
