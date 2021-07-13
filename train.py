@@ -105,17 +105,17 @@ if __name__ == '__main__':
             scaler.update()
 
             if ddp_enabled:
-                losses = [torch.zeros(1, device=device) for _ in range(world_size)]
-                lrs = [torch.zeros(1, device=device) for _ in range(world_size)]
-                torch.distributed.all_gather_multigpu([losses], [loss])
+                loss_list = [torch.zeros(1, device=device) for _ in range(world_size)]
+                lr_list = [torch.zeros(1, device=device) for _ in range(world_size)]
+                torch.distributed.all_gather_multigpu([loss_list], [loss])
                 torch.distributed.all_gather_multigpu(
-                    [lrs], [torch.tensor(optimizer.param_groups[0]['lr'], device=device)]
+                    [lr_list], [torch.tensor(optimizer.param_groups[0]['lr'], device=device)]
                 )
                 if writer is not None:
-                    assert len(losses) == len(lrs)
-                    for i in range(len(losses)):
-                        writer.add_scalar(f'loss/training (rank{i})', losses[i].item(), iters)
-                        writer.add_scalar(f'lr/rank{i}', lrs[i].item(), iters)
+                    assert len(loss_list) == len(lr_list)
+                    for i in range(len(loss_list)):
+                        writer.add_scalar(f'loss/training (rank{i})', loss_list[i].item(), iters)
+                        writer.add_scalar(f'lr/rank{i}', lr_list[i].item(), iters)
             else:
                 writer.add_scalar(f'loss/training (rank{local_rank})', loss.item(), iters)
                 writer.add_scalar(f'lr/rank{local_rank}', optimizer.param_groups[0]['lr'], iters)
@@ -125,8 +125,9 @@ if __name__ == '__main__':
         # Evaluate
         val_loss, _, miou, _ = eval.evaluate(model, valloader, criterion, trainset.num_classes,
                                              amp_enabled, ddp_enabled, device)
-        writer.add_scalar('loss/validation', val_loss, epoch)
-        writer.add_scalar('metrics/mIoU', miou, epoch)
+        if writer is not None:
+            writer.add_scalar('loss/validation', val_loss, epoch)
+            writer.add_scalar('metrics/mIoU', miou, epoch)
 
         # Write predicted segmentation map
         if writer is not None:

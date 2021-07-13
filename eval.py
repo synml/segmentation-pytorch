@@ -2,6 +2,7 @@ import csv
 import os
 import time
 
+import torch.distributed
 import torch.utils.data
 import tqdm
 
@@ -31,15 +32,33 @@ def evaluate(model, valloader, criterion, num_classes: int, amp_enabled: bool, d
         # Update confusion matrix
         evaluator.update_matrix(targets, outputs)
 
-    # Calculate average validation loss for batches
-    val_loss /= len(valloader)
+    if ddp_enabled:
+        val_loss_list = [val_loss]
+        confusion_matrix_list = [evaluator.confusion_matrix]
+        inference_time_list = [inference_time]
+        torch.distributed.reduce_multigpu(val_loss_list, dst=0, op=torch.distributed.ReduceOp.SUM)
+        torch.distributed.reduce_multigpu(confusion_matrix_list, dst=0, op=torch.distributed.ReduceOp.SUM)
+        torch.distributed.reduce_multigpu(inference_time_list, dst=0, op=torch.distributed.ReduceOp.SUM)
+        local_rank = torch.distributed.get_rank()
+        world_size = torch.distributed.get_world_size()
+        if local_rank == 0:
+            val_loss = val_loss_list[0] / (len(valloader) * world_size)
+            evaluator.confusion_matrix = confusion_matrix_list[0]
+            iou, miou = evaluator.get_scores()
+            inference_time = inference_time_list[0] / (len(valloader) * world_size)
+            fps = 1 / inference_time
+        else:
+            iou = miou = fps = 0
+    else:
+        # Calculate average validation loss for batches
+        val_loss /= len(valloader)
 
-    # Get evaluation metrics
-    iou, miou = evaluator.get_scores()
+        # Get evaluation metrics
+        iou, miou = evaluator.get_scores()
 
-    # Calculate inference time and fps (inference time unit: seconds)
-    inference_time /= len(valloader)
-    fps = 1 / inference_time
+        # Calculate inference time and fps (inference time unit: seconds)
+        inference_time /= len(valloader)
+        fps = 1 / inference_time
 
     return val_loss.item(), iou, miou.item(), fps.item()
 

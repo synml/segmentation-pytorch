@@ -54,7 +54,7 @@ class Builder:
             raise NotImplementedError('Wrong dataset name.')
 
         # Dataloader
-        if self.cfg['ddp_enabled'] and dataset_type == 'train':
+        if self.cfg['ddp_enabled']:
             sampler = torch.utils.data.DistributedSampler(dataset)
             shuffle = False
         else:
