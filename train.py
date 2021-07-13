@@ -106,19 +106,14 @@ if __name__ == '__main__':
 
             if ddp_enabled:
                 loss_list = [torch.zeros(1, device=device) for _ in range(world_size)]
-                lr_list = [torch.zeros(1, device=device) for _ in range(world_size)]
                 torch.distributed.all_gather_multigpu([loss_list], [loss])
-                torch.distributed.all_gather_multigpu(
-                    [lr_list], [torch.tensor(optimizer.param_groups[0]['lr'], device=device)]
-                )
                 if writer is not None:
-                    assert len(loss_list) == len(lr_list)
-                    for i in range(len(loss_list)):
-                        writer.add_scalar(f'loss/training (rank{i})', loss_list[i].item(), iters)
-                        writer.add_scalar(f'lr/rank{i}', lr_list[i].item(), iters)
+                    for i, rank_loss in enumerate(loss_list):
+                        writer.add_scalar(f'loss/training (rank{i})', rank_loss.item(), iters)
+                    writer.add_scalar('lr', optimizer.param_groups[0]['lr'], iters)
             else:
                 writer.add_scalar(f'loss/training (rank{local_rank})', loss.item(), iters)
-                writer.add_scalar(f'lr/rank{local_rank}', optimizer.param_groups[0]['lr'], iters)
+                writer.add_scalar('lr', optimizer.param_groups[0]['lr'], iters)
 
             scheduler.step()
 
