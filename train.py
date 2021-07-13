@@ -39,6 +39,7 @@ if __name__ == '__main__':
     model = builder.build_model(trainset.num_classes).to(device)
     if cfg['ddp']:
         model = torch.nn.parallel.DistributedDataParallel(model)
+        model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
     model_name = cfg['model']['name']
     amp_enabled = cfg['model']['amp_enabled']
     print(f'Activated model: {model_name}')
