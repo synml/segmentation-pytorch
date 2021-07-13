@@ -47,14 +47,11 @@ def evaluate(model, valloader, criterion, num_classes: int, amp_enabled: bool, d
         torch.distributed.all_reduce_multigpu(confusion_matrix_list, op=torch.distributed.ReduceOp.SUM)
         torch.distributed.all_reduce_multigpu(inference_time_list, op=torch.distributed.ReduceOp.SUM)
 
-        if local_rank == 0:
-            val_loss = val_loss_list[0] / (len(valloader) * world_size)
-            evaluator.confusion_matrix = confusion_matrix_list[0]
-            iou, miou = evaluator.get_scores()
-            inference_time = inference_time_list[0] / (len(valloader) * world_size)
-            fps = 1 / inference_time
-        else:
-            iou = miou = fps = 0
+        val_loss = val_loss_list[0] / (len(valloader) * world_size)
+        evaluator.confusion_matrix = confusion_matrix_list[0]
+        iou, miou = evaluator.get_scores()
+        inference_time = inference_time_list[0] / (len(valloader) * world_size)
+        fps = 1 / inference_time
     else:
         # Calculate average validation loss for batches
         val_loss /= len(valloader)
