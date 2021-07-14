@@ -2,7 +2,6 @@ import os
 import platform
 
 import torch
-import torch.distributed.optim
 import torch.nn as nn
 import torch.utils.data
 import yaml
@@ -103,36 +102,15 @@ class Builder:
     def build_optimizer(self, model: torch.nn.Module) -> torch.optim.Optimizer:
         cfg_optim = self.cfg[self.cfg['model']['name']]['optimizer']
 
-        if self.cfg['ddp_enabled']:
-            if cfg_optim['name'] == 'SGD':
-                optimizer = torch.distributed.optim.ZeroRedundancyOptimizer(
-                    model.parameters(), torch.optim.SGD, lr=cfg_optim['lr'], momentum=cfg_optim['momentum'],
-                    weight_decay=cfg_optim['weight_decay'], nesterov=cfg_optim['nesterov']
-                )
-            elif cfg_optim['name'] == 'Adam':
-                optimizer = torch.distributed.optim.ZeroRedundancyOptimizer(
-                    model.parameters(), torch.optim.Adam, lr=cfg_optim['lr'], weight_decay=cfg_optim['weight_decay']
-                )
-            elif cfg_optim['name'] == 'AdamW':
-                optimizer = torch.distributed.optim.ZeroRedundancyOptimizer(
-                    model.parameters(), torch.optim.AdamW, lr=cfg_optim['lr']
-                )
-            else:
-                raise NotImplementedError('Wrong optimizer name.')
+        if cfg_optim['name'] == 'SGD':
+            optimizer = torch.optim.SGD(model.parameters(), lr=cfg_optim['lr'], momentum=cfg_optim['momentum'],
+                                        weight_decay=cfg_optim['weight_decay'], nesterov=cfg_optim['nesterov'])
+        elif cfg_optim['name'] == 'Adam':
+            optimizer = torch.optim.Adam(model.parameters(), lr=cfg_optim['lr'], weight_decay=cfg_optim['weight_decay'])
+        elif cfg_optim['name'] == 'AdamW':
+            optimizer = torch.optim.AdamW(model.parameters(), lr=cfg_optim['lr'])
         else:
-            if cfg_optim['name'] == 'SGD':
-                optimizer = torch.optim.SGD(
-                    model.parameters(), lr=cfg_optim['lr'], momentum=cfg_optim['momentum'],
-                    weight_decay=cfg_optim['weight_decay'], nesterov=cfg_optim['nesterov']
-                )
-            elif cfg_optim['name'] == 'Adam':
-                optimizer = torch.optim.Adam(
-                    model.parameters(), lr=cfg_optim['lr'], weight_decay=cfg_optim['weight_decay']
-                )
-            elif cfg_optim['name'] == 'AdamW':
-                optimizer = torch.optim.AdamW(model.parameters(), lr=cfg_optim['lr'])
-            else:
-                raise NotImplementedError('Wrong optimizer name.')
+            raise NotImplementedError('Wrong optimizer name.')
         return optimizer
 
     def build_scheduler(self, optimizer: torch.optim.Optimizer):
