@@ -165,5 +165,7 @@ if __name__ == '__main__':
             if val_loss < prev_val_loss:
                 torch.save(model.state_dict(), os.path.join('weights', f'{model_name}_best_val_loss.pth'))
                 prev_val_loss = val_loss
-    writer.close()
-    torch.distributed.destroy_process_group()
+    if writer is not None:
+        writer.close()
+    if ddp_enabled:
+        torch.distributed.destroy_process_group()
