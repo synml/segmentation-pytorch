@@ -19,8 +19,7 @@ class EAR_Net(nn.Module):
         self.encode4 = backbone.layer4
 
         # ASPP
-        atrous_rates = (3, 6, 9)
-        self.aspp = models.modules.aspp.ASPPwDSConv(2048, atrous_rates, 256)
+        self.aspp = models.modules.aspp.ASPPwDSConv(2048, (3, 6, 9), 256)
 
         # Decoder
         self.compress_low_level_feature3 = self.make_compressor(1024, 64)
