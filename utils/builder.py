@@ -68,6 +68,8 @@ class Builder:
 
         if cfg_model_name == 'UNet':
             model = models.unet.UNet(num_classes)
+        elif cfg_model_name == 'AR_UNet':
+            model = models.ar_unet.AR_UNet(num_classes)
         elif cfg_model_name == 'EAR_Net':
             model = models.ear_net.EAR_Net(num_classes)
         elif cfg_model_name == 'DeepLabV3plus':
