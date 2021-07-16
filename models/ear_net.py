@@ -34,7 +34,7 @@ class EAR_Net(nn.Module):
         self.classifier = models.modules.conv.SeparableConv2d(64, num_classes, kernel_size=1)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        input_size = x.size()
+        input_size = x.size()[2:]
 
         # Encoder
         x = self.stem_block(x)
@@ -58,8 +58,8 @@ class EAR_Net(nn.Module):
         x = self.decode1(torch.cat((x, encode1), dim=1))
 
         # Classifier
-        x = F.interpolate(x, input_size[2:], mode='bilinear', align_corners=False)
         x = self.classifier(x)
+        x = F.interpolate(x, input_size, mode='bilinear', align_corners=False)
         return x
 
     def make_stem_block(self, in_channels: int, out_channels: int):
@@ -97,4 +97,4 @@ class EAR_Net(nn.Module):
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = EAR_Net(19).to(device)
-    models.test.test_model(model, (3, 400, 240), device)
+    models.test.test_model(model, (3, 512, 1024), device)
