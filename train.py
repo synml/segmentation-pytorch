@@ -1,6 +1,5 @@
 import os
 
-import torch.backends.cudnn
 import torch.distributed
 import torch.utils.data
 import torch.utils.tensorboard
@@ -29,7 +28,6 @@ if __name__ == '__main__':
 
     # Device
     if torch.cuda.is_available():
-        torch.backends.cudnn.benchmark = True
         torch.cuda.set_device(local_rank)
         device = torch.device('cuda', local_rank)
     else:
