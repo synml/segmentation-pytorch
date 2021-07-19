@@ -1,5 +1,6 @@
 import os
 
+import torch.backends.cudnn
 import torch.utils.data
 import torchvision
 import tqdm
@@ -13,7 +14,11 @@ if __name__ == '__main__':
     builder = utils.builder.Builder(cfg)
 
     # Device
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    if torch.cuda.is_available():
+        torch.backends.cudnn.benchmark = True
+        device = torch.device('cuda')
+    else:
+        device = torch.device('cpu')
 
     # 1. Dataset
     valset, valloader = builder.build_dataset('val')

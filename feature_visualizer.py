@@ -1,6 +1,7 @@
 import os
 
 import matplotlib.pyplot as plt
+import torch.backends.cudnn
 import torch.nn.functional as F
 import torch.utils.data
 import tqdm
@@ -9,15 +10,21 @@ import utils
 
 
 if __name__ == '__main__':
-    # 0. Load cfg and create components builder
+    # Load cfg and create components builder
     cfg = utils.builder.load_cfg()
     builder = utils.builder.Builder(cfg)
+
+    # Device
+    if torch.cuda.is_available():
+        torch.backends.cudnn.benchmark = True
+        device = torch.device('cuda')
+    else:
+        device = torch.device('cpu')
 
     # 1. Dataset
     valset, _ = builder.build_dataset('val')
 
     # 2. Model
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = builder.build_model(valset.num_classes, pretrained=True).to(device)
     model_name = cfg['model']['name']
     amp_enabled = cfg['model']['amp_enabled']
