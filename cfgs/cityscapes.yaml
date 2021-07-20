@@ -6,30 +6,8 @@ dataset:
   pin_memory: True
 
 # Model definitions
-UNet:
-  batch_size: 8
-  epoch: 100
-  criterion:
-    name: CrossEntropyLoss
-  optimizer:
-    name: AdamW
-    lr: 0.001
-  scheduler:
-    name: PolyLR
-    max_iter: 18600
-  augmentation:
-    RandomCrop:
-      size: !!python/tuple [1024, 512]
-    ColorJitter:
-      brightness: 0.5
-      contrast: 0.5
-      saturation: 0.5
-      hue: 0
-    RandomHorizontalFlip:
-  pretrained_weights: weights/UNet_best_miou.pth
-
-EAR_Net:
-  batch_size: 6
+AR_UNet:
+  batch_size: 4
   epoch: 100
   criterion:
     name: FocalLoss
@@ -75,6 +53,52 @@ DeepLabV3plus:
       hue: 0
     RandomHorizontalFlip:
   pretrained_weights: weights/DeepLabV3plus_best_miou.pth
+
+EAR_Net:
+  batch_size: 6
+  epoch: 100
+  criterion:
+    name: FocalLoss
+    alpha: 1
+    gamma: 1
+  optimizer:
+    name: AdamW
+    lr: 0.001
+  scheduler:
+    name: PolyLR
+    max_iter: 24800
+  augmentation:
+    RandomCrop:
+      size: !!python/tuple [1024, 512]
+    ColorJitter:
+      brightness: 0.5
+      contrast: 0.5
+      saturation: 0.5
+      hue: 0
+    RandomHorizontalFlip:
+  pretrained_weights: weights/EAR_Net_best_miou.pth
+
+UNet:
+  batch_size: 8
+  epoch: 100
+  criterion:
+    name: CrossEntropyLoss
+  optimizer:
+    name: AdamW
+    lr: 0.001
+  scheduler:
+    name: PolyLR
+    max_iter: 18600
+  augmentation:
+    RandomCrop:
+      size: !!python/tuple [1024, 512]
+    ColorJitter:
+      brightness: 0.5
+      contrast: 0.5
+      saturation: 0.5
+      hue: 0
+    RandomHorizontalFlip:
+  pretrained_weights: weights/UNet_best_miou.pth
 
 Proposed:
   backbone: Xception
