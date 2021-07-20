@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 import models
 
@@ -14,6 +13,7 @@ class UNet(nn.Module):
         self.encode3 = self.make_double_conv(128, 256)
         self.encode4 = self.make_double_conv(256, 512)
         self.encode5 = self.make_double_conv(512, 1024)
+        self.max_pool = nn.MaxPool2d(2)
 
         # Decoder
         self.upconv4 = nn.ConvTranspose2d(1024, 512, kernel_size=2, stride=2)
@@ -34,10 +34,10 @@ class UNet(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # Encoder
         encode1 = self.encode1(x)
-        encode2 = self.encode2(F.max_pool2d(encode1, 2))
-        encode3 = self.encode3(F.max_pool2d(encode2, 2))
-        encode4 = self.encode4(F.max_pool2d(encode3, 2))
-        x = self.encode5(F.max_pool2d(encode4, 2))
+        encode2 = self.encode2(self.max_pool(encode1))
+        encode3 = self.encode3(self.max_pool(encode2))
+        encode4 = self.encode4(self.max_pool(encode3))
+        x = self.encode5(self.max_pool(encode4))
 
         # Decoder
         x = self.decode4(torch.cat([self.upconv4(x), encode4], dim=1))

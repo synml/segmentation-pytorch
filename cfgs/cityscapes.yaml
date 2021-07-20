@@ -7,20 +7,19 @@ dataset:
 
 # Model definitions
 UNet:
-  batch_size: 16
+  batch_size: 8
   epoch: 100
   criterion:
     name: CrossEntropyLoss
   optimizer:
-    name: Adam
+    name: AdamW
     lr: 0.001
-    weight_decay: 0.00001
   scheduler:
     name: PolyLR
-    max_iter: 55800
+    max_iter: 18600
   augmentation:
     RandomCrop:
-      size: !!python/tuple [769, 769]
+      size: !!python/tuple [1024, 512]
     ColorJitter:
       brightness: 0.5
       contrast: 0.5
