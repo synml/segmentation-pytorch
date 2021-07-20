@@ -3,7 +3,7 @@ dataset:
   name: Cityscapes
   root: ../../data/cityscapes
   num_workers: 8
-  pin_memory: True
+  pin_memory: False
 
 # Model definitions
 AR_UNet:
