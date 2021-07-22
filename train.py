@@ -97,10 +97,6 @@ if __name__ == '__main__':
             iters = len(trainloader) * epoch + batch_idx
             images, targets = images.to(device), targets.to(device)
 
-            # Prevent lr_scheduler.step() issue
-            if ddp_enabled and batch_idx == 0:
-                torch.distributed.barrier()
-
             optimizer.zero_grad(set_to_none=True)
             with torch.cuda.amp.autocast(enabled=amp_enabled):
                 outputs = model(images)
