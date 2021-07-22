@@ -13,27 +13,24 @@ def decode_segmap_to_color_image(masks: torch.Tensor,
     if ignore_color is not None:
         ignore_color = ignore_color.to(device)
 
-    decoded_masks = []
-    for mask in masks:
-        r = mask.clone()
-        g = mask.clone()
-        b = mask.clone()
+    # 각 채널 별로 디코딩하기 위해 복사
+    r = masks.clone()
+    g = masks.clone()
+    b = masks.clone()
 
-        # Assign colors according to class for each channel (각 채널 별로 class에 따라 색상 대입)
-        for i in range(num_classes):
-            r[mask == i] = colormap[i, 0]
-            g[mask == i] = colormap[i, 1]
-            b[mask == i] = colormap[i, 2]
-        if ignore_index and ignore_color is not None:
-            r[mask == ignore_index] = ignore_color[0]
-            g[mask == ignore_index] = ignore_color[1]
-            b[mask == ignore_index] = ignore_color[2]
+    # Assign colors according to class for each channel (각 채널 별로 class에 따라 색상 대입)
+    for i in range(num_classes):
+        r[masks == i] = colormap[i, 0]
+        g[masks == i] = colormap[i, 1]
+        b[masks == i] = colormap[i, 2]
+    if ignore_index and ignore_color is not None:
+        r[masks == ignore_index] = ignore_color[0]
+        g[masks == ignore_index] = ignore_color[1]
+        b[masks == ignore_index] = ignore_color[2]
 
-        rgb = (r.unsqueeze(dim=0), g.unsqueeze(dim=0), b.unsqueeze(dim=0))
-        rgb = torch.vstack(rgb).to(torch.float32)
-        rgb /= 255
-        decoded_masks.append(rgb.unsqueeze(dim=0))
-    decoded_masks = torch.vstack(decoded_masks)
+    decoded_masks = (r.unsqueeze(dim=1), g.unsqueeze(dim=1), b.unsqueeze(dim=1))
+    decoded_masks = torch.cat(decoded_masks, dim=1).to(torch.float32)
+    decoded_masks /= 255
     return decoded_masks
 
 
