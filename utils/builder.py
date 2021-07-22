@@ -86,7 +86,9 @@ class Builder:
         if pretrained:
             pretrained_weights_path = self.cfg[cfg_model_name]['pretrained_weights']
             if os.path.isfile(pretrained_weights_path):
-                model.load_state_dict(torch.load(pretrained_weights_path))
+                state_dict = torch.load(pretrained_weights_path)
+                state_dict = utils.state_dict_converter.convert_ddp_state_dict(state_dict)
+                model.load_state_dict(state_dict)
             else:
                 print(f'FileNotFound: pretrained_weights ({cfg_model_name})')
         return model
