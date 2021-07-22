@@ -4,7 +4,7 @@ import torch
 
 
 class Evaluator:
-    def __init__(self, num_classes: int, device):
+    def __init__(self, num_classes: int, device: torch.device):
         self.confusion_matrix = torch.zeros((num_classes, num_classes), dtype=torch.int64, device=device)
         self.num_classes = num_classes
 

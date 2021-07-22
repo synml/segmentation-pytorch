@@ -1,5 +1,6 @@
 import os
 import platform
+from typing import Tuple
 
 import torch
 import torch.nn as nn
@@ -30,7 +31,7 @@ class Builder:
     def __init__(self, cfg: dict):
         self.cfg = cfg
 
-    def build_dataset(self, dataset_type: str):
+    def build_dataset(self, dataset_type: str) -> Tuple[torch.utils.data.Dataset, torch.utils.data.DataLoader]:
         cfg_dataset = self.cfg['dataset']
         root = cfg_dataset['root']
         batch_size = self.cfg[self.cfg['model']['name']]['batch_size']
@@ -64,7 +65,7 @@ class Builder:
                                                  num_workers=num_workers, pin_memory=pin_memory)
         return dataset, dataloader
 
-    def build_model(self, num_classes: int, pretrained=False) -> torch.nn.Module:
+    def build_model(self, num_classes: int, pretrained=False) -> nn.Module:
         cfg_model_name = self.cfg['model']['name']
 
         if cfg_model_name == 'UNet':

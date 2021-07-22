@@ -9,7 +9,13 @@ import tqdm
 import utils
 
 
-def evaluate(model, valloader, criterion, num_classes: int, amp_enabled: bool, ddp_enabled: bool, device):
+def evaluate(model: torch.nn.Module,
+             valloader: torch.utils.data.DataLoader,
+             criterion: torch.nn.Module,
+             num_classes: int,
+             amp_enabled: bool,
+             ddp_enabled: bool,
+             device: torch.device):
     model.eval()
 
     if ddp_enabled:
