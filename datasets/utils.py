@@ -1,22 +1,23 @@
 import matplotlib.pyplot as plt
-import numpy as np
 import torch
 import torchvision
 
 
-def decode_segmap_to_color_image(
-        masks: torch.Tensor,
-        colormap: np.ndarray,
-        num_classes: int,
-        ignore_index: int = None,
-        ignore_color: np.ndarray = None):
-    masks = masks.cpu().numpy()
+def decode_segmap_to_color_image(masks: torch.Tensor,
+                                 colormap: torch.Tensor,
+                                 num_classes: int,
+                                 device: torch.device,
+                                 ignore_index: int = None,
+                                 ignore_color: torch.Tensor = None):
+    colormap = colormap.to(device)
+    if ignore_color is not None:
+        ignore_color = ignore_color.to(device)
 
     decoded_masks = []
     for mask in masks:
-        r = mask.copy()
-        g = mask.copy()
-        b = mask.copy()
+        r = mask.clone()
+        g = mask.clone()
+        b = mask.clone()
 
         # Assign colors according to class for each channel (각 채널 별로 class에 따라 색상 대입)
         for i in range(num_classes):
@@ -28,12 +29,12 @@ def decode_segmap_to_color_image(
             g[mask == ignore_index] = ignore_color[1]
             b[mask == ignore_index] = ignore_color[2]
 
-        rgb = np.zeros((3, mask.shape[0], mask.shape[1]))
+        rgb = torch.zeros((3, mask.shape[0], mask.shape[1]), device=device)
         rgb[0, :, :] = r / 255.0
         rgb[1, :, :] = g / 255.0
         rgb[2, :, :] = b / 255.0
-        decoded_masks.append(rgb)
-    decoded_masks = torch.from_numpy(np.array(decoded_masks))
+        decoded_masks.append(rgb.unsqueeze(dim=0))
+    decoded_masks = torch.vstack(decoded_masks)
     return decoded_masks
 
 

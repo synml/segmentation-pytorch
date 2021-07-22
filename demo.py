@@ -44,7 +44,7 @@ if __name__ == '__main__':
     os.makedirs(result_dir, exist_ok=True)
     os.makedirs(groundtruth_dir, exist_ok=True)
     for images, targets in tqdm.tqdm(valloader, desc='Demo'):
-        images = images.to(device)
+        images, targets = images.to(device), targets.to(device)
 
         with torch.cuda.amp.autocast(enabled=amp_enabled):
             with torch.no_grad():
@@ -53,11 +53,9 @@ if __name__ == '__main__':
 
         if gt:
             targets = datasets.utils.decode_segmap_to_color_image(
-                targets, valset.colors, valset.num_classes, valset.ignore_index, valset.ignore_color
+                targets, valset.colors, valset.num_classes, device, valset.ignore_index, valset.ignore_color
             )
-        outputs = datasets.utils.decode_segmap_to_color_image(
-            outputs, valset.colors, valset.num_classes, valset.ignore_index, valset.ignore_color
-        )
+        outputs = datasets.utils.decode_segmap_to_color_image(outputs, valset.colors, valset.num_classes, device)
 
         # process per 1 batch
         for i in range(targets.shape[0]):
