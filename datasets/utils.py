@@ -29,10 +29,9 @@ def decode_segmap_to_color_image(masks: torch.Tensor,
             g[mask == ignore_index] = ignore_color[1]
             b[mask == ignore_index] = ignore_color[2]
 
-        rgb = torch.zeros((3, mask.shape[0], mask.shape[1]), device=device)
-        rgb[0, :, :] = r / 255.0
-        rgb[1, :, :] = g / 255.0
-        rgb[2, :, :] = b / 255.0
+        rgb = (r.unsqueeze(dim=0), g.unsqueeze(dim=0), b.unsqueeze(dim=0))
+        rgb = torch.vstack(rgb).to(torch.float32)
+        rgb /= 255.0
         decoded_masks.append(rgb.unsqueeze(dim=0))
     decoded_masks = torch.vstack(decoded_masks)
     return decoded_masks
