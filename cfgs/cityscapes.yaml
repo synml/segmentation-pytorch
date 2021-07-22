@@ -63,7 +63,7 @@ EAR_Net:
     gamma: 1
   optimizer:
     name: AdamW
-    lr: 0.001
+    lr: 0.005
   scheduler:
     name: PolyLR
     max_iter: 37200
