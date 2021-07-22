@@ -90,13 +90,16 @@ if __name__ == '__main__':
             break
         if ddp_enabled:
             trainloader.sampler.set_epoch(epoch)
-            torch.distributed.barrier()
         model.train()
 
         for batch_idx, (images, targets) in enumerate(tqdm.tqdm(trainloader, desc='Batch', leave=False,
                                                                 disable=False if local_rank == 0 else True)):
             iters = len(trainloader) * epoch + batch_idx
             images, targets = images.to(device), targets.to(device)
+
+            # Prevent lr_scheduler.step() issue
+            if ddp_enabled and batch_idx == 0:
+                torch.distributed.barrier()
 
             optimizer.zero_grad(set_to_none=True)
             with torch.cuda.amp.autocast(enabled=amp_enabled):
