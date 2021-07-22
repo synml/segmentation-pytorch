@@ -1,6 +1,5 @@
 from typing import Callable, List, Optional, Union
 
-import numpy as np
 import torch
 import torchvision
 
