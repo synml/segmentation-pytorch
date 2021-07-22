@@ -56,17 +56,17 @@ DeepLabV3plus:
 
 EAR_Net:
   batch_size: 6
-  epoch: 150
+  epoch: 120
   criterion:
     name: FocalLoss
     alpha: 1
     gamma: 1
   optimizer:
     name: AdamW
-    lr: 0.005
+    lr: 0.001
   scheduler:
     name: PolyLR
-    max_iter: 37200
+    max_iter: 29760
   augmentation:
     RandomCrop:
       size: !!python/tuple [1024, 512]
