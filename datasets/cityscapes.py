@@ -38,8 +38,6 @@ class Cityscapes(torchvision.datasets.Cityscapes):
                 colors.append(cityscapes_class.color)
                 num_classes += 1
 
-        colors = torch.as_tensor(colors)
-        ignore_color = torch.as_tensor(ignore_color)
         return class_names, test_ids, colors, num_classes, ignore_index, ignore_color
 
     def decode_segmap_to_test_id(self, masks: torch.Tensor):

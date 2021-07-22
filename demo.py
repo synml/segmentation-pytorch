@@ -54,8 +54,8 @@ if __name__ == '__main__':
 
         if gt:
             targets = datasets.utils.decode_segmap_to_color_image(targets, valset.colors, valset.num_classes,
-                                                                  device, valset.ignore_index, valset.ignore_color)
-        outputs = datasets.utils.decode_segmap_to_color_image(outputs, valset.colors, valset.num_classes, device)
+                                                                  valset.ignore_index, valset.ignore_color)
+        outputs = datasets.utils.decode_segmap_to_color_image(outputs, valset.colors, valset.num_classes)
 
         # process per 1 batch
         for i in range(targets.shape[0]):

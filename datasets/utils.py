@@ -1,18 +1,15 @@
+from typing import Union
+
 import matplotlib.pyplot as plt
 import torch
 import torchvision
 
 
 def decode_segmap_to_color_image(masks: torch.Tensor,
-                                 colormap: torch.Tensor,
+                                 colormap: Union[list, tuple],
                                  num_classes: int,
-                                 device: torch.device,
                                  ignore_index: int = None,
-                                 ignore_color: torch.Tensor = None):
-    colormap = colormap.to(device)
-    if ignore_color is not None:
-        ignore_color = ignore_color.to(device)
-
+                                 ignore_color: Union[list, tuple] = None):
     # 각 채널 별로 디코딩하기 위해 복사
     r = masks.clone()
     g = masks.clone()
@@ -20,9 +17,9 @@ def decode_segmap_to_color_image(masks: torch.Tensor,
 
     # Assign colors according to class for each channel (각 채널 별로 class에 따라 색상 대입)
     for i in range(num_classes):
-        r[masks == i] = colormap[i, 0]
-        g[masks == i] = colormap[i, 1]
-        b[masks == i] = colormap[i, 2]
+        r[masks == i] = colormap[i][0]
+        g[masks == i] = colormap[i][1]
+        b[masks == i] = colormap[i][2]
     if ignore_index and ignore_color is not None:
         r[masks == ignore_index] = ignore_color[0]
         g[masks == ignore_index] = ignore_color[1]
