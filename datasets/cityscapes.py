@@ -43,12 +43,8 @@ class Cityscapes(torchvision.datasets.Cityscapes):
         return class_names, test_ids, colors, num_classes, ignore_index, ignore_color
 
     def decode_segmap_to_test_id(self, masks: torch.Tensor):
-        masks = masks.cpu().numpy()
-
-        decoded_masks = []
-        for mask in masks:
-            for i in range(self.num_classes):
-                mask[mask == i] = self.test_ids[i]
-            decoded_masks.append(mask)
-        decoded_masks = torch.from_numpy(np.array(decoded_masks))
-        return decoded_masks
+        for i in range(self.num_classes):
+            masks[masks == i] = self.test_ids[i]
+        masks = masks.to(torch.float32)
+        masks /= 255
+        return masks
