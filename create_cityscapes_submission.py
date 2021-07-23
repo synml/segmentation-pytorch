@@ -34,7 +34,7 @@ if __name__ == '__main__':
 
     # Make result directories
     step = 0
-    result_dir = os.path.join('demo', model_name.lower())
+    result_dir = os.path.join('submission', model_name.lower())
     os.makedirs(result_dir, exist_ok=True)
     for city in cities:
         os.makedirs(os.path.join(result_dir, city), exist_ok=True)
