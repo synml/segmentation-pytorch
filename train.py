@@ -90,6 +90,7 @@ if __name__ == '__main__':
             break
         if ddp_enabled:
             trainloader.sampler.set_epoch(epoch)
+            torch.distributed.barrier()
         model.train()
 
         for batch_idx, (images, targets) in enumerate(tqdm.tqdm(trainloader, desc='Batch', leave=False,
