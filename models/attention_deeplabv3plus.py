@@ -93,9 +93,9 @@ class AttentionBlock(nn.Module):
     def forward(self, x: torch.Tensor, low_level_feature: torch.Tensor) -> torch.Tensor:
         ca_vector = self.channel_attention(x)
         sa_matrix = self.spatial_attention(low_level_feature)
-        out = x + low_level_feature
-        ca = out * ca_vector
-        sa = out * sa_matrix
+        f_add = x + low_level_feature
+        ca = f_add * ca_vector
+        sa = f_add * sa_matrix
         return ca + sa
 
 
@@ -120,9 +120,9 @@ class SpatialAttention(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        max_out = torch.max(x, dim=1, keepdim=True)[0]
-        avg_out = torch.mean(x, dim=1, keepdim=True)
-        x = torch.cat((max_out, avg_out), dim=1)
+        max_pool = torch.max(x, dim=1, keepdim=True)[0]
+        avg_pool = torch.mean(x, dim=1, keepdim=True)
+        x = torch.cat((max_pool, avg_pool), dim=1)
         x = self.conv(x)
         x = self.bn(x)
         x = self.sigmoid(x)
