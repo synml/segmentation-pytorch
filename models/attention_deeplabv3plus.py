@@ -95,7 +95,7 @@ class AttentionBlock(nn.Module):
     def __init__(self, in_channels: int):
         super(AttentionBlock, self).__init__()
         self.channel_attention = ChannelAttention(in_channels)
-        self.spatial_attention = SpatialAttention(in_channels)
+        self.spatial_attention = SpatialAttention()
 
     def forward(self, x: torch.Tensor, low_level_feature: torch.Tensor) -> torch.Tensor:
         ca_vector = self.channel_attention(x)
