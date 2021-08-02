@@ -18,7 +18,7 @@ AR_UNet:
     lr: 0.001
   scheduler:
     name: PolyLR
-    max_iter: 24800
+    max_iter: 74400
   augmentation:
     RandomCrop:
       size: !!python/tuple [1024, 512]
@@ -30,7 +30,7 @@ AR_UNet:
     RandomHorizontalFlip:
   pretrained_weights: weights/EAR_Net_best_miou.pth
 
-DeepLabV3plus:
+Attention_DeepLabv3plus:
   backbone: Xception
   output_stride: 16
   batch_size: 8
@@ -42,7 +42,7 @@ DeepLabV3plus:
     lr: 0.001
   scheduler:
     name: PolyLR
-    max_iter: 24800
+    max_iter: 37200
   augmentation:
     RandomCrop:
       size: !!python/tuple [769, 769]
@@ -52,7 +52,31 @@ DeepLabV3plus:
       saturation: 0.5
       hue: 0
     RandomHorizontalFlip:
-  pretrained_weights: weights/DeepLabV3plus_best_miou.pth
+  pretrained_weights: weights/Attention_DeepLabv3plus_best_miou.pth
+
+DeepLabv3plus:
+  backbone: Xception
+  output_stride: 16
+  batch_size: 8
+  epoch: 100
+  criterion:
+    name: CrossEntropyLoss
+  optimizer:
+    name: AdamW
+    lr: 0.001
+  scheduler:
+    name: PolyLR
+    max_iter: 37200
+  augmentation:
+    RandomCrop:
+      size: !!python/tuple [769, 769]
+    ColorJitter:
+      brightness: 0.5
+      contrast: 0.5
+      saturation: 0.5
+      hue: 0
+    RandomHorizontalFlip:
+  pretrained_weights: weights/DeepLabv3plus_best_miou.pth
 
 EAR_Net:
   batch_size: 6
@@ -88,7 +112,7 @@ UNet:
     lr: 0.001
   scheduler:
     name: PolyLR
-    max_iter: 18600
+    max_iter: 37200
   augmentation:
     RandomCrop:
       size: !!python/tuple [1024, 512]

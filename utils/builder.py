@@ -74,9 +74,13 @@ class Builder:
             model = models.ar_unet.AR_UNet(num_classes)
         elif cfg_model_name == 'EAR_Net':
             model = models.ear_net.EAR_Net(num_classes)
-        elif cfg_model_name == 'DeepLabV3plus':
-            model = models.deeplabv3plus.DeepLabV3plus(self.cfg[cfg_model_name]['backbone'],
+        elif cfg_model_name == 'DeepLabv3plus':
+            model = models.deeplabv3plus.DeepLabv3plus(self.cfg[cfg_model_name]['backbone'],
                                                        self.cfg[cfg_model_name]['output_stride'], num_classes)
+        elif cfg_model_name == 'Attention_DeepLabv3plus':
+            model = models.attention_deeplabv3plus.Attention_DeepLabv3plus(self.cfg[cfg_model_name]['backbone'],
+                                                                           self.cfg[cfg_model_name]['output_stride'],
+                                                                           num_classes)
         elif cfg_model_name == 'Proposed':
             model = models.proposed.Proposed(self.cfg[cfg_model_name]['backbone'],
                                              self.cfg[cfg_model_name]['output_stride'], num_classes)

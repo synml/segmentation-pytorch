@@ -10,9 +10,9 @@ import models.backbone
 import utils
 
 
-class DeepLabV3plus(nn.Module):
+class DeepLabv3plus(nn.Module):
     def __init__(self, backbone: str, output_stride: int, num_classes: int):
-        super(DeepLabV3plus, self).__init__()
+        super(DeepLabv3plus, self).__init__()
         self.low_level_feature = []
 
         # Backbone
@@ -92,5 +92,5 @@ class Decoder(nn.Module):
 
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = DeepLabV3plus('Xception', output_stride=16, num_classes=19).to(device)
+    model = DeepLabv3plus('Xception', output_stride=16, num_classes=19).to(device)
     models.test.test_model(model, (3, 512, 1024), device)
