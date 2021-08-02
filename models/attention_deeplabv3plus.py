@@ -83,6 +83,13 @@ class Decoder(nn.Module):
         x = self.classifier(x)
         return x
 
+    def make_compressor(self, in_channels: int, out_channels: int):
+        return nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True)
+        )
+
 
 class AttentionBlock(nn.Module):
     def __init__(self, in_channels: int):
