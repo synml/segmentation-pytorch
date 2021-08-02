@@ -120,7 +120,7 @@ class ChannelAttention(nn.Sequential):
 
 
 class SpatialAttention(nn.Module):
-    def __init__(self, kernel_size=7):
+    def __init__(self, kernel_size=3):
         super(SpatialAttention, self).__init__()
         self.conv = nn.Conv2d(2, 1, kernel_size, padding=kernel_size // 2, bias=False)
         self.bn = nn.BatchNorm2d(1)
