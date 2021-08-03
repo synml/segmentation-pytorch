@@ -73,11 +73,9 @@ class Decoder(nn.Module):
 
     def forward(self, x: torch.Tensor, low_level_feature: List[torch.Tensor]) -> torch.Tensor:
         low_level_feature1 = self.compress_low_level_feature1(low_level_feature.pop())
-        x = F.interpolate(x, size=low_level_feature1.size()[2:], mode='bilinear', align_corners=False)
         x = self.attention_block1(x, low_level_feature1)
 
         low_level_feature2 = self.compress_low_level_feature2(low_level_feature.pop())
-        x = F.interpolate(x, size=low_level_feature2.size()[2:], mode='bilinear', align_corners=False)
         x = self.attention_block2(x, low_level_feature2)
 
         x = self.classifier(x)
@@ -96,14 +94,21 @@ class AttentionBlock(nn.Module):
         super(AttentionBlock, self).__init__()
         self.channel_attention = ChannelAttention(in_channels)
         self.spatial_attention = SpatialAttention()
+        self.upsampling_conv = nn.Sequential(nn.Conv2d(256, 256, 3, padding=1, bias=False),
+                                             nn.BatchNorm2d(256),
+                                             nn.ReLU(inplace=True))
 
     def forward(self, x: torch.Tensor, low_level_feature: torch.Tensor) -> torch.Tensor:
         ca_vector = self.channel_attention(x)
         sa_matrix = self.spatial_attention(low_level_feature)
-        f_add = x + low_level_feature
-        ca = f_add * ca_vector
-        sa = f_add * sa_matrix
-        return ca + sa
+
+        x = F.interpolate(x, size=low_level_feature.size()[2:], mode='bilinear', align_corners=False)
+        x = self.upsampling_conv(x)
+
+        x += low_level_feature
+        x *= ca_vector
+        x *= sa_matrix
+        return x
 
 
 class ChannelAttention(nn.Sequential):
