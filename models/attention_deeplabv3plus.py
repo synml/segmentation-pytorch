@@ -96,7 +96,7 @@ class AttentionBlock(nn.Module):
         self.spatial_attention = SpatialAttention()
         self.upsampling_conv = nn.Sequential(nn.Conv2d(256, 256, 3, padding=1, bias=False),
                                              nn.BatchNorm2d(256),
-                                             nn.ReLU(inplace=True))
+                                             nn.ReLU())
 
     def forward(self, x: torch.Tensor, low_level_feature: torch.Tensor) -> torch.Tensor:
         ca_vector = self.channel_attention(x)
