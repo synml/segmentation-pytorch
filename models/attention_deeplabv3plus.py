@@ -60,15 +60,15 @@ class Decoder(nn.Module):
     def __init__(self, backbone: str, num_classes: int):
         super(Decoder, self).__init__()
         if backbone == 'ResNet101':
-            self.compress_low_level_feature1 = self.make_compressor(512, 256)
+            self.compress_low_level_feature1 = self.make_compressor(512, 64)
         elif backbone == 'Xception':
-            self.compress_low_level_feature1 = self.make_compressor(728, 256)
+            self.compress_low_level_feature1 = self.make_compressor(728, 64)
         else:
             raise NotImplementedError('Wrong backbone.')
 
-        self.compress_low_level_feature2 = self.make_compressor(256, 256)
-        self.attention_block1 = AttentionBlock(256)
-        self.attention_block2 = AttentionBlock(256)
+        self.compress_low_level_feature2 = self.make_compressor(256, 32)
+        self.attention_block1 = AttentionBlock(256, 64)
+        self.attention_block2 = AttentionBlock(256, 32)
         self.classifier = nn.Conv2d(256, num_classes, kernel_size=1)
 
     def forward(self, x: torch.Tensor, low_level_feature: List[torch.Tensor]) -> torch.Tensor:
@@ -85,18 +85,28 @@ class Decoder(nn.Module):
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False),
             nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True)
+            nn.ReLU()
         )
 
 
 class AttentionBlock(nn.Module):
-    def __init__(self, in_channels: int):
+    def __init__(self, in_channels: int, low_in_channels: int):
         super(AttentionBlock, self).__init__()
         self.channel_attention = ChannelAttention(in_channels)
         self.spatial_attention = SpatialAttention()
-        self.upsampling_conv = nn.Sequential(nn.Conv2d(256, 256, 3, padding=1, bias=False),
-                                             nn.BatchNorm2d(256),
+        self.upsampling_conv = nn.Sequential(nn.Conv2d(in_channels, in_channels, 3, padding=1, bias=False),
+                                             nn.BatchNorm2d(in_channels),
                                              nn.ReLU())
+        self.decoder = nn.Sequential(
+            nn.Conv2d(in_channels + low_in_channels, in_channels, kernel_size=3, stride=1, padding=1, bias=False),
+            nn.BatchNorm2d(in_channels),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Conv2d(in_channels, in_channels, kernel_size=3, stride=1, padding=1, bias=False),
+            nn.BatchNorm2d(in_channels),
+            nn.ReLU(),
+            nn.Dropout(0.1)
+        )
 
     def forward(self, x: torch.Tensor, low_level_feature: torch.Tensor) -> torch.Tensor:
         ca_vector = self.channel_attention(x)
@@ -105,9 +115,11 @@ class AttentionBlock(nn.Module):
         x = F.interpolate(x, size=low_level_feature.size()[2:], mode='bilinear', align_corners=False)
         x = self.upsampling_conv(x)
 
-        x += low_level_feature
         x *= ca_vector
         x *= sa_matrix
+
+        x = torch.cat((x, low_level_feature), dim=1)
+        x = self.decoder(x)
         return x
 
 
@@ -117,7 +129,7 @@ class ChannelAttention(nn.Sequential):
             nn.AdaptiveAvgPool2d(1),
             nn.Conv2d(in_channels, in_channels // reduction_ratio, 1, bias=False),
             nn.BatchNorm2d(in_channels // reduction_ratio),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(in_channels // reduction_ratio, in_channels, 1, bias=False),
             nn.BatchNorm2d(in_channels),
             nn.Sigmoid()
