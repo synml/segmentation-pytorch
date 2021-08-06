@@ -32,9 +32,11 @@ def evaluate(model: torch.nn.Module,
         images, targets = images.to(device), targets.to(device)
 
         with torch.cuda.amp.autocast(enabled=amp_enabled):
+            torch.cuda.synchronize()
             start_time = time.time()
             with torch.no_grad():
                 outputs = model(images)
+            torch.cuda.synchronize()
             inference_time += time.time() - start_time
 
             val_loss += criterion(outputs, targets)
