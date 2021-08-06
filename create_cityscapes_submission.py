@@ -15,7 +15,7 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # 1. Dataset
-    testset, testloader = builder.build_dataset('test')
+    testset, testloader = builder.build_dataset('test', device)
 
     # 2. Model
     model = builder.build_model(testset.num_classes, pretrained=True).to(device)
@@ -41,8 +41,6 @@ if __name__ == '__main__':
 
     # Save segmentation results
     for images, targets in tqdm.tqdm(testloader, desc='Create submission'):
-        images, targets = images.to(device), targets.to(device)
-
         with torch.cuda.amp.autocast(enabled=amp_enabled):
             with torch.no_grad():
                 outputs = model(images)

@@ -29,12 +29,12 @@ def evaluate(model: torch.nn.Module,
     inference_time = torch.zeros(1, device=device)
     val_loss = torch.zeros(1, device=device)
     for images, targets in tqdm.tqdm(valloader, desc='Eval', leave=False, disable=False if local_rank == 0 else True):
-        images, targets = images.to(device), targets.to(device)
-
         with torch.cuda.amp.autocast(enabled=amp_enabled):
+            torch.cuda.synchronize()
             start_time = time.time()
             with torch.no_grad():
                 outputs = model(images)
+            torch.cuda.synchronize()
             inference_time += time.time() - start_time
 
             val_loss += criterion(outputs, targets)
@@ -81,7 +81,7 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # 1. Dataset
-    valset, valloader = builder.build_dataset('val')
+    valset, valloader = builder.build_dataset('val', device)
 
     # 2. Model
     model = builder.build_model(valset.num_classes, pretrained=True).to(device)

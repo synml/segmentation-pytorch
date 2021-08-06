@@ -17,7 +17,7 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # 1. Dataset
-    valset, _ = builder.build_dataset('val')
+    valset, _ = builder.build_dataset('val', device)
 
     # 2. Model
     model = builder.build_model(valset.num_classes, pretrained=True).to(device)

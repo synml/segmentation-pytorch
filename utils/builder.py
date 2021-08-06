@@ -31,7 +31,8 @@ class Builder:
     def __init__(self, cfg: dict):
         self.cfg = cfg
 
-    def build_dataset(self, dataset_type: str, ddp_enabled=False) -> Tuple[torch.utils.data.Dataset, torch.utils.data.DataLoader]:
+    def build_dataset(self, dataset_type: str, device: torch.device, ddp_enabled=False)\
+            -> Tuple[torch.utils.data.Dataset, torch.utils.data.DataLoader]:
         cfg_dataset = self.cfg['dataset']
         root = cfg_dataset['root']
         batch_size = self.cfg[self.cfg['model']['name']]['batch_size']
@@ -40,11 +41,11 @@ class Builder:
         else:
             num_workers = self.cfg['dataset']['num_workers']
         if dataset_type == 'train':
-            transforms = datasets.transforms.Transforms(self.cfg, augmentation=True)
+            transforms = datasets.transforms.Transforms(self.cfg, device, augmentation=True)
             shuffle = True
             pin_memory = cfg_dataset['pin_memory']
         else:
-            transforms = datasets.transforms.Transforms(self.cfg)
+            transforms = datasets.transforms.Transforms(self.cfg, device)
             shuffle = False
             pin_memory = False
 
