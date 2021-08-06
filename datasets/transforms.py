@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Sequence, Tuple
 
 import numpy as np
 import torch
@@ -24,10 +24,10 @@ class Transforms:
                     compose_items.append(Resize(v['size']))
                 else:
                     raise NotImplementedError('Wrong augmentation.')
-            self.augmentation = torchvision.transforms.Compose(compose_items)
+            self.augmentation = torch.nn.Sequential(*compose_items)
 
         self.to_tensor = ToTensor()
-        self.normalize = Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        self.normalize = Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
 
     def __call__(self, image, target):
         data = {'image': image, 'target': target}
@@ -93,7 +93,7 @@ class Resize(torchvision.transforms.Resize):
 
 
 class Normalize(torchvision.transforms.Normalize):
-    def __init__(self, mean, std):
+    def __init__(self, mean: Sequence, std: Sequence):
         super(Normalize, self).__init__(mean, std)
 
     def forward(self, data: dict):

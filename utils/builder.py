@@ -31,7 +31,8 @@ class Builder:
     def __init__(self, cfg: dict):
         self.cfg = cfg
 
-    def build_dataset(self, dataset_type: str, ddp_enabled=False) -> Tuple[torch.utils.data.Dataset, torch.utils.data.DataLoader]:
+    def build_dataset(self, dataset_type: str, ddp_enabled=False) -> Tuple[torch.utils.data.Dataset,
+                                                                           torch.utils.data.DataLoader]:
         cfg_dataset = self.cfg['dataset']
         root = cfg_dataset['root']
         batch_size = self.cfg[self.cfg['model']['name']]['batch_size']
