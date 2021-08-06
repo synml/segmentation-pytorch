@@ -34,8 +34,8 @@ if __name__ == '__main__':
         device = torch.device('cpu')
 
     # 1. Dataset
-    trainset, trainloader = builder.build_dataset('train')
-    _, valloader = builder.build_dataset('val')
+    trainset, trainloader = builder.build_dataset('train', ddp_enabled)
+    _, valloader = builder.build_dataset('val', ddp_enabled)
 
     # 2. Model
     model = builder.build_model(trainset.num_classes).to(device)

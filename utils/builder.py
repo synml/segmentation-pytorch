@@ -31,7 +31,7 @@ class Builder:
     def __init__(self, cfg: dict):
         self.cfg = cfg
 
-    def build_dataset(self, dataset_type: str) -> Tuple[torch.utils.data.Dataset, torch.utils.data.DataLoader]:
+    def build_dataset(self, dataset_type: str, ddp_enabled=False) -> Tuple[torch.utils.data.Dataset, torch.utils.data.DataLoader]:
         cfg_dataset = self.cfg['dataset']
         root = cfg_dataset['root']
         batch_size = self.cfg[self.cfg['model']['name']]['batch_size']
@@ -56,7 +56,7 @@ class Builder:
             raise NotImplementedError('Wrong dataset name.')
 
         # Dataloader
-        if self.cfg['ddp_enabled']:
+        if ddp_enabled:
             sampler = torch.utils.data.DistributedSampler(dataset)
             shuffle = False
         else:
