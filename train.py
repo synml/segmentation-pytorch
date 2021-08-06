@@ -34,8 +34,8 @@ if __name__ == '__main__':
         device = torch.device('cpu')
 
     # 1. Dataset
-    trainset, trainloader = builder.build_dataset('train', device, ddp_enabled)
-    _, valloader = builder.build_dataset('val', device, ddp_enabled)
+    trainset, trainloader = builder.build_dataset('train', ddp_enabled)
+    _, valloader = builder.build_dataset('val', ddp_enabled)
 
     # 2. Model
     model = builder.build_model(trainset.num_classes).to(device)
@@ -96,6 +96,7 @@ if __name__ == '__main__':
         for batch_idx, (images, targets) in enumerate(tqdm.tqdm(trainloader, desc='Batch', leave=False,
                                                                 disable=False if local_rank == 0 else True)):
             iters = len(trainloader) * epoch + batch_idx
+            images, targets = images.to(device), targets.to(device)
 
             optimizer.zero_grad(set_to_none=True)
             with torch.cuda.amp.autocast(enabled=amp_enabled):

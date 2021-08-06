@@ -16,7 +16,7 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # 1. Dataset
-    valset, valloader = builder.build_dataset('val', device)
+    valset, valloader = builder.build_dataset('val')
 
     # 2. Model
     model = builder.build_model(valset.num_classes, pretrained=True).to(device)
@@ -45,6 +45,8 @@ if __name__ == '__main__':
     os.makedirs(result_dir, exist_ok=True)
     os.makedirs(groundtruth_dir, exist_ok=True)
     for images, targets in tqdm.tqdm(valloader, desc='Demo'):
+        images, targets = images.to(device), targets.to(device)
+
         with torch.cuda.amp.autocast(enabled=amp_enabled):
             with torch.no_grad():
                 outputs = model(images)
