@@ -24,7 +24,7 @@ class Transforms:
                     compose_items.append(Resize(v['size']))
                 else:
                     raise NotImplementedError('Wrong augmentation.')
-            self.augmentation = torch.nn.Sequential(*compose_items)
+            self.augmentation = torchvision.transforms.Compose(compose_items)
 
         self.to_tensor = ToTensor()
         self.normalize = Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
@@ -57,6 +57,16 @@ class ColorJitter(torchvision.transforms.ColorJitter):
                 data['image'] = F.adjust_saturation(data['image'], saturation_factor)
             elif fn_id == 3 and hue_factor is not None:
                 data['image'] = F.adjust_hue(data['image'], hue_factor)
+        return data
+
+
+class GaussianBlur(torchvision.transforms.GaussianBlur):
+    def __init__(self, kernel_size: int, sigma=(0.1, 2.0)):
+        super().__init__(kernel_size, sigma)
+
+    def forward(self, data: dict):
+        sigma = self.get_params(self.sigma[0], self.sigma[1])
+        data['image'] = F.gaussian_blur(data['image'], self.kernel_size, [sigma, sigma])
         return data
 
 
