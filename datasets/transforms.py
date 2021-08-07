@@ -31,7 +31,7 @@ class Transforms:
             self.augmentation = torchvision.transforms.Compose(compose_items)
 
         self.to_tensor = ToTensor()
-        self.normalize = Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
+        self.normalize = Normalize(cfg['dataset']['normalize_mean'], cfg['dataset']['normalize_std'])
 
     def __call__(self, image, target):
         data = {'image': image, 'target': target}
@@ -97,6 +97,12 @@ class RandomHorizontalFlip(torchvision.transforms.RandomHorizontalFlip):
 
 
 class RandomResizedCrop(torchvision.transforms.RandomResizedCrop):
+    """
+    1. ratio로 종횡비를 조절
+    2. scale로 면적의 일정 비율을 자름 (비율 단위: 면적, 길이가 아님!)
+    3. size로 최종 출력 크기 조절
+    """
+
     def __init__(self, size: Union[int, Sequence], scale: Tuple[float, float], ratio: Tuple[float, float]):
         super().__init__(size, scale, ratio)
 
