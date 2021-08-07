@@ -63,7 +63,7 @@ class ColorJitter(torchvision.transforms.ColorJitter):
 
 
 class GaussianBlur(torchvision.transforms.GaussianBlur):
-    def __init__(self, kernel_size: int, sigma=(0.1, 2.0)):
+    def __init__(self, kernel_size: int, sigma=Tuple[float, float]):
         super().__init__(kernel_size, sigma)
 
     def forward(self, data: dict):
