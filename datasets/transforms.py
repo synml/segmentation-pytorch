@@ -1,4 +1,4 @@
-from typing import Sequence, Tuple
+from typing import Sequence, Tuple, Union
 
 import numpy as np
 import torch
@@ -22,6 +22,8 @@ class Transforms:
                     compose_items.append(RandomCrop(v['size']))
                 elif k == 'RandomHorizontalFlip':
                     compose_items.append(RandomHorizontalFlip())
+                elif k == 'RandomResizedCrop':
+                    compose_items.append(RandomResizedCrop(v['size'], v['scale'], v['ratio']))
                 elif k == 'Resize':
                     compose_items.append(Resize(v['size']))
                 else:
@@ -44,7 +46,7 @@ class Transforms:
 
 class ColorJitter(torchvision.transforms.ColorJitter):
     def __init__(self, brightness: float, contrast: float, saturation: float, hue: float):
-        super(ColorJitter, self).__init__(brightness, contrast, saturation, hue)
+        super().__init__(brightness, contrast, saturation, hue)
 
     def forward(self, data: dict):
         fn_idx, brightness_factor, contrast_factor, saturation_factor, hue_factor = \
@@ -94,9 +96,24 @@ class RandomHorizontalFlip(torchvision.transforms.RandomHorizontalFlip):
         return data
 
 
+class RandomResizedCrop(torchvision.transforms.RandomResizedCrop):
+    def __init__(self, size: Union[int, Sequence], scale: Tuple[float, float], ratio: Tuple[float, float]):
+        super().__init__(size, scale, ratio)
+
+    def forward(self, data: dict):
+        data['target'].unsqueeze_(dim=0)
+
+        i, j, h, w = self.get_params(data['image'], self.scale, self.ratio)
+        data['image'] = F.resized_crop(data['image'], i, j, h, w, self.size, F.InterpolationMode.BILINEAR)
+        data['target'] = F.resized_crop(data['target'], i, j, h, w, self.size, F.InterpolationMode.NEAREST)
+
+        data['target'].squeeze_(dim=0)
+        return data
+
+
 class Resize(torchvision.transforms.Resize):
     def __init__(self, size: Tuple[int, int]):
-        super(Resize, self).__init__(size)
+        super().__init__(size)
 
     def forward(self, data: dict):
         data['image'] = F.resize(data['image'], self.size, F.InterpolationMode.BILINEAR)
@@ -106,7 +123,7 @@ class Resize(torchvision.transforms.Resize):
 
 class Normalize(torchvision.transforms.Normalize):
     def __init__(self, mean: Sequence, std: Sequence):
-        super(Normalize, self).__init__(mean, std)
+        super().__init__(mean, std)
 
     def forward(self, data: dict):
         data['image'] = F.normalize(data['image'], self.mean, self.std)
