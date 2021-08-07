@@ -20,7 +20,6 @@ AR_UNet:
     lr: 0.001
   scheduler:
     name: PolyLR
-    max_iter: 74400
   augmentation:
     RandomCrop:
       size: !!python/tuple [1024, 512]
@@ -44,7 +43,6 @@ Attention_DeepLabv3plus:
     lr: 0.001
   scheduler:
     name: PolyLR
-    max_iter: 18600
   augmentation:
     RandomCrop:
       size: !!python/tuple [769, 769]
@@ -68,7 +66,6 @@ DeepLabv3plus:
     lr: 0.001
   scheduler:
     name: PolyLR
-    max_iter: 18600
   augmentation:
     RandomCrop:
       size: !!python/tuple [769, 769]
@@ -92,7 +89,6 @@ EAR_Net:
     lr: 0.001
   scheduler:
     name: PolyLR
-    max_iter: 29760
   augmentation:
     RandomCrop:
       size: !!python/tuple [1024, 512]
@@ -114,7 +110,6 @@ UNet:
     lr: 0.001
   scheduler:
     name: PolyLR
-    max_iter: 18600
   augmentation:
     RandomCrop:
       size: !!python/tuple [1024, 512]
@@ -138,7 +133,6 @@ Proposed:
     lr: 0.001
   scheduler:
     name: PolyLR
-    max_iter: 18600
   augmentation:
     RandomCrop:
       size: !!python/tuple [769, 769]
