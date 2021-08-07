@@ -49,7 +49,7 @@ if __name__ == '__main__':
     # 3. Loss function, optimizer, lr scheduler, scaler
     criterion = builder.build_criterion(trainset.ignore_index)
     optimizer = builder.build_optimizer(model)
-    scheduler = builder.build_scheduler(optimizer)
+    scheduler = builder.build_scheduler(optimizer, len(trainloader) * cfg[model_name]['epoch'])
     scaler = torch.cuda.amp.GradScaler(enabled=amp_enabled)
 
     # Resume training at checkpoint
