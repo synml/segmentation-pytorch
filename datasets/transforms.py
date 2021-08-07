@@ -16,6 +16,8 @@ class Transforms:
             for k, v in cfg_augmentation.items():
                 if k == 'ColorJitter':
                     compose_items.append(ColorJitter(v['brightness'], v['contrast'], v['saturation'], v['hue']))
+                elif k == 'GaussianBlur':
+                    compose_items.append(GaussianBlur(v['kernel_size'], v['sigma']))
                 elif k == 'RandomCrop':
                     compose_items.append(RandomCrop(v['size']))
                 elif k == 'RandomHorizontalFlip':
