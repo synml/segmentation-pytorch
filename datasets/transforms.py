@@ -101,12 +101,24 @@ class RandomResizedCrop(torchvision.transforms.RandomResizedCrop):
     1. ratio로 종횡비를 조절
     2. scale로 면적의 일정 비율을 자름 (비율 단위: 면적, 길이가 아님!)
     3. size로 최종 출력 크기 조절
+    Args:
+        size: 최종 출력 크기
+        scale: 원본 이미지에서 자를 면적의 비율 (auto = (원본 이미지에 대한 size의 crop 비율, 1.0))
+        ratio: 자를 영역의 종횡비 (auto = size의 종횡비로 일치시킴)
     """
 
-    def __init__(self, size: Union[int, Sequence], scale: Tuple[float, float], ratio: Tuple[float, float]):
+    def __init__(
+        self, size: Union[int, Sequence], scale: Union[Tuple[float, float], str], ratio: Union[Tuple[float, float], str]
+    ):
+        if ratio == 'auto':
+            ratio = (size[1] / size[0], size[1] / size[0])
+
         super().__init__(size, scale, ratio)
 
     def forward(self, data: dict):
+        if self.scale == 'auto':
+            self.scale = ((self.size[0] * self.size[1]) / (data['target'].size()[-2] * data['target'].size()[-1]), 1.0)
+
         data['target'].unsqueeze_(dim=0)
 
         i, j, h, w = self.get_params(data['image'], self.scale, self.ratio)
