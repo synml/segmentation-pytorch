@@ -25,9 +25,8 @@ AR_UNet:
       size: !!python/tuple [512, 1024]
       scale: auto
       ratio: auto
-    GaussianBlur:
-      kernel_size: 3
-      sigma: !!python/tuple [0.1, 2.0]
+    RandomAdjustSharpness:
+      sharpness_factor: 2
     ColorJitter:
       brightness: 0.5
       contrast: 0.5
@@ -53,9 +52,8 @@ Attention_DeepLabv3plus:
       size: !!python/tuple [769, 769]
       scale: auto
       ratio: auto
-    GaussianBlur:
-      kernel_size: 3
-      sigma: !!python/tuple [0.1, 2.0]
+    RandomAdjustSharpness:
+      sharpness_factor: 2
     ColorJitter:
       brightness: 0.5
       contrast: 0.5
@@ -81,9 +79,8 @@ DeepLabv3plus:
       size: !!python/tuple [769, 769]
       scale: auto
       ratio: auto
-    GaussianBlur:
-      kernel_size: 3
-      sigma: !!python/tuple [0.1, 2.0]
+    RandomAdjustSharpness:
+      sharpness_factor: 2
     ColorJitter:
       brightness: 0.5
       contrast: 0.5
@@ -109,9 +106,8 @@ EAR_Net:
       size: !!python/tuple [512, 1024]
       scale: auto
       ratio: auto
-    GaussianBlur:
-      kernel_size: 3
-      sigma: !!python/tuple [0.1, 2.0]
+    RandomAdjustSharpness:
+      sharpness_factor: 2
     ColorJitter:
       brightness: 0.5
       contrast: 0.5
@@ -135,9 +131,8 @@ UNet:
       size: !!python/tuple [512, 1024]
       scale: auto
       ratio: auto
-    GaussianBlur:
-      kernel_size: 3
-      sigma: !!python/tuple [0.1, 2.0]
+    RandomAdjustSharpness:
+      sharpness_factor: 2
     ColorJitter:
       brightness: 0.5
       contrast: 0.5
@@ -163,9 +158,8 @@ Proposed:
       size: !!python/tuple [ 769, 769 ]
       scale: auto
       ratio: auto
-    GaussianBlur:
-      kernel_size: 3
-      sigma: !!python/tuple [ 0.1, 2.0 ]
+    RandomAdjustSharpness:
+      sharpness_factor: 2
     ColorJitter:
       brightness: 0.5
       contrast: 0.5
