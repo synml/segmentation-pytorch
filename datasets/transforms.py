@@ -18,6 +18,8 @@ class Transforms:
                     compose_items.append(ColorJitter(v['brightness'], v['contrast'], v['saturation'], v['hue']))
                 elif k == 'GaussianBlur':
                     compose_items.append(GaussianBlur(v['kernel_size'], v['sigma']))
+                elif k == 'RandomAdjustSharpness':
+                    compose_items.append(RandomAdjustSharpness(v['sharpness_factor']))
                 elif k == 'RandomCrop':
                     compose_items.append(RandomCrop(v['size']))
                 elif k == 'RandomHorizontalFlip':
@@ -71,6 +73,16 @@ class GaussianBlur(torchvision.transforms.GaussianBlur):
     def forward(self, data: dict):
         sigma = self.get_params(self.sigma[0], self.sigma[1])
         data['image'] = F.gaussian_blur(data['image'], self.kernel_size, [sigma, sigma])
+        return data
+
+
+class RandomAdjustSharpness(torchvision.transforms.RandomAdjustSharpness):
+    def __init__(self, sharpness_factor: float):
+        super(RandomAdjustSharpness, self).__init__(sharpness_factor)
+
+    def forward(self, data: dict):
+        if torch.rand(1).item() < self.p:
+            data['image'] = F.adjust_sharpness(data['image'], self.sharpness_factor)
         return data
 
 
