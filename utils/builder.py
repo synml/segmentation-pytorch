@@ -60,6 +60,7 @@ class Builder:
         if ddp_enabled:
             sampler = torch.utils.data.DistributedSampler(dataset)
             shuffle = False
+            pin_memory = False
         else:
             sampler = None
         dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, sampler=sampler,

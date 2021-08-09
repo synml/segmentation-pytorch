@@ -3,7 +3,7 @@ dataset:
   name: Cityscapes
   root: ../../data/cityscapes
   num_workers: 8
-  pin_memory: False
+  pin_memory: True
   normalize_mean: !!python/tuple [0.28689554, 0.32513303, 0.28389177]
   normalize_std: !!python/tuple [0.18696375, 0.19017339, 0.18720214]
 
