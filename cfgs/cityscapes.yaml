@@ -21,8 +21,13 @@ AR_UNet:
   scheduler:
     name: PolyLR
   augmentation:
-    RandomCrop:
-      size: !!python/tuple [1024, 512]
+    RandomResizedCrop:
+      size: !!python/tuple [512, 1024]
+      scale: auto
+      ratio: auto
+    GaussianBlur:
+      kernel_size: 3
+      sigma: !!python/tuple [0.1, 2.0]
     ColorJitter:
       brightness: 0.5
       contrast: 0.5
@@ -44,8 +49,13 @@ Attention_DeepLabv3plus:
   scheduler:
     name: PolyLR
   augmentation:
-    RandomCrop:
+    RandomResizedCrop:
       size: !!python/tuple [769, 769]
+      scale: auto
+      ratio: auto
+    GaussianBlur:
+      kernel_size: 3
+      sigma: !!python/tuple [0.1, 2.0]
     ColorJitter:
       brightness: 0.5
       contrast: 0.5
@@ -67,8 +77,13 @@ DeepLabv3plus:
   scheduler:
     name: PolyLR
   augmentation:
-    RandomCrop:
+    RandomResizedCrop:
       size: !!python/tuple [769, 769]
+      scale: auto
+      ratio: auto
+    GaussianBlur:
+      kernel_size: 3
+      sigma: !!python/tuple [0.1, 2.0]
     ColorJitter:
       brightness: 0.5
       contrast: 0.5
@@ -90,8 +105,13 @@ EAR_Net:
   scheduler:
     name: PolyLR
   augmentation:
-    RandomCrop:
-      size: !!python/tuple [1024, 512]
+    RandomResizedCrop:
+      size: !!python/tuple [512, 1024]
+      scale: auto
+      ratio: auto
+    GaussianBlur:
+      kernel_size: 3
+      sigma: !!python/tuple [0.1, 2.0]
     ColorJitter:
       brightness: 0.5
       contrast: 0.5
@@ -111,8 +131,13 @@ UNet:
   scheduler:
     name: PolyLR
   augmentation:
-    RandomCrop:
-      size: !!python/tuple [1024, 512]
+    RandomResizedCrop:
+      size: !!python/tuple [512, 1024]
+      scale: auto
+      ratio: auto
+    GaussianBlur:
+      kernel_size: 3
+      sigma: !!python/tuple [0.1, 2.0]
     ColorJitter:
       brightness: 0.5
       contrast: 0.5
@@ -134,8 +159,13 @@ Proposed:
   scheduler:
     name: PolyLR
   augmentation:
-    RandomCrop:
-      size: !!python/tuple [769, 769]
+    RandomResizedCrop:
+      size: !!python/tuple [ 769, 769 ]
+      scale: auto
+      ratio: auto
+    GaussianBlur:
+      kernel_size: 3
+      sigma: !!python/tuple [ 0.1, 2.0 ]
     ColorJitter:
       brightness: 0.5
       contrast: 0.5
