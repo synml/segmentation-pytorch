@@ -31,9 +31,6 @@ default_cfgs = {
     'efficientnetv2_l': _cfg(
         url='https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-effv2-weights/tf_efficientnetv2_l-d664b728.pth',
         input_size=(3, 384, 384), test_input_size=(3, 480, 480), pool_size=(12, 12), crop_pct=1.0),
-    'efficientnetv2_xl': _cfg(
-        url='',
-        input_size=(3, 384, 384), test_input_size=(3, 512, 512), pool_size=(12, 12), crop_pct=1.0),
 }
 
 
@@ -92,53 +89,6 @@ def _create_effnet(variant, pretrained=False, **kwargs):
         pretrained_strict=True,
         kwargs_filter=None,
         **kwargs)
-    return model
-
-
-def _gen_efficientnet(variant, channel_multiplier=1.0, depth_multiplier=1.0, pretrained=False, **kwargs):
-    """Creates an EfficientNet model.
-
-    Ref impl: https://github.com/tensorflow/tpu/blob/master/models/official/efficientnet/efficientnet_model.py
-    Paper: https://arxiv.org/abs/1905.11946
-
-    EfficientNet params
-    name: (channel_multiplier, depth_multiplier, resolution, dropout_rate)
-    'efficientnet-b0': (1.0, 1.0, 224, 0.2),
-    'efficientnet-b1': (1.0, 1.1, 240, 0.2),
-    'efficientnet-b2': (1.1, 1.2, 260, 0.3),
-    'efficientnet-b3': (1.2, 1.4, 300, 0.3),
-    'efficientnet-b4': (1.4, 1.8, 380, 0.4),
-    'efficientnet-b5': (1.6, 2.2, 456, 0.4),
-    'efficientnet-b6': (1.8, 2.6, 528, 0.5),
-    'efficientnet-b7': (2.0, 3.1, 600, 0.5),
-    'efficientnet-b8': (2.2, 3.6, 672, 0.5),
-    'efficientnet-l2': (4.3, 5.3, 800, 0.5),
-
-    Args:
-      channel_multiplier: multiplier to number of channels per layer
-      depth_multiplier: multiplier to number of repeats per stage
-
-    """
-    arch_def = [
-        ['ds_r1_k3_s1_e1_c16_se0.25'],
-        ['ir_r2_k3_s2_e6_c24_se0.25'],
-        ['ir_r2_k5_s2_e6_c40_se0.25'],
-        ['ir_r3_k3_s2_e6_c80_se0.25'],
-        ['ir_r3_k5_s1_e6_c112_se0.25'],
-        ['ir_r4_k5_s2_e6_c192_se0.25'],
-        ['ir_r1_k3_s1_e6_c320_se0.25'],
-    ]
-    round_chs_fn = partial(round_channels, multiplier=channel_multiplier)
-    model_kwargs = dict(
-        block_args=decode_arch_def(arch_def, depth_multiplier),
-        num_features=round_chs_fn(1280),
-        stem_size=32,
-        round_chs_fn=round_chs_fn,
-        act_layer=resolve_act_layer(kwargs, 'swish'),
-        norm_layer=partial(nn.BatchNorm2d, **resolve_bn_args(kwargs)),
-        **kwargs,
-    )
-    model = _create_effnet(variant, pretrained, **model_kwargs)
     return model
 
 
@@ -241,116 +191,6 @@ def _gen_efficientnetv2_l(variant, channel_multiplier=1.0, depth_multiplier=1.0,
     return model
 
 
-def _gen_efficientnetv2_xl(variant, channel_multiplier=1.0, depth_multiplier=1.0, pretrained=False, **kwargs):
-    """ Creates an EfficientNet-V2 Xtra-Large model
-
-    Ref impl: https://github.com/google/automl/tree/master/efficientnetv2
-    Paper: `EfficientNetV2: Smaller Models and Faster Training` - https://arxiv.org/abs/2104.00298
-    """
-
-    arch_def = [
-        ['cn_r4_k3_s1_e1_c32_skip'],
-        ['er_r8_k3_s2_e4_c64'],
-        ['er_r8_k3_s2_e4_c96'],
-        ['ir_r16_k3_s2_e4_c192_se0.25'],
-        ['ir_r24_k3_s1_e6_c256_se0.25'],
-        ['ir_r32_k3_s2_e6_c512_se0.25'],
-        ['ir_r8_k3_s1_e6_c640_se0.25'],
-    ]
-
-    model_kwargs = dict(
-        block_args=decode_arch_def(arch_def, depth_multiplier),
-        num_features=1280,
-        stem_size=32,
-        round_chs_fn=partial(round_channels, multiplier=channel_multiplier),
-        norm_layer=partial(nn.BatchNorm2d, **resolve_bn_args(kwargs)),
-        act_layer=resolve_act_layer(kwargs, 'silu'),
-        **kwargs,
-    )
-    model = _create_effnet(variant, pretrained, **model_kwargs)
-    return model
-
-
-def efficientnet_b0(pretrained=False, **kwargs):
-    """ EfficientNet-B0 """
-    # NOTE for train, drop_rate should be 0.2, drop_path_rate should be 0.2
-    model = _gen_efficientnet(
-        'efficientnet_b0', channel_multiplier=1.0, depth_multiplier=1.0, pretrained=pretrained, **kwargs)
-    return model
-
-
-def efficientnet_b1(pretrained=False, **kwargs):
-    """ EfficientNet-B1 """
-    # NOTE for train, drop_rate should be 0.2, drop_path_rate should be 0.2
-    model = _gen_efficientnet(
-        'efficientnet_b1', channel_multiplier=1.0, depth_multiplier=1.1, pretrained=pretrained, **kwargs)
-    return model
-
-
-def efficientnet_b2(pretrained=False, **kwargs):
-    """ EfficientNet-B2 """
-    # NOTE for train, drop_rate should be 0.3, drop_path_rate should be 0.2
-    model = _gen_efficientnet(
-        'efficientnet_b2', channel_multiplier=1.1, depth_multiplier=1.2, pretrained=pretrained, **kwargs)
-    return model
-
-
-def efficientnet_b3(pretrained=False, **kwargs):
-    """ EfficientNet-B3 """
-    # NOTE for train, drop_rate should be 0.3, drop_path_rate should be 0.2
-    model = _gen_efficientnet(
-        'efficientnet_b3', channel_multiplier=1.2, depth_multiplier=1.4, pretrained=pretrained, **kwargs)
-    return model
-
-
-def efficientnet_b4(pretrained=False, **kwargs):
-    """ EfficientNet-B4 """
-    # NOTE for train, drop_rate should be 0.4, drop_path_rate should be 0.2
-    model = _gen_efficientnet(
-        'efficientnet_b4', channel_multiplier=1.4, depth_multiplier=1.8, pretrained=pretrained, **kwargs)
-    return model
-
-
-def efficientnet_b5(pretrained=False, **kwargs):
-    """ EfficientNet-B5 """
-    # NOTE for train, drop_rate should be 0.4, drop_path_rate should be 0.2
-    model = _gen_efficientnet(
-        'efficientnet_b5', channel_multiplier=1.6, depth_multiplier=2.2, pretrained=pretrained, **kwargs)
-    return model
-
-
-def efficientnet_b6(pretrained=False, **kwargs):
-    """ EfficientNet-B6 """
-    # NOTE for train, drop_rate should be 0.5, drop_path_rate should be 0.2
-    model = _gen_efficientnet(
-        'efficientnet_b6', channel_multiplier=1.8, depth_multiplier=2.6, pretrained=pretrained, **kwargs)
-    return model
-
-
-def efficientnet_b7(pretrained=False, **kwargs):
-    """ EfficientNet-B7 """
-    # NOTE for train, drop_rate should be 0.5, drop_path_rate should be 0.2
-    model = _gen_efficientnet(
-        'efficientnet_b7', channel_multiplier=2.0, depth_multiplier=3.1, pretrained=pretrained, **kwargs)
-    return model
-
-
-def efficientnet_b8(pretrained=False, **kwargs):
-    """ EfficientNet-B8 """
-    # NOTE for train, drop_rate should be 0.5, drop_path_rate should be 0.2
-    model = _gen_efficientnet(
-        'efficientnet_b8', channel_multiplier=2.2, depth_multiplier=3.6, pretrained=pretrained, **kwargs)
-    return model
-
-
-def efficientnet_l2(pretrained=False, **kwargs):
-    """ EfficientNet-L2."""
-    # NOTE for train, drop_rate should be 0.5, drop_path_rate should be 0.2
-    model = _gen_efficientnet(
-        'efficientnet_l2', channel_multiplier=4.3, depth_multiplier=5.3, pretrained=pretrained, **kwargs)
-    return model
-
-
 def efficientnetv2_s(pretrained=False, **kwargs):
     """ EfficientNet-V2 Small. """
     model = _gen_efficientnetv2_s('efficientnetv2_s', pretrained=pretrained, **kwargs)
@@ -366,12 +206,6 @@ def efficientnetv2_m(pretrained=False, **kwargs):
 def efficientnetv2_l(pretrained=False, **kwargs):
     """ EfficientNet-V2 Large. """
     model = _gen_efficientnetv2_l('efficientnetv2_l', pretrained=pretrained, **kwargs)
-    return model
-
-
-def efficientnetv2_xl(pretrained=False, **kwargs):
-    """ EfficientNet-V2 Xtra-Large. """
-    model = _gen_efficientnetv2_xl('efficientnetv2_xl', pretrained=pretrained, **kwargs)
     return model
 
 
