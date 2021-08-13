@@ -6,7 +6,6 @@ import torch.nn as nn
 from .efficientnet_blocks import SqueezeExcite
 from .efficientnet_builder import EfficientNetBuilder, decode_arch_def, round_channels,\
     resolve_bn_args, resolve_act_layer, build_model_with_cfg
-from .layers import create_conv2d
 
 import models
 
@@ -63,7 +62,7 @@ class EfficientNet(nn.Module):
         # Stem
         if not fix_stem:
             stem_size = round_chs_fn(stem_size)
-        self.conv_stem = create_conv2d(in_chans, stem_size, 3, stride=2, padding=pad_type)
+        self.conv_stem = nn.Conv2d(in_chans, stem_size, 3, stride=2, padding=1, bias=False)
         self.bn1 = norm_layer(stem_size)
         self.act1 = act_layer(inplace=True)
 
