@@ -3,8 +3,8 @@ from functools import partial
 import torch
 import torch.nn as nn
 
-from .efficientnet_blocks import SqueezeExcite
-from .efficientnet_builder import EfficientNetBuilder, decode_arch_def, round_channels,\
+from models.backbone.efficientnet_blocks import SqueezeExcite
+from models.backbone.efficientnet_builder import EfficientNetBuilder, decode_arch_def, round_channels,\
     resolve_bn_args, resolve_act_layer, build_model_with_cfg
 
 import models
