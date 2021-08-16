@@ -1,20 +1,20 @@
-""" EfficientNet, MobileNetV3, etc Builder
-
-Assembles EfficieNet and related network feature blocks from string definitions.
-Handles stride, dilation calculations, and selects feature extraction points.
-
-Hacked together by / Copyright 2020 Ross Wightman
-"""
-import logging
 import math
 import re
 from copy import deepcopy
 from functools import partial
 
-from .efficientnet_blocks import *
-from .layers import CondConv2d, get_condconv_initializer, get_act_layer, get_attn, make_divisible
+import torch.nn as nn
 
-_logger = logging.getLogger(__name__)
+import models
+
+
+def make_divisible(v, divisor=8, min_value=None, round_limit=.9):
+    min_value = min_value or divisor
+    new_v = max(min_value, int(v + divisor / 2) // divisor * divisor)
+    # Make sure that round down does not go down by more than 10%.
+    if new_v < round_limit * v:
+        new_v += divisor
+    return new_v
 
 
 def round_channels(channels, multiplier=1.0, divisor=8, channel_min=None, round_limit=0.9):
@@ -22,11 +22,6 @@ def round_channels(channels, multiplier=1.0, divisor=8, channel_min=None, round_
     if not multiplier:
         return channels
     return make_divisible(channels * multiplier, divisor, channel_min, round_limit=round_limit)
-
-
-def _log_info_if(msg, condition):
-    if condition:
-        _logger.info(msg)
 
 
 def _parse_ksize(ss):
@@ -73,23 +68,6 @@ def _decode_block_str(block_str):
             skip = False  # force no skip connection
         elif op == 'skip':
             skip = True  # force a skip connection
-        elif op.startswith('n'):
-            # activation fn
-            key = op[0]
-            v = op[1:]
-            if v == 're':
-                value = get_act_layer('relu')
-            elif v == 'r6':
-                value = get_act_layer('relu6')
-            elif v == 'hs':
-                value = get_act_layer('hard_swish')
-            elif v == 'sw':
-                value = get_act_layer('swish')  # aka SiLU
-            elif v == 'mi':
-                value = get_act_layer('mish')
-            else:
-                continue
-            options[key] = value
         else:
             # all numeric options
             splits = re.split(r'(\d.*)', op)
@@ -223,36 +201,17 @@ def decode_arch_def(arch_def, depth_multiplier=1.0, depth_trunc='ceil', experts_
 
 
 class EfficientNetBuilder:
-    """ Build Trunk Blocks
-
-    This ended up being somewhat of a cross between
-    https://github.com/tensorflow/tpu/blob/master/models/official/mnasnet/mnasnet_models.py
-    and
-    https://github.com/facebookresearch/maskrcnn-benchmark/blob/master/maskrcnn_benchmark/modeling/backbone/fbnet_builder.py
-
-    """
-    def __init__(self, output_stride=32, pad_type='', round_chs_fn=round_channels, se_from_exp=False,
-                 act_layer=None, norm_layer=None, se_layer=None, drop_path_rate=0., feature_location=''):
+    def __init__(self, output_stride=32):
         self.output_stride = output_stride
-        self.pad_type = pad_type
-        self.round_chs_fn = round_chs_fn
-        self.se_from_exp = se_from_exp  # calculate se channel reduction from expanded (mid) chs
-        self.act_layer = act_layer
-        self.norm_layer = norm_layer
-        self.se_layer = get_attn(se_layer)
-        try:
-            self.se_layer(8, rd_ratio=1.0)  # test if attn layer accepts rd_ratio arg
-            self.se_has_ratio = True
-        except TypeError:
-            self.se_has_ratio = False
-        self.drop_path_rate = drop_path_rate
-        if feature_location == 'depthwise':
-            # old 'depthwise' mode renamed 'expansion' to match TF impl, old expansion mode didn't make sense
-            _logger.warning("feature_location=='depthwise' is deprecated, using 'expansion'")
-            feature_location = 'expansion'
-        self.feature_location = feature_location
-        assert feature_location in ('bottleneck', 'expansion', '')
-        self.verbose = _DEBUG_BUILDER
+        self.pad_type = ''
+        self.round_chs_fn = round_channels
+        self.se_from_exp = False  # calculate se channel reduction from expanded (mid) chs
+        self.act_layer = nn.SiLU
+        self.norm_layer = nn.BatchNorm2d
+        self.se_layer = models.backbone.efficientnet_blocks.SqueezeExcite
+        self.se_has_ratio = True
+        self.drop_path_rate = 0.0
+        self.feature_location = ''
 
         # state updated during build, consumed by model
         self.in_chs = None
@@ -284,17 +243,11 @@ class EfficientNetBuilder:
                     ba['se_layer'] = self.se_layer
 
         if bt == 'ir':
-            _log_info_if('  InvertedResidual {}, Args: {}'.format(block_idx, str(ba)), self.verbose)
-            block = CondConvResidual(**ba) if ba.get('num_experts', 0) else InvertedResidual(**ba)
-        elif bt == 'ds' or bt == 'dsa':
-            _log_info_if('  DepthwiseSeparable {}, Args: {}'.format(block_idx, str(ba)), self.verbose)
-            block = DepthwiseSeparableConv(**ba)
+            block = models.backbone.efficientnet_blocks.InvertedResidual(**ba)
         elif bt == 'er':
-            _log_info_if('  EdgeResidual {}, Args: {}'.format(block_idx, str(ba)), self.verbose)
-            block = EdgeResidual(**ba)
+            block = models.backbone.efficientnet_blocks.EdgeResidual(**ba)
         elif bt == 'cn':
-            _log_info_if('  ConvBnAct {}, Args: {}'.format(block_idx, str(ba)), self.verbose)
-            block = ConvBnAct(**ba)
+            block = models.backbone.efficientnet_blocks.ConvBnAct(**ba)
         else:
             assert False, 'Uknkown block type (%s) while building model.' % bt
 
@@ -310,7 +263,6 @@ class EfficientNetBuilder:
         Return:
              List of block stacks (each stack wrapped in nn.Sequential)
         """
-        _log_info_if('Building model trunk with %d stages...' % len(model_block_args), self.verbose)
         self.in_chs = in_chs
         total_block_count = sum([len(x) for x in model_block_args])
         total_block_idx = 0
@@ -327,14 +279,12 @@ class EfficientNetBuilder:
         # outer list of block_args defines the stacks
         for stack_idx, stack_args in enumerate(model_block_args):
             last_stack = stack_idx + 1 == len(model_block_args)
-            _log_info_if('Stack: {}'.format(stack_idx), self.verbose)
             assert isinstance(stack_args, list)
 
             blocks = []
             # each stack (stage of blocks) contains a list of block arguments
             for block_idx, block_args in enumerate(stack_args):
                 last_block = block_idx + 1 == len(stack_args)
-                _log_info_if(' Block: {}'.format(block_idx), self.verbose)
 
                 assert block_args['stride'] in (1, 2)
                 if block_idx >= 1:   # only the first block in any stack can have a stride > 1
@@ -352,8 +302,6 @@ class EfficientNetBuilder:
                     if next_output_stride > self.output_stride:
                         next_dilation = current_dilation * block_args['stride']
                         block_args['stride'] = 1
-                        _log_info_if('  Converting stride to dilation to maintain output_stride=={}'.format(
-                            self.output_stride), self.verbose)
                     else:
                         current_stride = next_output_stride
                 block_args['dilation'] = current_dilation
