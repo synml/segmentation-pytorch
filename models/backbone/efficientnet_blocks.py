@@ -1,13 +1,26 @@
-""" EfficientNet, MobileNetV3, etc Blocks
-
-Hacked together by / Copyright 2020 Ross Wightman
-"""
-
 import torch
 import torch.nn as nn
-from torch.nn import functional as F
+import models
 
-from .layers import create_conv2d, drop_path, make_divisible, create_act_layer
+
+def drop_path(x, drop_prob: float = 0., training: bool = False):
+    """Drop paths (Stochastic Depth) per sample (when applied in main path of residual blocks).
+
+    This is the same as the DropConnect impl I created for EfficientNet, etc networks, however,
+    the original name is misleading as 'Drop Connect' is a different form of dropout in a separate paper...
+    See discussion: https://github.com/tensorflow/tpu/issues/494#issuecomment-532968956 ... I've opted for
+    changing the layer and argument names to 'drop path' rather than mix DropConnect as a layer name and use
+    'survival rate' as the argument.
+
+    """
+    if drop_prob == 0. or not training:
+        return x
+    keep_prob = 1 - drop_prob
+    shape = (x.shape[0],) + (1,) * (x.ndim - 1)  # work with diff dim tensors, not just 2D ConvNets
+    random_tensor = keep_prob + torch.rand(shape, dtype=x.dtype, device=x.device)
+    random_tensor.floor_()  # binarize
+    output = x.div(keep_prob) * random_tensor
+    return output
 
 
 class SqueezeExcite(nn.Module):
@@ -30,10 +43,10 @@ class SqueezeExcite(nn.Module):
             rd_round_fn = rd_round_fn or round
             rd_channels = rd_round_fn(in_chs * rd_ratio)
         act_layer = force_act_layer or act_layer
-        self.conv_reduce = nn.Conv2d(in_chs, rd_channels, 1, bias=True)
-        self.act1 = create_act_layer(act_layer, inplace=True)
-        self.conv_expand = nn.Conv2d(rd_channels, in_chs, 1, bias=True)
-        self.gate = create_act_layer(gate_layer)
+        self.conv_reduce = nn.Conv2d(in_chs, rd_channels, 1)
+        self.act1 = act_layer()
+        self.conv_expand = nn.Conv2d(rd_channels, in_chs, 1)
+        self.gate = nn.Sigmoid()
 
     def forward(self, x):
         x_se = x.mean((2, 3), keepdim=True)
@@ -52,7 +65,7 @@ class ConvBnAct(nn.Module):
         super(ConvBnAct, self).__init__()
         self.has_residual = skip and stride == 1 and in_chs == out_chs
         self.drop_path_rate = drop_path_rate
-        self.conv = create_conv2d(in_chs, out_chs, kernel_size, stride=stride, dilation=dilation, padding=pad_type)
+        self.conv = nn.Conv2d(in_chs, out_chs, kernel_size, stride=stride, dilation=dilation, padding=1, bias=False)
         self.bn1 = norm_layer(out_chs)
         self.act1 = act_layer(inplace=True)
 
@@ -68,59 +81,6 @@ class ConvBnAct(nn.Module):
         x = self.conv(x)
         x = self.bn1(x)
         x = self.act1(x)
-        if self.has_residual:
-            if self.drop_path_rate > 0.:
-                x = drop_path(x, self.drop_path_rate, self.training)
-            x += shortcut
-        return x
-
-
-class DepthwiseSeparableConv(nn.Module):
-    """ DepthwiseSeparable block
-    Used for DS convs in MobileNet-V1 and in the place of IR blocks that have no expansion
-    (factor of 1.0). This is an alternative to having a IR with an optional first pw conv.
-    """
-    def __init__(
-            self, in_chs, out_chs, dw_kernel_size=3, stride=1, dilation=1, pad_type='',
-            noskip=False, pw_kernel_size=1, pw_act=False, act_layer=nn.ReLU, norm_layer=nn.BatchNorm2d,
-            se_layer=None, drop_path_rate=0.):
-        super(DepthwiseSeparableConv, self).__init__()
-        self.has_residual = (stride == 1 and in_chs == out_chs) and not noskip
-        self.has_pw_act = pw_act  # activation after point-wise conv
-        self.drop_path_rate = drop_path_rate
-
-        self.conv_dw = create_conv2d(
-            in_chs, in_chs, dw_kernel_size, stride=stride, dilation=dilation, padding=pad_type, depthwise=True)
-        self.bn1 = norm_layer(in_chs)
-        self.act1 = act_layer(inplace=True)
-
-        # Squeeze-and-excitation
-        self.se = se_layer(in_chs, act_layer=act_layer) if se_layer else nn.Identity()
-
-        self.conv_pw = create_conv2d(in_chs, out_chs, pw_kernel_size, padding=pad_type)
-        self.bn2 = norm_layer(out_chs)
-        self.act2 = act_layer(inplace=True) if self.has_pw_act else nn.Identity()
-
-    def feature_info(self, location):
-        if location == 'expansion':  # after SE, input to PW
-            info = dict(module='conv_pw', hook_type='forward_pre', num_chs=self.conv_pw.in_channels)
-        else:  # location == 'bottleneck', block output
-            info = dict(module='', hook_type='', num_chs=self.conv_pw.out_channels)
-        return info
-
-    def forward(self, x):
-        shortcut = x
-
-        x = self.conv_dw(x)
-        x = self.bn1(x)
-        x = self.act1(x)
-
-        x = self.se(x)
-
-        x = self.conv_pw(x)
-        x = self.bn2(x)
-        x = self.act2(x)
-
         if self.has_residual:
             if self.drop_path_rate > 0.:
                 x = drop_path(x, self.drop_path_rate, self.training)
@@ -144,19 +104,18 @@ class InvertedResidual(nn.Module):
             norm_layer=nn.BatchNorm2d, se_layer=None, conv_kwargs=None, drop_path_rate=0.):
         super(InvertedResidual, self).__init__()
         conv_kwargs = conv_kwargs or {}
-        mid_chs = make_divisible(in_chs * exp_ratio)
+        mid_chs = models.backbone.efficientnet_builder.make_divisible(in_chs * exp_ratio)
         self.has_residual = (in_chs == out_chs and stride == 1) and not noskip
         self.drop_path_rate = drop_path_rate
 
         # Point-wise expansion
-        self.conv_pw = create_conv2d(in_chs, mid_chs, exp_kernel_size, padding=pad_type, **conv_kwargs)
+        self.conv_pw = nn.Conv2d(in_chs, mid_chs, exp_kernel_size, bias=False)
         self.bn1 = norm_layer(mid_chs)
         self.act1 = act_layer(inplace=True)
 
         # Depth-wise convolution
-        self.conv_dw = create_conv2d(
-            mid_chs, mid_chs, dw_kernel_size, stride=stride, dilation=dilation,
-            padding=pad_type, depthwise=True, **conv_kwargs)
+        self.conv_dw = nn.Conv2d(mid_chs, mid_chs, dw_kernel_size, stride,
+                                 padding=1, dilation=dilation, groups=mid_chs, bias=False)
         self.bn2 = norm_layer(mid_chs)
         self.act2 = act_layer(inplace=True)
 
@@ -164,7 +123,7 @@ class InvertedResidual(nn.Module):
         self.se = se_layer(mid_chs, act_layer=act_layer) if se_layer else nn.Identity()
 
         # Point-wise linear projection
-        self.conv_pwl = create_conv2d(mid_chs, out_chs, pw_kernel_size, padding=pad_type, **conv_kwargs)
+        self.conv_pwl = nn.Conv2d(mid_chs, out_chs, pw_kernel_size, bias=False)
         self.bn3 = norm_layer(out_chs)
 
     def feature_info(self, location):
@@ -202,56 +161,6 @@ class InvertedResidual(nn.Module):
         return x
 
 
-class CondConvResidual(InvertedResidual):
-    """ Inverted residual block w/ CondConv routing"""
-
-    def __init__(
-            self, in_chs, out_chs, dw_kernel_size=3, stride=1, dilation=1, pad_type='',
-            noskip=False, exp_ratio=1.0, exp_kernel_size=1, pw_kernel_size=1, act_layer=nn.ReLU,
-            norm_layer=nn.BatchNorm2d, se_layer=None, num_experts=0, drop_path_rate=0.):
-
-        self.num_experts = num_experts
-        conv_kwargs = dict(num_experts=self.num_experts)
-
-        super(CondConvResidual, self).__init__(
-            in_chs, out_chs, dw_kernel_size=dw_kernel_size, stride=stride, dilation=dilation, pad_type=pad_type,
-            act_layer=act_layer, noskip=noskip, exp_ratio=exp_ratio, exp_kernel_size=exp_kernel_size,
-            pw_kernel_size=pw_kernel_size, se_layer=se_layer, norm_layer=norm_layer, conv_kwargs=conv_kwargs,
-            drop_path_rate=drop_path_rate)
-
-        self.routing_fn = nn.Linear(in_chs, self.num_experts)
-
-    def forward(self, x):
-        shortcut = x
-
-        # CondConv routing
-        pooled_inputs = F.adaptive_avg_pool2d(x, 1).flatten(1)
-        routing_weights = torch.sigmoid(self.routing_fn(pooled_inputs))
-
-        # Point-wise expansion
-        x = self.conv_pw(x, routing_weights)
-        x = self.bn1(x)
-        x = self.act1(x)
-
-        # Depth-wise convolution
-        x = self.conv_dw(x, routing_weights)
-        x = self.bn2(x)
-        x = self.act2(x)
-
-        # Squeeze-and-excitation
-        x = self.se(x)
-
-        # Point-wise linear projection
-        x = self.conv_pwl(x, routing_weights)
-        x = self.bn3(x)
-
-        if self.has_residual:
-            if self.drop_path_rate > 0.:
-                x = drop_path(x, self.drop_path_rate, self.training)
-            x += shortcut
-        return x
-
-
 class EdgeResidual(nn.Module):
     """ Residual block with expansion convolution followed by pointwise-linear w/ stride
 
@@ -270,16 +179,14 @@ class EdgeResidual(nn.Module):
             norm_layer=nn.BatchNorm2d, se_layer=None, drop_path_rate=0.):
         super(EdgeResidual, self).__init__()
         if force_in_chs > 0:
-            mid_chs = make_divisible(force_in_chs * exp_ratio)
+            mid_chs = models.backbone.efficientnet_builder.make_divisible(force_in_chs * exp_ratio)
         else:
-            mid_chs = make_divisible(in_chs * exp_ratio)
-        has_se = se_layer is not None and se_ratio > 0.
+            mid_chs = models.backbone.efficientnet_builder.make_divisible(in_chs * exp_ratio)
         self.has_residual = (in_chs == out_chs and stride == 1) and not noskip
         self.drop_path_rate = drop_path_rate
 
         # Expansion convolution
-        self.conv_exp = create_conv2d(
-            in_chs, mid_chs, exp_kernel_size, stride=stride, dilation=dilation, padding=pad_type)
+        self.conv_exp = nn.Conv2d(in_chs, mid_chs, exp_kernel_size, stride, padding=1, dilation=dilation, bias=False)
         self.bn1 = norm_layer(mid_chs)
         self.act1 = act_layer(inplace=True)
 
@@ -287,7 +194,7 @@ class EdgeResidual(nn.Module):
         self.se = se_layer(mid_chs, act_layer=act_layer) if se_layer else nn.Identity()
 
         # Point-wise linear projection
-        self.conv_pwl = create_conv2d(mid_chs, out_chs, pw_kernel_size, padding=pad_type)
+        self.conv_pwl = nn.Conv2d(mid_chs, out_chs, pw_kernel_size, bias=False)
         self.bn2 = norm_layer(out_chs)
 
     def feature_info(self, location):
