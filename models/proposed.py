@@ -3,29 +3,23 @@ from typing import List
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torchvision
 
 import models
 import models.backbone
+import models.modules
 import utils
 
 
 class Proposed(nn.Module):
-    def __init__(self, backbone: str, output_stride: int, num_classes: int):
+    def __init__(self, backbone_type: str, output_stride: int, num_classes: int):
         super(Proposed, self).__init__()
         self.low_level_feature = []
 
         # Backbone
-        if backbone == 'ResNet101':
-            self.backbone = models.backbone.resnet101.ResNet101(output_stride)
-            self.backbone.layer1.register_forward_hook(utils.hooks.get_feature_maps(self.low_level_feature))
-            self.backbone.layer2.register_forward_hook(utils.hooks.get_feature_maps(self.low_level_feature))
-        elif backbone == 'Xception':
-            self.backbone = models.backbone.xception.xception(output_stride, pretrained=True)
-            self.backbone.block2.sepconv2.register_forward_hook(utils.hooks.get_feature_maps(self.low_level_feature))
-            self.backbone.block3.sepconv2.register_forward_hook(utils.hooks.get_feature_maps(self.low_level_feature))
-        else:
-            raise NotImplementedError('Wrong backbone.')
+        self.backbone = models.backbone.efficientnet.efficientnetv2(backbone_type, output_stride, pretrained=True)
+        self.backbone.stages[0].register_forward_hook(utils.hooks.get_feature_maps(self.low_level_feature))
+        self.backbone.stages[1].register_forward_hook(utils.hooks.get_feature_maps(self.low_level_feature))
+        self.backbone.stages[2].register_forward_hook(utils.hooks.get_feature_maps(self.low_level_feature))
 
         # ASPP
         if output_stride == 16:
@@ -34,10 +28,17 @@ class Proposed(nn.Module):
             atrous_rates = (12, 24, 36)
         else:
             raise NotImplementedError('Wrong output_stride.')
-        self.aspp = torchvision.models.segmentation.deeplabv3.ASPP(2048, atrous_rates, 256)
+        if backbone_type == 'small':
+            self.aspp = models.modules.aspp.ASPPwDSConv(256, atrous_rates, 256)
+        elif backbone_type == 'medium':
+            self.aspp = models.modules.aspp.ASPPwDSConv(512, atrous_rates, 256)
+        elif backbone_type == 'large':
+            self.aspp = models.modules.aspp.ASPPwDSConv(640, atrous_rates, 256)
+        else:
+            raise NotImplementedError('Wrong backbone_type.')
 
         # Decoder
-        self.decoder = Decoder(backbone, num_classes)
+        self.decoder = Decoder(backbone_type, output_stride, num_classes)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         size = x.size()[2:]
@@ -57,19 +58,33 @@ class Proposed(nn.Module):
 
 
 class Decoder(nn.Module):
-    def __init__(self, backbone: str, num_classes: int):
+    def __init__(self, backbone_type: str, output_stride: int, num_classes: int):
         super(Decoder, self).__init__()
-        if backbone == 'ResNet101':
-            self.compress_low_level_feature1 = self.make_compressor(512, 64)
-        elif backbone == 'Xception':
-            self.compress_low_level_feature1 = self.make_compressor(728, 64)
-        else:
-            raise NotImplementedError('Wrong backbone.')
+        self.compress_low_level_feature3 = None
 
-        self.compress_low_level_feature2 = self.make_compressor(256, 32)
-        self.decode1 = self.make_decoder(256 + 64, 256, 0.5)
-        self.decode2 = self.make_decoder(256 + 32, 256, 0.1)
-        self.classifier = nn.Conv2d(256, num_classes, kernel_size=1)
+        if backbone_type == 'small':
+            self.compress_low_level_feature1 = self.make_compressor(64, 64)
+            self.compress_low_level_feature2 = self.make_compressor(48, 32)
+            if output_stride == 16:
+                self.compress_low_level_feature3 = self.make_compressor(24, 16)
+        elif backbone_type == 'medium':
+            self.compress_low_level_feature1 = self.make_compressor(80, 64)
+            self.compress_low_level_feature2 = self.make_compressor(48, 32)
+            if output_stride == 16:
+                self.compress_low_level_feature3 = self.make_compressor(24, 16)
+        elif backbone_type == 'large':
+            self.compress_low_level_feature1 = self.make_compressor(96, 64)
+            self.compress_low_level_feature2 = self.make_compressor(64, 32)
+            if output_stride == 16:
+                self.compress_low_level_feature3 = self.make_compressor(32, 16)
+        else:
+            raise NotImplementedError('Wrong backbone_type.')
+
+        self.decode1 = self.make_decoder(256 + 64, 256, 256)
+        self.decode2 = self.make_decoder(256 + 32, 256, 128)
+        self.decode3 = self.make_decoder(128 + 16, 128, 128)
+
+        self.classifier = nn.Conv2d(128, num_classes, kernel_size=1)
 
     def forward(self, x: torch.Tensor, low_level_feature: List[torch.Tensor]) -> torch.Tensor:
         low_level_feature1 = self.compress_low_level_feature1(low_level_feature.pop())
@@ -82,26 +97,35 @@ class Decoder(nn.Module):
         x = torch.cat((x, low_level_feature2), dim=1)
         x = self.decode2(x)
 
+        low_level_feature3 = self.compress_low_level_feature3(low_level_feature.pop())
+        x = F.interpolate(x, size=low_level_feature3.size()[2:], mode='bilinear', align_corners=False)
+        x = torch.cat((x, low_level_feature3), dim=1)
+        x = self.decode3(x)
+
         x = self.classifier(x)
         return x
 
     def make_compressor(self, in_channels: int, out_channels: int):
         return nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False),
+            models.modules.conv.SeparableConv2d(in_channels, out_channels, kernel_size=1, bias=False),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True)
         )
 
-    def make_decoder(self, in_channels: int, out_channels: int, dropout_p: float):
+    def make_decoder(self, in_channels: int, mid_channels: int, out_channels: int):
         return nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=5, stride=1, padding=2, bias=False),
+            models.modules.conv.SeparableConv2d(in_channels, mid_channels, kernel_size=3,
+                                                stride=1, padding=1, bias=False),
+            nn.BatchNorm2d(mid_channels),
+            nn.ReLU(inplace=True),
+            models.modules.conv.SeparableConv2d(mid_channels, out_channels, kernel_size=3,
+                                                stride=1, padding=1, bias=False),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
-            nn.Dropout(dropout_p)
         )
 
 
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = Proposed('Xception', output_stride=16, num_classes=19).to(device)
+    model = Proposed('small', output_stride=16, num_classes=19).to(device)
     models.test.test_model(model, (3, 512, 1024), device)
