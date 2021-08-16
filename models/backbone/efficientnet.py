@@ -41,7 +41,7 @@ class EfficientNet(nn.Module):
         return x
 
 
-def _gen_efficientnetv2_s(channel_multiplier=1.0, depth_multiplier=1.0):
+def efficientnetv2_s():
     arch_def = [
         ['cn_r2_k3_s1_e1_c24_skip'],
         ['er_r4_k3_s2_e4_c48'],
@@ -51,9 +51,9 @@ def _gen_efficientnetv2_s(channel_multiplier=1.0, depth_multiplier=1.0):
         ['ir_r15_k3_s2_e6_c256_se0.25'],
     ]
     num_features = 1280
-    round_chs_fn = partial(round_channels, multiplier=channel_multiplier)
+    round_chs_fn = partial(round_channels, multiplier=1.0)
     model_kwargs = dict(
-        block_args=decode_arch_def(arch_def, depth_multiplier),
+        block_args=decode_arch_def(arch_def, depth_multiplier=1.0),
         num_features=round_chs_fn(num_features),
         stem_size=24,
         round_chs_fn=round_chs_fn,
@@ -62,7 +62,7 @@ def _gen_efficientnetv2_s(channel_multiplier=1.0, depth_multiplier=1.0):
     return model
 
 
-def _gen_efficientnetv2_m(channel_multiplier=1.0, depth_multiplier=1.0):
+def efficientnetv2_m():
     arch_def = [
         ['cn_r3_k3_s1_e1_c24_skip'],
         ['er_r5_k3_s2_e4_c48'],
@@ -73,16 +73,16 @@ def _gen_efficientnetv2_m(channel_multiplier=1.0, depth_multiplier=1.0):
         ['ir_r5_k3_s1_e6_c512_se0.25'],
     ]
     model_kwargs = dict(
-        block_args=decode_arch_def(arch_def, depth_multiplier),
+        block_args=decode_arch_def(arch_def, depth_multiplier=1.0),
         num_features=1280,
         stem_size=24,
-        round_chs_fn=partial(round_channels, multiplier=channel_multiplier),
+        round_chs_fn=partial(round_channels, multiplier=1.0),
     )
     model = EfficientNet(**model_kwargs)
     return model
 
 
-def _gen_efficientnetv2_l(channel_multiplier=1.0, depth_multiplier=1.0):
+def efficientnetv2_l():
     arch_def = [
         ['cn_r4_k3_s1_e1_c32_skip'],
         ['er_r7_k3_s2_e4_c64'],
@@ -93,30 +93,12 @@ def _gen_efficientnetv2_l(channel_multiplier=1.0, depth_multiplier=1.0):
         ['ir_r7_k3_s1_e6_c640_se0.25'],
     ]
     model_kwargs = dict(
-        block_args=decode_arch_def(arch_def, depth_multiplier),
+        block_args=decode_arch_def(arch_def, depth_multiplier=1.0),
         num_features=1280,
         stem_size=32,
-        round_chs_fn=partial(round_channels, multiplier=channel_multiplier),
+        round_chs_fn=partial(round_channels, multiplier=1.0),
     )
     model = EfficientNet(**model_kwargs)
-    return model
-
-
-def efficientnetv2_s():
-    """ EfficientNet-V2 Small. """
-    model = _gen_efficientnetv2_s()
-    return model
-
-
-def efficientnetv2_m():
-    """ EfficientNet-V2 Medium. """
-    model = _gen_efficientnetv2_m()
-    return model
-
-
-def efficientnetv2_l():
-    """ EfficientNet-V2 Large. """
-    model = _gen_efficientnetv2_l()
     return model
 
 
