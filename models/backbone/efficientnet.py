@@ -5,7 +5,7 @@ import torch.nn as nn
 
 from models.backbone.efficientnet_blocks import SqueezeExcite
 from models.backbone.efficientnet_builder import EfficientNetBuilder, decode_arch_def, round_channels,\
-    resolve_bn_args, resolve_act_layer, build_model_with_cfg
+    resolve_bn_args, resolve_act_layer
 
 import models
 
@@ -34,23 +34,9 @@ default_cfgs = {
 
 
 class EfficientNet(nn.Module):
-    """ (Generic) EfficientNet
-
-    A flexible and performant PyTorch implementation of efficient network architectures, including:
-      * EfficientNet-V2 Small, Medium, Large, XL & B0-B3
-      * EfficientNet B0-B8, L2
-      * EfficientNet-EdgeTPU
-      * EfficientNet-CondConv
-      * MixNet S, M, L, XL
-      * MnasNet A1, B1, and small
-      * FBNet C
-      * Single-Path NAS Pixel1
-
-    """
-
     def __init__(self, block_args, num_classes=1000, num_features=1280, in_chans=3, stem_size=32, fix_stem=False,
                  output_stride=32, pad_type='', round_chs_fn=round_channels, act_layer=None, norm_layer=None,
-                 se_layer=None, drop_rate=0., drop_path_rate=0., global_pool='avg'):
+                 se_layer=None, drop_rate=0., drop_path_rate=0.):
         super(EfficientNet, self).__init__()
         act_layer = act_layer or nn.ReLU
         norm_layer = norm_layer or nn.BatchNorm2d
@@ -79,16 +65,6 @@ class EfficientNet(nn.Module):
         x = self.act1(x)
         x = self.blocks(x)
         return x
-
-
-def _create_effnet(variant, pretrained=False, **kwargs):
-    model = build_model_with_cfg(
-        EfficientNet, variant, pretrained,
-        default_cfg=default_cfgs[variant],
-        pretrained_strict=True,
-        kwargs_filter=None,
-        **kwargs)
-    return model
 
 
 def _gen_efficientnetv2_s(
@@ -126,8 +102,7 @@ def _gen_efficientnetv2_s(
         act_layer=resolve_act_layer(kwargs, 'silu'),
         **kwargs,
     )
-    model = build_model_with_cfg(EfficientNet, variant, pretrained, default_cfgs[variant],
-                                 pretrained_strict=True, kwargs_filter=None, **model_kwargs)
+    model = EfficientNet(**model_kwargs)
     return model
 
 
@@ -157,7 +132,7 @@ def _gen_efficientnetv2_m(variant, channel_multiplier=1.0, depth_multiplier=1.0,
         act_layer=resolve_act_layer(kwargs, 'silu'),
         **kwargs,
     )
-    model = _create_effnet(variant, pretrained, **model_kwargs)
+    model = EfficientNet(**model_kwargs)
     return model
 
 
@@ -187,7 +162,7 @@ def _gen_efficientnetv2_l(variant, channel_multiplier=1.0, depth_multiplier=1.0,
         act_layer=resolve_act_layer(kwargs, 'silu'),
         **kwargs,
     )
-    model = _create_effnet(variant, pretrained, **model_kwargs)
+    model = EfficientNet(**model_kwargs)
     return model
 
 
