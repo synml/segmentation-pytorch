@@ -142,22 +142,22 @@ UNet:
   pretrained_weights: weights/UNet_best_miou.pth
 
 Proposed:
-  backbone: Xception
+  backbone_type: small
   output_stride: 16
-  batch_size: 8
+  batch_size: 16
   epoch: 100
   criterion:
-    name: CrossEntropyLoss
+    name: FocalLoss
+    alpha: 1
+    gamma: 1
   optimizer:
     name: AdamW
     lr: 0.001
   scheduler:
     name: PolyLR
   augmentation:
-    RandomResizedCrop:
-      size: !!python/tuple [ 769, 769 ]
-      scale: auto
-      ratio: auto
+    RandomCrop:
+      size: !!python/tuple [1024, 512]
     RandomAdjustSharpness:
       sharpness_factor: 2
     ColorJitter:
