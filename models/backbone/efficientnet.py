@@ -54,13 +54,15 @@ class EfficientNet(nn.Module):
 
         # Stages
         builder = models.backbone.efficientnet_builder.EfficientNetBuilder(output_stride)
-        self.blocks = nn.Sequential(*builder(stem_out_channels, block_args))
+        blocks = builder(stem_out_channels, block_args)
+        self.stages = nn.ModuleList(blocks)
 
     def forward(self, x):
         x = self.conv_stem(x)
         x = self.bn1(x)
         x = self.act1(x)
-        x = self.blocks(x)
+        for stage in self.stages:
+            x = stage(x)
         return x
 
 
