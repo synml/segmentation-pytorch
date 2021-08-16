@@ -207,9 +207,7 @@ class EfficientNetBuilder:
         self.round_chs_fn = round_channels
         self.se_from_exp = False  # calculate se channel reduction from expanded (mid) chs
         self.act_layer = nn.SiLU
-        self.norm_layer = partial(nn.BatchNorm2d,
-                                  eps=models.backbone.efficientnet.BN_EPS_TF_DEFAULT,
-                                  momentum=models.backbone.efficientnet.BN_MOMENTUM_TF_DEFAULT)
+        self.norm_layer = nn.BatchNorm2d
         self.se_layer = models.backbone.efficientnet_blocks.SqueezeExcite
         self.se_has_ratio = True
         self.drop_path_rate = 0.0
