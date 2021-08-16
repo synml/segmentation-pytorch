@@ -4,6 +4,9 @@ import torch.nn as nn
 import models
 
 
+BN_EPS_TF_DEFAULT = 1e-3
+BN_MOMENTUM_TF_DEFAULT = 1 - 0.99
+
 state_dict_urls = {
     'small': 'https://github.com/synml/segmentation-pytorch/releases/download/v1.5.0-weights/efficientnetv2_small.pth',
     'medium': 'https://github.com/synml/segmentation-pytorch/releases/download/v1.5.0-weights/efficientnetv2_medium.pth',
@@ -49,7 +52,7 @@ class EfficientNet(nn.Module):
         super(EfficientNet, self).__init__()
         # Stem
         self.conv_stem = nn.Conv2d(3, stem_out_channels, 3, stride=2, padding=1, bias=False)
-        self.bn1 = nn.BatchNorm2d(stem_out_channels)
+        self.bn1 = nn.BatchNorm2d(stem_out_channels, eps=BN_EPS_TF_DEFAULT, momentum=BN_MOMENTUM_TF_DEFAULT)
         self.act1 = nn.SiLU(inplace=True)
 
         # Stages
