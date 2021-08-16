@@ -5,49 +5,16 @@ Handles stride, dilation calculations, and selects feature extraction points.
 
 Hacked together by / Copyright 2020 Ross Wightman
 """
-from typing import Callable, Optional, Any, Tuple
 import logging
 import math
 import re
 from copy import deepcopy
 from functools import partial
 
-import torch.nn as nn
-
 from .efficientnet_blocks import *
 from .layers import CondConv2d, get_condconv_initializer, get_act_layer, get_attn, make_divisible
 
 _logger = logging.getLogger(__name__)
-
-_DEBUG_BUILDER = False
-
-# Defaults used for Google/Tensorflow training of mobile networks /w RMSprop as per
-# papers and TF reference implementations. PT momentum equiv for TF decay is (1 - TF decay)
-# NOTE: momentum varies btw .99 and .9997 depending on source
-# .99 in official TF TPU impl
-# .9997 (/w .999 in search space) for paper
-BN_MOMENTUM_TF_DEFAULT = 1 - 0.99
-BN_EPS_TF_DEFAULT = 1e-3
-_BN_ARGS_TF = dict(momentum=BN_MOMENTUM_TF_DEFAULT, eps=BN_EPS_TF_DEFAULT)
-
-
-def get_bn_args_tf():
-    return _BN_ARGS_TF.copy()
-
-
-def resolve_bn_args(kwargs):
-    bn_args = get_bn_args_tf() if kwargs.pop('bn_tf', False) else {}
-    bn_momentum = kwargs.pop('bn_momentum', None)
-    if bn_momentum is not None:
-        bn_args['momentum'] = bn_momentum
-    bn_eps = kwargs.pop('bn_eps', None)
-    if bn_eps is not None:
-        bn_args['eps'] = bn_eps
-    return bn_args
-
-
-def resolve_act_layer(kwargs, default='relu'):
-    return get_act_layer(kwargs.pop('act_layer', default))
 
 
 def round_channels(channels, multiplier=1.0, divisor=8, channel_min=None, round_limit=0.9):

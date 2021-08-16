@@ -16,7 +16,7 @@ state_dict_url = {
 
 
 class EfficientNet(nn.Module):
-    def __init__(self, block_args, stem_size=32, output_stride=32, round_chs_fn=round_channels):
+    def __init__(self, block_args, stem_size, output_stride=32):
         super(EfficientNet, self).__init__()
         act_layer = nn.SiLU
         norm_layer = nn.BatchNorm2d
@@ -28,9 +28,7 @@ class EfficientNet(nn.Module):
         self.act1 = act_layer(inplace=True)
 
         # Middle stages (IR/ER/DS Blocks)
-        builder = EfficientNetBuilder(
-            output_stride=output_stride, pad_type='', round_chs_fn=round_chs_fn,
-            act_layer=act_layer, norm_layer=norm_layer, se_layer=se_layer, drop_path_rate=0.)
+        builder = EfficientNetBuilder(output_stride, act_layer=act_layer, norm_layer=norm_layer, se_layer=se_layer)
         self.blocks = nn.Sequential(*builder(stem_size, block_args))
 
     def forward(self, x):
@@ -41,7 +39,7 @@ class EfficientNet(nn.Module):
         return x
 
 
-def efficientnetv2_s():
+def efficientnetv2_small():
     arch_def = [
         ['cn_r2_k3_s1_e1_c24_skip'],
         ['er_r4_k3_s2_e4_c48'],
@@ -50,16 +48,11 @@ def efficientnetv2_s():
         ['ir_r9_k3_s1_e6_c160_se0.25'],
         ['ir_r15_k3_s2_e6_c256_se0.25'],
     ]
-    model_kwargs = dict(
-        block_args=decode_arch_def(arch_def, depth_multiplier=1.0),
-        stem_size=24,
-        round_chs_fn=partial(round_channels, multiplier=1.0),
-    )
-    model = EfficientNet(**model_kwargs)
+    model = EfficientNet(decode_arch_def(arch_def), stem_size=24)
     return model
 
 
-def efficientnetv2_m():
+def efficientnetv2_medium():
     arch_def = [
         ['cn_r3_k3_s1_e1_c24_skip'],
         ['er_r5_k3_s2_e4_c48'],
@@ -69,16 +62,11 @@ def efficientnetv2_m():
         ['ir_r18_k3_s2_e6_c304_se0.25'],
         ['ir_r5_k3_s1_e6_c512_se0.25'],
     ]
-    model_kwargs = dict(
-        block_args=decode_arch_def(arch_def, depth_multiplier=1.0),
-        stem_size=24,
-        round_chs_fn=partial(round_channels, multiplier=1.0),
-    )
-    model = EfficientNet(**model_kwargs)
+    model = EfficientNet(decode_arch_def(arch_def), stem_size=24)
     return model
 
 
-def efficientnetv2_l():
+def efficientnetv2_large():
     arch_def = [
         ['cn_r4_k3_s1_e1_c32_skip'],
         ['er_r7_k3_s2_e4_c64'],
@@ -88,16 +76,11 @@ def efficientnetv2_l():
         ['ir_r25_k3_s2_e6_c384_se0.25'],
         ['ir_r7_k3_s1_e6_c640_se0.25'],
     ]
-    model_kwargs = dict(
-        block_args=decode_arch_def(arch_def, depth_multiplier=1.0),
-        stem_size=32,
-        round_chs_fn=partial(round_channels, multiplier=1.0),
-    )
-    model = EfficientNet(**model_kwargs)
+    model = EfficientNet(decode_arch_def(arch_def), stem_size=32)
     return model
 
 
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = efficientnetv2_s().to(device)
+    model = efficientnetv2_small().to(device)
     models.test.test_model(model, (3, 512, 1024), device)
