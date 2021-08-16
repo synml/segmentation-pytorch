@@ -126,7 +126,8 @@ def _gen_efficientnetv2_s(
         act_layer=resolve_act_layer(kwargs, 'silu'),
         **kwargs,
     )
-    model = _create_effnet(variant, pretrained, **model_kwargs)
+    model = build_model_with_cfg(EfficientNet, variant, pretrained, default_cfgs[variant],
+                                 pretrained_strict=True, kwargs_filter=None, **model_kwargs)
     return model
 
 
