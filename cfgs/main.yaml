@@ -1,5 +1,5 @@
 cfg: cfgs/cityscapes.yaml
-model: DeepLabv3plus
+model: Proposed
 amp_enabled: True
 resume_training:
 fine_tuning_batchnorm:
