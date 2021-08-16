@@ -1,35 +1,32 @@
-from functools import partial
-
 import torch
 import torch.nn as nn
 
 import models
-from models.backbone.efficientnet_blocks import SqueezeExcite
-from models.backbone.efficientnet_builder import EfficientNetBuilder, decode_arch_def, round_channels
+from models.backbone.efficientnet_builder import EfficientNetBuilder, decode_arch_def
 
 
 state_dict_url = {
-    'efficientnetv2_s': 'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-effv2-weights/tf_efficientnetv2_s-eb54923e.pth',
-    'efficientnetv2_m': 'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-effv2-weights/tf_efficientnetv2_m-cc09e0cd.pth',
-    'efficientnetv2_l': 'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-effv2-weights/tf_efficientnetv2_l-d664b728.pth',
+    'small': 'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-effv2-weights/tf_efficientnetv2_s-eb54923e.pth',
+    'medium': 'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-effv2-weights/tf_efficientnetv2_m-cc09e0cd.pth',
+    'large': 'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-effv2-weights/tf_efficientnetv2_l-d664b728.pth',
 }
 
 
 class EfficientNet(nn.Module):
-    def __init__(self, block_args, stem_size, output_stride=32):
+    def __init__(self, block_args, stem_out_channels, output_stride=32):
         super(EfficientNet, self).__init__()
         act_layer = nn.SiLU
         norm_layer = nn.BatchNorm2d
-        se_layer = SqueezeExcite
+        se_layer = models.backbone.efficientnet_blocks.SqueezeExcite
 
         # Stem
-        self.conv_stem = nn.Conv2d(3, stem_size, 3, stride=2, padding=1, bias=False)
-        self.bn1 = norm_layer(stem_size)
+        self.conv_stem = nn.Conv2d(3, stem_out_channels, 3, stride=2, padding=1, bias=False)
+        self.bn1 = norm_layer(stem_out_channels)
         self.act1 = act_layer(inplace=True)
 
         # Middle stages (IR/ER/DS Blocks)
         builder = EfficientNetBuilder(output_stride, act_layer=act_layer, norm_layer=norm_layer, se_layer=se_layer)
-        self.blocks = nn.Sequential(*builder(stem_size, block_args))
+        self.blocks = nn.Sequential(*builder(stem_out_channels, block_args))
 
     def forward(self, x):
         x = self.conv_stem(x)
@@ -48,7 +45,7 @@ def efficientnetv2_small():
         ['ir_r9_k3_s1_e6_c160_se0.25'],
         ['ir_r15_k3_s2_e6_c256_se0.25'],
     ]
-    model = EfficientNet(decode_arch_def(arch_def), stem_size=24)
+    model = EfficientNet(decode_arch_def(arch_def), stem_out_channels=24)
     return model
 
 
@@ -62,7 +59,7 @@ def efficientnetv2_medium():
         ['ir_r18_k3_s2_e6_c304_se0.25'],
         ['ir_r5_k3_s1_e6_c512_se0.25'],
     ]
-    model = EfficientNet(decode_arch_def(arch_def), stem_size=24)
+    model = EfficientNet(decode_arch_def(arch_def), stem_out_channels=24)
     return model
 
 
@@ -76,7 +73,7 @@ def efficientnetv2_large():
         ['ir_r25_k3_s2_e6_c384_se0.25'],
         ['ir_r7_k3_s1_e6_c640_se0.25'],
     ]
-    model = EfficientNet(decode_arch_def(arch_def), stem_size=32)
+    model = EfficientNet(decode_arch_def(arch_def), stem_out_channels=32)
     return model
 
 
