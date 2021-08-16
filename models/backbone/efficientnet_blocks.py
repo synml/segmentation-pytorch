@@ -65,7 +65,7 @@ class ConvBnAct(nn.Module):
         super(ConvBnAct, self).__init__()
         self.has_residual = skip and stride == 1 and in_chs == out_chs
         self.drop_path_rate = drop_path_rate
-        self.conv = nn.Conv2d(in_chs, out_chs, kernel_size, stride=stride, dilation=dilation, padding=1, bias=False)
+        self.conv = nn.Conv2d(in_chs, out_chs, kernel_size, stride, padding=dilation, dilation=dilation, bias=False)
         self.bn1 = norm_layer(out_chs)
         self.act1 = act_layer(inplace=True)
 
@@ -115,7 +115,7 @@ class InvertedResidual(nn.Module):
 
         # Depth-wise convolution
         self.conv_dw = nn.Conv2d(mid_chs, mid_chs, dw_kernel_size, stride,
-                                 padding=1, dilation=dilation, groups=mid_chs, bias=False)
+                                 padding=dilation, dilation=dilation, groups=mid_chs, bias=False)
         self.bn2 = norm_layer(mid_chs)
         self.act2 = act_layer(inplace=True)
 
@@ -186,7 +186,8 @@ class EdgeResidual(nn.Module):
         self.drop_path_rate = drop_path_rate
 
         # Expansion convolution
-        self.conv_exp = nn.Conv2d(in_chs, mid_chs, exp_kernel_size, stride, padding=1, dilation=dilation, bias=False)
+        self.conv_exp = nn.Conv2d(in_chs, mid_chs, exp_kernel_size, stride,
+                                  padding=dilation, dilation=dilation, bias=False)
         self.bn1 = norm_layer(mid_chs)
         self.act1 = act_layer(inplace=True)
 
