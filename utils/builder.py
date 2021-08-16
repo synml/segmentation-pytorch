@@ -80,7 +80,7 @@ class Builder:
         elif cfg_model_name == 'EAR_Net':
             model = models.ear_net.EAR_Net(num_classes)
         elif cfg_model_name == 'Proposed':
-            model = models.proposed.Proposed(self.cfg[cfg_model_name]['backbone'],
+            model = models.proposed.Proposed(self.cfg[cfg_model_name]['backbone_type'],
                                              self.cfg[cfg_model_name]['output_stride'], num_classes)
         elif cfg_model_name == 'UNet':
             model = models.unet.UNet(num_classes)
