@@ -70,22 +70,20 @@ class Builder:
     def build_model(self, num_classes: int, pretrained=False) -> nn.Module:
         cfg_model_name = self.cfg['model']['name']
 
-        if cfg_model_name == 'UNet':
-            model = models.unet.UNet(num_classes)
-        elif cfg_model_name == 'AR_UNet':
-            model = models.ar_unet.AR_UNet(num_classes)
-        elif cfg_model_name == 'EAR_Net':
-            model = models.ear_net.EAR_Net(num_classes)
-        elif cfg_model_name == 'DeepLabv3plus':
-            model = models.deeplabv3plus.DeepLabv3plus(self.cfg[cfg_model_name]['backbone'],
-                                                       self.cfg[cfg_model_name]['output_stride'], num_classes)
-        elif cfg_model_name == 'Attention_DeepLabv3plus':
+        if cfg_model_name == 'Attention_DeepLabv3plus':
             model = models.attention_deeplabv3plus.Attention_DeepLabv3plus(self.cfg[cfg_model_name]['backbone'],
                                                                            self.cfg[cfg_model_name]['output_stride'],
                                                                            num_classes)
+        elif cfg_model_name == 'DeepLabv3plus':
+            model = models.deeplabv3plus.DeepLabv3plus(self.cfg[cfg_model_name]['backbone'],
+                                                       self.cfg[cfg_model_name]['output_stride'], num_classes)
+        elif cfg_model_name == 'EAR_Net':
+            model = models.ear_net.EAR_Net(num_classes)
         elif cfg_model_name == 'Proposed':
             model = models.proposed.Proposed(self.cfg[cfg_model_name]['backbone'],
                                              self.cfg[cfg_model_name]['output_stride'], num_classes)
+        elif cfg_model_name == 'UNet':
+            model = models.unet.UNet(num_classes)
         else:
             raise NotImplementedError('Wrong model name.')
 

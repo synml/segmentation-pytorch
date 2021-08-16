@@ -1,4 +1,3 @@
-import models.ar_unet
 import models.attention_deeplabv3plus
 import models.ear_net
 import models.deeplabv3plus
