@@ -7,3 +7,9 @@ def convert_ddp_state_dict(state_dict: dict):
         else:
             new_state_dict[key] = value
     return new_state_dict
+
+
+def remove_items_in_state_dict(state_dict: dict, keys_to_remove: list):
+    for key in keys_to_remove:
+        state_dict.pop(key)
+    return state_dict
