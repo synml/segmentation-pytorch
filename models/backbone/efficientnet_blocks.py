@@ -44,7 +44,7 @@ class SqueezeExcite(nn.Module):
             rd_channels = rd_round_fn(in_chs * rd_ratio)
         act_layer = force_act_layer or act_layer
         self.conv_reduce = nn.Conv2d(in_chs, rd_channels, 1)
-        self.act1 = act_layer()
+        self.act1 = act_layer(inplace=True)
         self.conv_expand = nn.Conv2d(rd_channels, in_chs, 1)
         self.gate = nn.Sigmoid()
 
