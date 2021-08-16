@@ -5,9 +5,9 @@ import models
 
 
 state_dict_urls = {
-    'small': 'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-effv2-weights/tf_efficientnetv2_s-eb54923e.pth',
-    'medium': 'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-effv2-weights/tf_efficientnetv2_m-cc09e0cd.pth',
-    'large': 'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-effv2-weights/tf_efficientnetv2_l-d664b728.pth',
+    'small': 'https://github.com/synml/segmentation-pytorch/releases/download/v1.5.0-weights/efficientnetv2_small.pth',
+    'medium': 'https://github.com/synml/segmentation-pytorch/releases/download/v1.5.0-weights/efficientnetv2_medium.pth',
+    'large': 'https://github.com/synml/segmentation-pytorch/releases/download/v1.5.0-weights/efficientnetv2_large.pth',
 }
 arch_defs = {
     'small': [
