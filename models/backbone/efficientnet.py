@@ -50,13 +50,10 @@ def efficientnetv2_s():
         ['ir_r9_k3_s1_e6_c160_se0.25'],
         ['ir_r15_k3_s2_e6_c256_se0.25'],
     ]
-    num_features = 1280
-    round_chs_fn = partial(round_channels, multiplier=1.0)
     model_kwargs = dict(
         block_args=decode_arch_def(arch_def, depth_multiplier=1.0),
-        num_features=round_chs_fn(num_features),
         stem_size=24,
-        round_chs_fn=round_chs_fn,
+        round_chs_fn=partial(round_channels, multiplier=1.0),
     )
     model = EfficientNet(**model_kwargs)
     return model
@@ -74,7 +71,6 @@ def efficientnetv2_m():
     ]
     model_kwargs = dict(
         block_args=decode_arch_def(arch_def, depth_multiplier=1.0),
-        num_features=1280,
         stem_size=24,
         round_chs_fn=partial(round_channels, multiplier=1.0),
     )
@@ -94,7 +90,6 @@ def efficientnetv2_l():
     ]
     model_kwargs = dict(
         block_args=decode_arch_def(arch_def, depth_multiplier=1.0),
-        num_features=1280,
         stem_size=32,
         round_chs_fn=partial(round_channels, multiplier=1.0),
     )
