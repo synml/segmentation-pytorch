@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 
 import models
-from models.backbone.efficientnet_builder import EfficientNetBuilder, decode_arch_def
 
 
 state_dict_urls = {
@@ -48,17 +47,13 @@ stem_out_channels = {
 class EfficientNet(nn.Module):
     def __init__(self, block_args, stem_out_channels: int, output_stride: int):
         super(EfficientNet, self).__init__()
-        act_layer = nn.SiLU
-        norm_layer = nn.BatchNorm2d
-        se_layer = models.backbone.efficientnet_blocks.SqueezeExcite
-
         # Stem
         self.conv_stem = nn.Conv2d(3, stem_out_channels, 3, stride=2, padding=1, bias=False)
-        self.bn1 = norm_layer(stem_out_channels)
-        self.act1 = act_layer(inplace=True)
+        self.bn1 = nn.BatchNorm2d(stem_out_channels)
+        self.act1 = nn.SiLU(inplace=True)
 
         # Stages
-        builder = EfficientNetBuilder(output_stride)
+        builder = models.backbone.efficientnet_builder.EfficientNetBuilder(output_stride)
         self.blocks = nn.Sequential(*builder(stem_out_channels, block_args))
 
     def forward(self, x):
@@ -70,7 +65,8 @@ class EfficientNet(nn.Module):
 
 
 def efficientnetv2(model_type: str, output_stride: int, pretrained: bool = False):
-    model = EfficientNet(decode_arch_def(arch_defs[model_type]), stem_out_channels[model_type], output_stride)
+    block_args = models.backbone.efficientnet_builder.decode_arch_def(arch_defs[model_type])
+    model = EfficientNet(block_args, stem_out_channels[model_type], output_stride)
     if pretrained:
         state_dict = torch.hub.load_state_dict_from_url(state_dict_urls[model_type])
         model.load_state_dict(state_dict)
