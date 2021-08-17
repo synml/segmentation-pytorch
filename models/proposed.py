@@ -69,23 +69,27 @@ class Decoder(nn.Module):
             if output_stride == 16:
                 self.compress_low_level_feature1 = self.make_compressor(64, 64)
             self.compress_low_level_feature2 = self.make_compressor(48, 32)
+            self.compress_low_level_feature3 = self.make_compressor(24, 16)
         elif backbone_type == 'medium':
             if output_stride == 16:
                 self.compress_low_level_feature1 = self.make_compressor(80, 64)
             self.compress_low_level_feature2 = self.make_compressor(48, 32)
+            self.compress_low_level_feature3 = self.make_compressor(24, 16)
         elif backbone_type == 'large':
             if output_stride == 16:
                 self.compress_low_level_feature1 = self.make_compressor(96, 64)
             self.compress_low_level_feature2 = self.make_compressor(64, 32)
+            self.compress_low_level_feature3 = self.make_compressor(32, 16)
         else:
             raise NotImplementedError('Wrong backbone_type.')
 
         self.decode1 = None
         if output_stride == 16:
             self.decode1 = self.make_decoder(256 + 64, 256, 256)
-        self.decode2 = self.make_decoder(256 + 32, 256, 256)
+        self.decode2 = self.make_decoder(256 + 32, 256, 128)
+        self.decode3 = self.make_decoder(128 + 16, 128, 128)
 
-        self.classifier = nn.Conv2d(256, num_classes, kernel_size=1)
+        self.classifier = nn.Conv2d(128, num_classes, kernel_size=1)
 
     def forward(self, x: torch.Tensor, low_level_feature: List[torch.Tensor]) -> torch.Tensor:
         if self.compress_low_level_feature1 is not None and self.decode1 is not None:
@@ -98,6 +102,11 @@ class Decoder(nn.Module):
         x = F.interpolate(x, size=low_level_feature2.size()[2:], mode='bilinear', align_corners=False)
         x = torch.cat((x, low_level_feature2), dim=1)
         x = self.decode2(x)
+
+        low_level_feature3 = self.compress_low_level_feature3(low_level_feature.pop())
+        x = F.interpolate(x, size=low_level_feature3.size()[2:], mode='bilinear', align_corners=False)
+        x = torch.cat((x, low_level_feature3), dim=1)
+        x = self.decode3(x)
 
         x = self.classifier(x)
         return x
