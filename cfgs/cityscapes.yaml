@@ -8,33 +8,6 @@ dataset:
   normalize_std: !!python/tuple [0.18696375, 0.19017339, 0.18720214]
 
 # Model definitions
-AR_UNet:
-  batch_size: 4
-  epoch: 100
-  criterion:
-    name: FocalLoss
-    alpha: 1
-    gamma: 1
-  optimizer:
-    name: AdamW
-    lr: 0.001
-  scheduler:
-    name: PolyLR
-  augmentation:
-    RandomResizedCrop:
-      size: !!python/tuple [512, 1024]
-      scale: auto
-      ratio: auto
-    RandomAdjustSharpness:
-      sharpness_factor: 2
-    ColorJitter:
-      brightness: 0.5
-      contrast: 0.5
-      saturation: 0.5
-      hue: 0
-    RandomHorizontalFlip:
-  pretrained_weights: weights/EAR_Net_best_miou.pth
-
 Attention_DeepLabv3plus:
   backbone: Xception
   output_stride: 16
@@ -48,10 +21,8 @@ Attention_DeepLabv3plus:
   scheduler:
     name: PolyLR
   augmentation:
-    RandomResizedCrop:
+    RandomCrop:
       size: !!python/tuple [769, 769]
-      scale: auto
-      ratio: auto
     RandomAdjustSharpness:
       sharpness_factor: 2
     ColorJitter:
@@ -75,10 +46,8 @@ DeepLabv3plus:
   scheduler:
     name: PolyLR
   augmentation:
-    RandomResizedCrop:
+    RandomCrop:
       size: !!python/tuple [769, 769]
-      scale: auto
-      ratio: auto
     RandomAdjustSharpness:
       sharpness_factor: 2
     ColorJitter:
@@ -102,10 +71,8 @@ EAR_Net:
   scheduler:
     name: PolyLR
   augmentation:
-    RandomResizedCrop:
-      size: !!python/tuple [512, 1024]
-      scale: auto
-      ratio: auto
+    RandomCrop:
+      size: !!python/tuple [1024, 512]
     RandomAdjustSharpness:
       sharpness_factor: 2
     ColorJitter:
@@ -127,10 +94,8 @@ UNet:
   scheduler:
     name: PolyLR
   augmentation:
-    RandomResizedCrop:
-      size: !!python/tuple [512, 1024]
-      scale: auto
-      ratio: auto
+    RandomCrop:
+      size: !!python/tuple [1024, 512]
     RandomAdjustSharpness:
       sharpness_factor: 2
     ColorJitter:
