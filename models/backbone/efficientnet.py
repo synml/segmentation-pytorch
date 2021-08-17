@@ -68,6 +68,7 @@ class EfficientNet(nn.Module):
 
 def efficientnetv2(model_type: str, output_stride: int, pretrained: bool = False):
     assert model_type in ('small', 'medium', 'large')
+    assert output_stride in (4, 8, 16)
     block_args = models.backbone.efficientnet_builder.decode_arch_def(arch_defs[model_type])
     model = EfficientNet(block_args, stem_out_channels[model_type], output_stride)
     if pretrained:
