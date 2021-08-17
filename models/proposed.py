@@ -122,7 +122,6 @@ class Decoder(nn.Module):
         return nn.Sequential(
             models.modules.conv.SeparableConv2d(in_channels, mid_channels, kernel_size=3,
                                                 stride=1, padding=1, bias=False),
-            nn.Dropout2d(0.2),
             nn.BatchNorm2d(mid_channels),
             nn.ReLU(inplace=True),
             models.modules.conv.SeparableConv2d(mid_channels, out_channels, kernel_size=3,
