@@ -94,7 +94,7 @@ class AttentionBlock(nn.Module):
     def __init__(self, in_channels: int, low_in_channels: int):
         super(AttentionBlock, self).__init__()
         self.channel_attention = models.modules.attention.ChannelAttention(in_channels, multiplication=False)
-        self.spatial_attention = models.modules.attention.SpatialAttention()
+        self.spatial_attention = models.modules.attention.SpatialAttention(kernel_size=3, multiplication=False)
         self.upsampling_conv = nn.Sequential(nn.Conv2d(in_channels, in_channels, 3, padding=1, bias=False),
                                              nn.BatchNorm2d(in_channels),
                                              nn.ReLU())

@@ -29,17 +29,21 @@ class ChannelAttention(nn.Module):
 
 
 class SpatialAttention(nn.Module):
-    def __init__(self, kernel_size=3):
+    def __init__(self, kernel_size: int, multiplication=True):
         super(SpatialAttention, self).__init__()
         self.conv = nn.Conv2d(2, 1, kernel_size, padding=kernel_size // 2, bias=False)
         self.bn = nn.BatchNorm2d(1)
         self.sigmoid = nn.Sigmoid()
+        self.multiplication = multiplication
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         max_pool = torch.max(x, dim=1, keepdim=True)[0]
         avg_pool = torch.mean(x, dim=1, keepdim=True)
-        x = torch.cat((max_pool, avg_pool), dim=1)
-        x = self.conv(x)
-        x = self.bn(x)
-        x = self.sigmoid(x)
-        return x
+        sa = torch.cat((max_pool, avg_pool), dim=1)
+        sa = self.conv(sa)
+        sa = self.bn(sa)
+        sa = self.sigmoid(sa)
+        if self.multiplication:
+            return x * sa
+        else:
+            return sa
