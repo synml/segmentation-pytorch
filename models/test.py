@@ -1,19 +1,19 @@
 from typing import Tuple
 
-import ptflops
 import torch
 import torch.nn as nn
 import torch.utils.tensorboard
-import torchsummary
+import torchinfo
 
 
-def test_model(model: nn.Module, input_size: Tuple[int, int, int], device):
+def test_model(model: nn.Module, input_size: Tuple[int, int, int, int], device):
     model.eval()
 
-    torchsummary.torchsummary.summary(model, input_size)
-    macs, params = ptflops.get_model_complexity_info(model, input_size, print_per_layer_stat=False, as_strings=False)
-    print(f'GFLOPs: {macs / 1000000000 * 2}, params: {params}')
+    model_statistics = torchinfo.summary(model, input_size, depth=10,
+                                         col_names=('kernel_size', 'output_size', 'num_params', 'mult_adds'),
+                                         row_settings=('depth', 'var_names'))
+    print(f'Total GFLOPs: {model_statistics.total_mult_adds * 2 / 1e9:.4f}')
 
     writer = torch.utils.tensorboard.SummaryWriter('../runs')
-    writer.add_graph(model, torch.unsqueeze(torch.rand(input_size), 0).to(device))
+    writer.add_graph(model, torch.rand(input_size).to(device))
     writer.close()
