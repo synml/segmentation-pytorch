@@ -42,4 +42,4 @@ class ResNet101(nn.Module):
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = ResNet101(output_stride=16).to(device)
-    models.test.test_model(model, (3, 512, 1024), device)
+    models.test.test_model(model, (1, 3, 512, 1024), '../../runs', device)
