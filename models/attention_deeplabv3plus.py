@@ -7,6 +7,7 @@ import torchvision
 
 import models
 import models.backbone
+import models.modules
 import utils
 
 
@@ -92,8 +93,8 @@ class Decoder(nn.Module):
 class AttentionBlock(nn.Module):
     def __init__(self, in_channels: int, low_in_channels: int):
         super(AttentionBlock, self).__init__()
-        self.channel_attention = ChannelAttention(in_channels)
-        self.spatial_attention = SpatialAttention()
+        self.channel_attention = models.modules.attention.ChannelAttention(in_channels, multiplication=False)
+        self.spatial_attention = models.modules.attention.SpatialAttention()
         self.upsampling_conv = nn.Sequential(nn.Conv2d(in_channels, in_channels, 3, padding=1, bias=False),
                                              nn.BatchNorm2d(in_channels),
                                              nn.ReLU())
@@ -101,11 +102,9 @@ class AttentionBlock(nn.Module):
             nn.Conv2d(in_channels + low_in_channels, in_channels, kernel_size=3, stride=1, padding=1, bias=False),
             nn.BatchNorm2d(in_channels),
             nn.ReLU(),
-            nn.Dropout(0.5),
             nn.Conv2d(in_channels, in_channels, kernel_size=3, stride=1, padding=1, bias=False),
             nn.BatchNorm2d(in_channels),
             nn.ReLU(),
-            nn.Dropout(0.1)
         )
 
     def forward(self, x: torch.Tensor, low_level_feature: torch.Tensor) -> torch.Tensor:
@@ -120,36 +119,6 @@ class AttentionBlock(nn.Module):
 
         x = torch.cat((x, low_level_feature), dim=1)
         x = self.decoder(x)
-        return x
-
-
-class ChannelAttention(nn.Sequential):
-    def __init__(self, in_channels: int, reduction_ratio=4):
-        super(ChannelAttention, self).__init__(
-            nn.AdaptiveAvgPool2d(1),
-            nn.Conv2d(in_channels, in_channels // reduction_ratio, 1, bias=False),
-            nn.BatchNorm2d(in_channels // reduction_ratio),
-            nn.ReLU(),
-            nn.Conv2d(in_channels // reduction_ratio, in_channels, 1, bias=False),
-            nn.BatchNorm2d(in_channels),
-            nn.Sigmoid()
-        )
-
-
-class SpatialAttention(nn.Module):
-    def __init__(self, kernel_size=3):
-        super(SpatialAttention, self).__init__()
-        self.conv = nn.Conv2d(2, 1, kernel_size, padding=kernel_size // 2, bias=False)
-        self.bn = nn.BatchNorm2d(1)
-        self.sigmoid = nn.Sigmoid()
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        max_pool = torch.max(x, dim=1, keepdim=True)[0]
-        avg_pool = torch.mean(x, dim=1, keepdim=True)
-        x = torch.cat((max_pool, avg_pool), dim=1)
-        x = self.conv(x)
-        x = self.bn(x)
-        x = self.sigmoid(x)
         return x
 
 
