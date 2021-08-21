@@ -1,12 +1,10 @@
-from typing import Tuple
-
 import torch
 import torch.nn as nn
 import torch.utils.tensorboard
 import torchinfo
 
 
-def test_model(model: nn.Module, input_size: Tuple[int, int, int, int], graph_dir: str, device: torch.device):
+def test_model(model: nn.Module, input_size: tuple[int, int, int, int], graph_dir: str, device: torch.device):
     model.eval()
 
     model_statistics = torchinfo.summary(model, input_size, depth=10,

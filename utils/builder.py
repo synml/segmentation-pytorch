@@ -1,6 +1,5 @@
 import os
 import platform
-from typing import Tuple
 
 import torch
 import torch.nn as nn
@@ -31,7 +30,7 @@ class Builder:
     def __init__(self, cfg: dict):
         self.cfg = cfg
 
-    def build_dataset(self, dataset_type: str, ddp_enabled=False) -> Tuple[torch.utils.data.Dataset,
+    def build_dataset(self, dataset_type: str, ddp_enabled=False) -> tuple[torch.utils.data.Dataset,
                                                                            torch.utils.data.DataLoader]:
         cfg_dataset = self.cfg['dataset']
         root = cfg_dataset['root']

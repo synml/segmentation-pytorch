@@ -1,5 +1,3 @@
-from typing import List
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -61,7 +59,7 @@ class Decoder(nn.Module):
         self.decode1 = self.make_decoder(256 + 48, 256)
         self.classifier = nn.Conv2d(256, num_classes, kernel_size=1)
 
-    def forward(self, x: torch.Tensor, low_level_feature: List[torch.Tensor]) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, low_level_feature: list[torch.Tensor]) -> torch.Tensor:
         low_level_feature = self.compress_low_level_feature(low_level_feature.pop())
 
         x = F.interpolate(x, size=low_level_feature.size()[2:], mode='bilinear', align_corners=False)

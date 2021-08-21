@@ -1,4 +1,4 @@
-from typing import Sequence, Tuple, Union
+from typing import Sequence, Union
 
 import numpy as np
 import torch
@@ -67,7 +67,7 @@ class ColorJitter(torchvision.transforms.ColorJitter):
 
 
 class GaussianBlur(torchvision.transforms.GaussianBlur):
-    def __init__(self, kernel_size: int, sigma=Tuple[float, float]):
+    def __init__(self, kernel_size: int, sigma=tuple[float, float]):
         super().__init__(kernel_size, sigma)
 
     def forward(self, data: dict):
@@ -87,7 +87,7 @@ class RandomAdjustSharpness(torchvision.transforms.RandomAdjustSharpness):
 
 
 class RandomCrop(torchvision.transforms.RandomCrop):
-    def __init__(self, size: Tuple[int, int]):
+    def __init__(self, size: tuple[int, int]):
         super().__init__(size)
 
     def forward(self, data: dict):
@@ -120,7 +120,7 @@ class RandomResizedCrop(torchvision.transforms.RandomResizedCrop):
     """
 
     def __init__(
-        self, size: Union[int, Sequence], scale: Union[Tuple[float, float], str], ratio: Union[Tuple[float, float], str]
+        self, size: Union[int, Sequence], scale: Union[tuple[float, float], str], ratio: Union[tuple[float, float], str]
     ):
         if ratio == 'auto':
             ratio = (size[1] / size[0], size[1] / size[0])
@@ -142,7 +142,7 @@ class RandomResizedCrop(torchvision.transforms.RandomResizedCrop):
 
 
 class Resize(torchvision.transforms.Resize):
-    def __init__(self, size: Tuple[int, int]):
+    def __init__(self, size: tuple[int, int]):
         super().__init__(size)
 
     def forward(self, data: dict):

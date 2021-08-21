@@ -1,5 +1,3 @@
-from typing import Tuple
-
 import torch
 
 
@@ -12,7 +10,7 @@ class Evaluator:
         assert gt_batch.shape == pred_batch.shape
         self.confusion_matrix += self._generate_matrix(gt_batch, pred_batch)
 
-    def get_scores(self) -> Tuple[torch.Tensor, torch.Tensor]:
+    def get_scores(self) -> tuple[torch.Tensor, torch.Tensor]:
         iou = torch.diag(self.confusion_matrix) / (self.confusion_matrix.sum(dim=0) +
                                                    self.confusion_matrix.sum(dim=1) -
                                                    torch.diag(self.confusion_matrix)) * 100
