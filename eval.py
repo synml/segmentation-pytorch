@@ -100,7 +100,7 @@ if __name__ == '__main__':
     # Save evaluation result as csv file
     os.makedirs('result', exist_ok=True)
     class_names = valset.class_names
-    with open(os.path.join('result', f'{model_name}.csv'), mode='w') as f:
+    with open(os.path.join('result', f'{model_name}.csv'), mode='w', encoding='utf-8') as f:
         writer = csv.writer(f, delimiter=',', lineterminator='\n')
         writer.writerow(['Class Number', 'Class Name', 'IoU'])
 
