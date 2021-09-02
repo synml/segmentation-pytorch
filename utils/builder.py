@@ -83,6 +83,12 @@ class Builder:
                                              self.cfg[cfg_model_name]['output_stride'], num_classes)
         elif cfg_model_name == 'UNet':
             model = models.unet.UNet(num_classes)
+        elif cfg_model_name == 'GCMNet':
+            model = models.GCMNet.GCMNet(self.cfg[cfg_model_name]['backbone'],
+                                         self.cfg[cfg_model_name]['output_stride'], num_classes)
+        elif cfg_model_name == 'PSPNet':
+            model = models.PSPNet.PSPNet(self.cfg[cfg_model_name]['backbone'],
+                                         self.cfg[cfg_model_name]['output_stride'], num_classes, self.cfg[cfg_model_name]['mode'])
         else:
             raise NotImplementedError('Wrong model name.')
 

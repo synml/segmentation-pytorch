@@ -132,3 +132,55 @@ Proposed:
       hue: 0
     RandomHorizontalFlip:
   pretrained_weights: weights/Proposed_best_miou.pth
+
+GCMNet:
+  backbone: Xception
+  output_stride: 16
+  batch_size: 8
+  epoch: 100
+  criterion:
+    name: FocalLoss
+    alpha: 1
+    gamma: 1
+  optimizer:
+    name: AdamW
+    lr: 0.0001
+  scheduler:
+    name: PolyLR
+  augmentation:
+    RandomCrop:
+      size: !!python/tuple [512, 1024]
+    RandomAdjustSharpness:
+      sharpness_factor: 2
+    ColorJitter:
+      brightness: 0.5
+      contrast: 0.5
+      saturation: 0.5
+      hue: 0
+    RandomHorizontalFlip:
+  pretrained_weights: weights/GCMNet_best_miou.pth
+
+PSPNet:
+  backbone: ResNet101
+  output_stride: 16
+  batch_size: 8
+  epoch: 100
+  criterion:
+    name: CrossEntropyLoss
+  optimizer:
+    name: AdamW
+    lr: 0.0001
+  scheduler:
+    name: PolyLR
+  augmentation:
+    RandomCrop:
+      size: !!python/tuple [512, 1024]
+    RandomAdjustSharpness:
+      sharpness_factor: 2
+    ColorJitter:
+      brightness: 0.5
+      contrast: 0.5
+      saturation: 0.5
+      hue: 0
+    RandomHorizontalFlip:
+  pretrained_weights: weights/PSPNet_best_miou.pth

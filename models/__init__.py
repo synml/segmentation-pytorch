@@ -4,3 +4,5 @@ import models.deeplabv3plus
 import models.proposed
 import models.test
 import models.unet
+import models.GCMNet
+import models.PSPNet
