@@ -113,7 +113,7 @@ class Decoder(nn.Module):
     def make_compressor(self, in_channels: int, out_channels: int):
         return nn.Sequential(
             models.modules.conv.SeparableConv2d(in_channels, out_channels, 1),
-            nn.SiLU(inplace=True),
+            nn.ReLU(inplace=True),
         )
 
     def make_decoder(self, in_channels: int, mid_channels: int, out_channels: int):
