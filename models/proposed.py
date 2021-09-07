@@ -39,14 +39,15 @@ class Proposed(nn.Module):
 
         # Decoder
         self.decoder = Decoder(backbone_type, output_stride, num_classes)
+        self.upsample = nn.Upsample(mode='bilinear', align_corners=False)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        size = x.size()[2:]
+        self.upsample.size = x.size()[-2:]
 
         x = self.backbone(x)
         x = self.aspp(x)
         x = self.decoder(x, self.low_level_feature)
-        x = F.interpolate(x, size=size, mode='bilinear', align_corners=False)
+        x = self.upsample(x)
         return x
 
     def freeze_bn(self):
