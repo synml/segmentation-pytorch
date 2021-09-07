@@ -86,9 +86,9 @@ class Decoder(nn.Module):
         if output_stride == 16:
             self.decode1 = self.make_decoder(256 + 64, 256, 256)
         self.decode2 = self.make_decoder(256 + 32, 256, 128)
-        self.decode3 = self.make_decoder(128 + 16, 128, 64)
+        self.decode3 = self.make_decoder(128 + 16, 128, 128)
 
-        self.classifier = models.modules.conv.SeparableConv2d(64, num_classes, kernel_size=1)
+        self.classifier = nn.Conv2d(128, num_classes, kernel_size=1)
 
     def forward(self, x: torch.Tensor, low_level_feature: list[torch.Tensor]) -> torch.Tensor:
         if self.compress_low_level_feature1 is not None and self.decode1 is not None:
