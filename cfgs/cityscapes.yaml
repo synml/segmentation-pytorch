@@ -109,7 +109,7 @@ UNet:
 Proposed:
   backbone_type: small
   output_stride: 16
-  batch_size: 8
+  batch_size: 10
   epoch: 100
   criterion:
     name: FocalLoss
