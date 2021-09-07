@@ -7,6 +7,8 @@ class SeparableConv2d(nn.Sequential):
         modules = [
             nn.Conv2d(in_channels, in_channels, kernel_size, stride, padding, dilation, in_channels, bias=False),
             nn.BatchNorm2d(in_channels),
+            # activation
+            # channel_attention
             nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False),
             nn.BatchNorm2d(out_channels)
         ]
