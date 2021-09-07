@@ -28,9 +28,13 @@ class ChannelAttention(nn.Module):
 
 
 class SpatialAttention(nn.Module):
-    def __init__(self, kernel_size: int, multiplication=True):
+    def __init__(self, kernel_size: int, dilation=1, multiplication=True):
         super(SpatialAttention, self).__init__()
-        self.conv = nn.Conv2d(2, 1, kernel_size, padding=kernel_size // 2, bias=False)
+        if dilation > 1:
+            padding = dilation
+        else:
+            padding = kernel_size // 2
+        self.conv = nn.Conv2d(2, 1, kernel_size, 1, padding, dilation, bias=False)
         self.bn = nn.BatchNorm2d(1)
         self.sigmoid = nn.Sigmoid()
         self.multiplication = multiplication
