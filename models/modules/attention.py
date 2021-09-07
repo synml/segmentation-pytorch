@@ -3,6 +3,7 @@ import torch.nn as nn
 
 
 class ChannelAttention(nn.Module):
+    """ Squeeze and Excitation"""
     def __init__(self, in_channels: int, reduction_ratio=4, activation: nn.Module = None, multiplication=True):
         super(ChannelAttention, self).__init__()
         self.gap = nn.AdaptiveAvgPool2d(1)
@@ -15,7 +16,7 @@ class ChannelAttention(nn.Module):
         self.sigmoid = nn.Sigmoid()
         self.multiplication = multiplication
 
-    def forward(self, x: torch.Tensor):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         ca = self.gap(x)
         ca = self.conv1(ca)
         ca = self.activation(ca)
