@@ -88,7 +88,7 @@ class Decoder(nn.Module):
         self.decode2 = self.make_decoder(256 + 32, 256, 128)
         self.decode3 = self.make_decoder(128 + 16, 128, 64)
 
-        self.classifier = nn.Conv2d(64, num_classes, kernel_size=1)
+        self.classifier = models.modules.conv.SeparableConv2d(64, num_classes, kernel_size=1)
 
     def forward(self, x: torch.Tensor, low_level_feature: list[torch.Tensor]) -> torch.Tensor:
         if self.compress_low_level_feature1 is not None and self.decode1 is not None:
@@ -114,7 +114,6 @@ class Decoder(nn.Module):
         return nn.Sequential(
             models.modules.conv.SeparableConv2d(in_channels, out_channels, 1),
             nn.SiLU(inplace=True),
-            models.modules.attention.SpatialAttention(3, 2)
         )
 
     def make_decoder(self, in_channels: int, mid_channels: int, out_channels: int):

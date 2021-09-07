@@ -18,9 +18,7 @@ class ASPPPooling(nn.Sequential):
     def __init__(self, in_channels, out_channels):
         super(ASPPPooling, self).__init__(
             nn.AdaptiveAvgPool2d(1),
-            models.modules.conv.SeparableConv2d(in_channels, out_channels, 1, activation=nn.SiLU(inplace=True),
-                                                channel_attention=models.modules.attention.ChannelAttention(
-                                                    in_channels, activation=nn.SiLU(inplace=True))),
+            models.modules.conv.SeparableConv2d(in_channels, out_channels, 1),
             nn.ReLU())
 
     def forward(self, x):
