@@ -2,7 +2,6 @@ import torch.nn as nn
 
 
 class SeparableConv2d(nn.Sequential):
-    """ When using channel attention, use activation also """
     def __init__(self, in_channels: int, out_channels: int, kernel_size: int, stride=1, padding=0, dilation=1,
                  activation: nn.Module = None, channel_attention: nn.Module = None):
         modules = [
@@ -16,5 +15,7 @@ class SeparableConv2d(nn.Sequential):
         if activation is not None:
             modules.insert(2, activation)
         if channel_attention is not None:
+            if activation is None:
+                raise ValueError('Use activation and channel attention together.')
             modules.insert(3, channel_attention)
         super(SeparableConv2d, self).__init__(*modules)

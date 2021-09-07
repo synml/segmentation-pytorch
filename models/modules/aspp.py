@@ -9,7 +9,6 @@ class ASPPConv(nn.Sequential):
     def __init__(self, in_channels, out_channels, dilation):
         modules = [
             models.modules.conv.SeparableConv2d(in_channels, out_channels, 3, padding=dilation, dilation=dilation),
-            nn.BatchNorm2d(out_channels),
             nn.SiLU()
         ]
         super(ASPPConv, self).__init__(*modules)
@@ -19,8 +18,9 @@ class ASPPPooling(nn.Sequential):
     def __init__(self, in_channels, out_channels):
         super(ASPPPooling, self).__init__(
             nn.AdaptiveAvgPool2d(1),
-            models.modules.conv.SeparableConv2d(in_channels, out_channels, 1),
-            nn.BatchNorm2d(out_channels),
+            models.modules.conv.SeparableConv2d(in_channels, out_channels, 1, activation=nn.SiLU(inplace=True),
+                                                channel_attention=models.modules.attention.ChannelAttention(
+                                                    in_channels, activation=nn.SiLU(inplace=True))),
             nn.ReLU())
 
     def forward(self, x):
@@ -36,7 +36,6 @@ class ASPPwDSConv(nn.Module):
         modules = []
         modules.append(nn.Sequential(
             models.modules.conv.SeparableConv2d(in_channels, out_channels, 1),
-            nn.BatchNorm2d(out_channels),
             nn.SiLU()))
 
         rates = tuple(atrous_rates)
@@ -49,7 +48,6 @@ class ASPPwDSConv(nn.Module):
 
         self.project = nn.Sequential(
             models.modules.conv.SeparableConv2d(len(self.convs) * out_channels, out_channels, 1),
-            nn.BatchNorm2d(out_channels),
             nn.SiLU(),
             nn.Dropout(0.5))
 
