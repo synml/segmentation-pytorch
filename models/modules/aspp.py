@@ -8,8 +8,7 @@ import models.modules.conv
 class ASPPConv(nn.Sequential):
     def __init__(self, in_channels, out_channels, dilation):
         modules = [
-            models.modules.conv.SeparableConv2d(in_channels, out_channels, 3, padding=dilation,
-                                                dilation=dilation, bias=False),
+            models.modules.conv.SeparableConv2d(in_channels, out_channels, 3, padding=dilation, dilation=dilation),
             nn.BatchNorm2d(out_channels),
             nn.ReLU()
         ]
@@ -20,7 +19,7 @@ class ASPPPooling(nn.Sequential):
     def __init__(self, in_channels, out_channels):
         super(ASPPPooling, self).__init__(
             nn.AdaptiveAvgPool2d(1),
-            models.modules.conv.SeparableConv2d(in_channels, out_channels, 1, bias=False),
+            models.modules.conv.SeparableConv2d(in_channels, out_channels, 1),
             nn.BatchNorm2d(out_channels),
             nn.ReLU())
 
@@ -36,7 +35,7 @@ class ASPPwDSConv(nn.Module):
         super(ASPPwDSConv, self).__init__()
         modules = []
         modules.append(nn.Sequential(
-            models.modules.conv.SeparableConv2d(in_channels, out_channels, 1, bias=False),
+            models.modules.conv.SeparableConv2d(in_channels, out_channels, 1),
             nn.BatchNorm2d(out_channels),
             nn.ReLU()))
 
@@ -49,7 +48,7 @@ class ASPPwDSConv(nn.Module):
         self.convs = nn.ModuleList(modules)
 
         self.project = nn.Sequential(
-            models.modules.conv.SeparableConv2d(len(self.convs) * out_channels, out_channels, 1, bias=False),
+            models.modules.conv.SeparableConv2d(len(self.convs) * out_channels, out_channels, 1),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(),
             nn.Dropout(0.5))
