@@ -10,7 +10,7 @@ class ASPPConv(nn.Sequential):
         modules = [
             models.modules.conv.SeparableConv2d(in_channels, out_channels, 3, padding=dilation, dilation=dilation),
             nn.BatchNorm2d(out_channels),
-            nn.ReLU()
+            nn.SiLU()
         ]
         super(ASPPConv, self).__init__(*modules)
 
@@ -37,7 +37,7 @@ class ASPPwDSConv(nn.Module):
         modules.append(nn.Sequential(
             models.modules.conv.SeparableConv2d(in_channels, out_channels, 1),
             nn.BatchNorm2d(out_channels),
-            nn.ReLU()))
+            nn.SiLU()))
 
         rates = tuple(atrous_rates)
         for rate in rates:
@@ -50,7 +50,7 @@ class ASPPwDSConv(nn.Module):
         self.project = nn.Sequential(
             models.modules.conv.SeparableConv2d(len(self.convs) * out_channels, out_channels, 1),
             nn.BatchNorm2d(out_channels),
-            nn.ReLU(),
+            nn.SiLU(),
             nn.Dropout(0.5))
 
     def forward(self, x):
