@@ -3,7 +3,7 @@ import os
 import cv2
 import numpy as np
 from PIL import Image
-import pytorch_grad_cam.utils.image
+import pytorch_grad_cam
 import torch
 import torchvision
 import tqdm
@@ -11,15 +11,16 @@ import tqdm
 import utils
 
 
-def draw_cam(image: np.ndarray, mask: np.ndarray, colormap=cv2.COLORMAP_JET) -> np.ndarray:
-    assert np.min(image) >= 0 and np.max(image) <= 1, 'Input image should in the range [0, 1]'
+def draw_cam_on_image(image: torch.Tensor, mask: np.ndarray, colormap=cv2.COLORMAP_JET) -> torch.Tensor:
+    assert torch.min(image) >= 0 and torch.max(image) <= 1, 'Input image should in the range [0, 1]'
 
     heatmap = cv2.applyColorMap(np.uint8(mask * 255), colormap)
-    heatmap = cv2.cvtColor(heatmap, cv2.COLOR_BGR2RGB)
-    heatmap = np.float32(heatmap) / 255
+    heatmap = cv2.cvtColor(heatmap, cv2.COLOR_BGR2RGB) / 255
+    heatmap = torch.from_numpy(heatmap).permute(2, 0, 1)
+
     cam = image + heatmap
-    cam = np.float32(cam) / np.max(cam)
-    return np.uint8(cam * 255)
+    cam /= torch.max(cam)
+    return cam
 
 
 if __name__ == '__main__':
@@ -60,8 +61,11 @@ if __name__ == '__main__':
 
         for target_category in tqdm.tqdm(range(valset.num_classes), desc='Classes', leave=False):
             cam_mask: np.ndarray = gradcam(image, target_category)[0, :]
-            visualization = draw_cam(np.array(Image.open(valset.images[image_number]).convert('RGB')) / 255, cam_mask)
+            cam_on_image = draw_cam_on_image(
+                torchvision.transforms.ToTensor()(Image.open(valset.images[image_number]).convert('RGB')),
+                cam_mask
+            )
             torchvision.utils.save_image(
-                torchvision.transforms.ToTensor()(visualization),
+                cam_on_image,
                 os.path.join(result_dir, f'{target_category}_{valset.class_names[target_category]}.png')
             )
