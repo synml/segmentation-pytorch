@@ -68,5 +68,5 @@ if __name__ == '__main__':
             )
             torchvision.utils.save_image(
                 cam_on_image,
-                os.path.join(result_dir, f'{target_category}_{valset.class_names[target_category]}.png')
+                os.path.join(result_dir, f'{target_category}_{valset.class_names[target_category]}.jpg')
             )
