@@ -41,9 +41,8 @@ if __name__ == '__main__':
     # 이미지 불러오기
     image_number = input('Enter the image number of the dataset>>> ')
     if image_number == '':
-        image_number = 3
-    else:
-        image_number = int(image_number)
+        image_number = 253
+    image_number = int(image_number) - 1
     image, _ = valset[image_number]
     image.unsqueeze_(0)
 
