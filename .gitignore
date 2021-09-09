@@ -1,6 +1,7 @@
 # Project ignores
 .idea/
 backup/
+cam/
 demo/
 feature_maps/
 result/
