@@ -15,8 +15,8 @@ def draw_cam_on_image(image: torch.Tensor, mask: np.ndarray, colormap=cv2.COLORM
     assert torch.min(image) >= 0 and torch.max(image) <= 1, 'Input image should in the range [0, 1]'
 
     heatmap = cv2.applyColorMap(np.uint8(mask * 255), colormap)
-    heatmap = cv2.cvtColor(heatmap, cv2.COLOR_BGR2RGB) / 255
-    heatmap = torch.from_numpy(heatmap).permute(2, 0, 1)
+    heatmap = cv2.cvtColor(heatmap, cv2.COLOR_BGR2RGB)
+    heatmap = torch.from_numpy(heatmap).permute(2, 0, 1) / 255
 
     cam = image + heatmap
     cam /= torch.max(cam)
@@ -48,10 +48,11 @@ if __name__ == '__main__':
     image.unsqueeze_(0)
 
     # Class activation map을 생성할 계층을 지정
+    use_cuda = torch.cuda.is_available()
     gradcam_layers = {
-        'backbone': pytorch_grad_cam.GradCAM(model, target_layer=model.backbone, use_cuda=torch.cuda.is_available()),
-        'aspp': pytorch_grad_cam.GradCAM(model, target_layer=model.aspp, use_cuda=torch.cuda.is_available()),
-        'decoder': pytorch_grad_cam.GradCAM(model, target_layer=model.decoder, use_cuda=torch.cuda.is_available()),
+        'backbone': pytorch_grad_cam.GradCAM(model, target_layer=model.backbone, use_cuda=use_cuda),
+        'aspp': pytorch_grad_cam.GradCAM(model, target_layer=model.aspp, use_cuda=use_cuda),
+        'decoder': pytorch_grad_cam.GradCAM(model, target_layer=model.decoder, use_cuda=use_cuda),
     }
 
     # Class activation map 생성
