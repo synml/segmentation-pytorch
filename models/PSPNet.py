@@ -120,4 +120,4 @@ class Decoder(nn.Module):
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = PSPNet('ResNet101', output_stride=16, num_classes=19, mode=True).to(device)
-    models.test.test_model(model, (1, 3, 512, 1024), '../runs', device)
+    models.test.test_model(model, (1, 3, 512, 1024), '../runs')

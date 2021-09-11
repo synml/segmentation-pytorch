@@ -124,4 +124,4 @@ class AttentionBlock(nn.Module):
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = Attention_DeepLabv3plus('Xception', output_stride=16, num_classes=19).to(device)
-    models.test.test_model(model, (1, 3, 512, 1024), '../runs', device)
+    models.test.test_model(model, (1, 3, 512, 1024), '../runs')
