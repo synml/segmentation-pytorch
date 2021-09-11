@@ -24,6 +24,7 @@ backup_dir = os.path.join('backup', 'rename')
 os.makedirs(backup_dir)
 
 # Backup
+move_directory('cam', backup_dir)
 move_directory('demo', backup_dir)
 move_directory('feature_maps', backup_dir)
 move_directory('runs', backup_dir)
