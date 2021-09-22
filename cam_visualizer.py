@@ -48,19 +48,19 @@ if __name__ == '__main__':
 
     # Class activation map을 생성할 계층을 지정
     use_cuda = torch.cuda.is_available()
-    gradcam_layers = {
-        'backbone': pytorch_grad_cam.GradCAM(model, target_layer=model.backbone, use_cuda=use_cuda),
-        'aspp': pytorch_grad_cam.GradCAM(model, target_layer=model.aspp, use_cuda=use_cuda),
-        'decoder': pytorch_grad_cam.GradCAM(model, target_layer=model.decoder, use_cuda=use_cuda),
+    cam_layers = {
+        'backbone': pytorch_grad_cam.GradCAMPlusPlus(model, target_layer=model.backbone, use_cuda=use_cuda),
+        'aspp': pytorch_grad_cam.GradCAMPlusPlus(model, target_layer=model.aspp, use_cuda=use_cuda),
+        'decoder': pytorch_grad_cam.GradCAMPlusPlus(model, target_layer=model.decoder, use_cuda=use_cuda),
     }
 
     # Class activation map 생성
-    for layer, gradcam in tqdm.tqdm(gradcam_layers.items(), desc='Saving CAM'):
+    for layer, cam in tqdm.tqdm(cam_layers.items(), desc='Saving CAM'):
         result_dir = os.path.join('cam', model_name, layer)
         os.makedirs(result_dir, exist_ok=True)
 
         for target_category in tqdm.tqdm(range(valset.num_classes), desc='Classes', leave=False):
-            cam_mask: np.ndarray = gradcam(image, target_category)[0, :]
+            cam_mask: np.ndarray = cam(image, target_category)[0, :]
             cam_on_image = draw_cam_on_image(
                 torchvision.transforms.ToTensor()(Image.open(valset.images[image_number]).convert('RGB')),
                 cam_mask
