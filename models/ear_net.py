@@ -30,7 +30,7 @@ class EAR_Net(nn.Module):
         self.decode1 = self.make_decoder(144, 64)
 
         # Classifier
-        self.classifier = models.modules.conv.SeparableConv2d(64, num_classes, kernel_size=1)
+        self.classifier = nn.Conv2d(64, num_classes, kernel_size=1)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         input_size = x.size()[2:]
@@ -66,13 +66,14 @@ class EAR_Net(nn.Module):
             models.modules.conv.SeparableConv2d(in_channels, out_channels // 2, kernel_size=3, stride=2, padding=1),
             nn.ReLU(inplace=True),
             models.modules.conv.SeparableConv2d(out_channels // 2, out_channels, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(inplace=True)
+            nn.ReLU(inplace=True),
         )
 
     def make_compressor(self, in_channels: int, out_channels: int):
         return nn.Sequential(
-            models.modules.conv.SeparableConv2d(in_channels, out_channels, kernel_size=1),
-            nn.ReLU(inplace=True)
+            nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True),
         )
 
     def make_decoder(self, in_channels: int, out_channels: int):
@@ -80,7 +81,7 @@ class EAR_Net(nn.Module):
             models.modules.conv.SeparableConv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
             nn.ReLU(inplace=True),
             models.modules.conv.SeparableConv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(inplace=True)
+            nn.ReLU(inplace=True),
         )
 
 
