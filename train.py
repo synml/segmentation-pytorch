@@ -110,7 +110,7 @@ if __name__ == '__main__':
                 else:
                     outputs, aux = model(images)
                     loss = criterion(outputs, targets)
-                    aux_loss = aux_criterion(aux)
+                    aux_loss = aux_criterion(aux, targets)
                     loss += 0.4 * aux_loss
             scaler.scale(loss).backward()
             scaler.step(optimizer)
