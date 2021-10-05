@@ -36,7 +36,9 @@ class ASPPwDSConv(nn.Module):
         modules.append(nn.Sequential(
             nn.Conv2d(in_channels, out_channels, 1, bias=False),
             nn.BatchNorm2d(out_channels),
-            nn.ReLU()))
+            nn.ReLU(),
+            models.modules.attention.ChannelAttention(in_channels)
+        ))
 
         rates = tuple(atrous_rates)
         for rate in rates:
