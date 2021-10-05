@@ -114,7 +114,7 @@ class Builder:
             raise NotImplementedError('Wrong criterion name.')
         return criterion
 
-    def build_optimizer(self, model: torch.nn.Module) -> torch.optim.Optimizer:
+    def build_optimizer(self, model: nn.Module) -> torch.optim.Optimizer:
         cfg_optim = self.cfg[self.cfg['model']['name']]['optimizer']
 
         if cfg_optim['name'] == 'SGD':
@@ -136,3 +136,12 @@ class Builder:
         else:
             raise NotImplementedError('Wrong scheduler name.')
         return scheduler
+
+    def build_aux_criterion(self, ignore_index: int) -> nn.Module:
+        cfg_aux_criterion = self.cfg[self.cfg['model']['name']]['aux_criterion']
+
+        if cfg_aux_criterion['name'] == 'CrossEntropyLoss':
+            aux_criterion = nn.CrossEntropyLoss(ignore_index=ignore_index)
+        else:
+            raise NotImplementedError('Wrong aux_criterion name.')
+        return aux_criterion

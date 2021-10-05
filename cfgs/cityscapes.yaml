@@ -115,6 +115,8 @@ Proposed:
     name: FocalLoss
     alpha: 1
     gamma: 1
+  aux_criterion:
+    name: CrossEntropyLoss
   optimizer:
     name: AdamW
     lr: 0.001

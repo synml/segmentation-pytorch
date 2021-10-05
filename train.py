@@ -51,6 +51,10 @@ if __name__ == '__main__':
     optimizer = builder.build_optimizer(model)
     scheduler = builder.build_scheduler(optimizer, len(trainloader) * cfg[model_name]['epoch'])
     scaler = torch.cuda.amp.GradScaler(enabled=amp_enabled)
+    if cfg[model_name]['aux_criterion'] is not None:
+        aux_criterion = builder.build_aux_criterion(trainset.ignore_index)
+    else:
+        aux_criterion = None
 
     # Resume training at checkpoint
     if cfg['resume_training'] is not None:
@@ -100,8 +104,14 @@ if __name__ == '__main__':
 
             optimizer.zero_grad(set_to_none=True)
             with torch.cuda.amp.autocast(enabled=amp_enabled):
-                outputs = model(images)
-                loss = criterion(outputs, targets)
+                if aux_criterion is None:
+                    outputs = model(images)
+                    loss = criterion(outputs, targets)
+                else:
+                    outputs, aux = model(images)
+                    loss = criterion(outputs, targets)
+                    aux_loss = aux_criterion(aux)
+                    loss += 0.4 * aux_loss
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()
