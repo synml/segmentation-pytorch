@@ -9,7 +9,7 @@ import utils
 
 
 class Proposed(nn.Module):
-    def __init__(self, backbone_type: str, output_stride: int, num_classes: int):
+    def __init__(self, backbone_type: str, output_stride: int, num_classes: int, aux_loss=False):
         super(Proposed, self).__init__()
         assert output_stride in (8, 16)
         self.low_level_feature = []
@@ -42,23 +42,32 @@ class Proposed(nn.Module):
         self.upsample = nn.Upsample(mode='bilinear', align_corners=False)
 
         # Auxiliary classifier
-        self.aux_classifier = nn.Sequential(
-            nn.Conv2d(256, 256, 3, padding=1, bias=False),
-            nn.BatchNorm2d(256),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(256, num_classes, 1)
-        )
+        if aux_loss:
+            self.aux_classifier = nn.Sequential(
+                nn.Conv2d(256, 256, 3, padding=1, bias=False),
+                nn.BatchNorm2d(256),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(256, num_classes, 1)
+            )
+        else:
+            self.aux_classifier = None
 
     def forward(self, x: torch.Tensor):
         self.upsample.size = x.size()[-2:]
 
         x = self.backbone(x)
-        aux = self.aux_classifier(x)
-        aux = self.upsample(aux)
+        if self.aux_classifier is not None:
+            aux = self.aux_classifier(x)
+            aux = self.upsample(aux)
+        else:
+            aux = None
         x = self.aspp(x)
         x = self.decoder(x, self.low_level_feature)
         x = self.upsample(x)
-        return x, aux
+        if self.aux_classifier is not None:
+            return x, aux
+        else:
+            return x
 
     def freeze_bn(self):
         for m in self.modules():
