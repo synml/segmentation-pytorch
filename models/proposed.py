@@ -56,7 +56,7 @@ class Proposed(nn.Module):
         self.upsample.size = x.size()[-2:]
 
         x = self.backbone(x)
-        if self.aux_classifier is not None:
+        if self.training:
             aux = self.aux_classifier(x)
             aux = self.upsample(aux)
         else:
@@ -64,7 +64,7 @@ class Proposed(nn.Module):
         x = self.aspp(x)
         x = self.decoder(x, self.low_level_feature)
         x = self.upsample(x)
-        if self.aux_classifier is not None:
+        if self.training:
             return x, aux
         else:
             return x
