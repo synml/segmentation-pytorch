@@ -9,7 +9,7 @@ import utils
 
 
 class Proposed(nn.Module):
-    def __init__(self, backbone_type: str, output_stride: int, num_classes: int, aux_loss=False):
+    def __init__(self, backbone_type: str, output_stride: int, num_classes: int, aux_loss: bool):
         super(Proposed, self).__init__()
         assert output_stride in (8, 16)
         self.low_level_feature = []
@@ -147,5 +147,5 @@ class Decoder(nn.Module):
 
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = Proposed('small', output_stride=16, num_classes=19).to(device)
+    model = Proposed('small', output_stride=16, num_classes=19, aux_loss=False).to(device)
     models.test.test_model(model, (1, 3, 512, 1024), '../runs')
