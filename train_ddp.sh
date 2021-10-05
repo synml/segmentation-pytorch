@@ -1,3 +1,3 @@
 #!/bin/bash
 
-python -m torch.distributed.run train.py
+python -m torch.distributed.run --nproc_per_node=2 train.py
