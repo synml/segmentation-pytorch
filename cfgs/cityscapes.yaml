@@ -118,9 +118,8 @@ Proposed:
   aux_criterion:
     name: CrossEntropyLoss
   optimizer:
-    name: Adam
-    lr: 0.002
-    weight_decay: 0.0005
+    name: AdamW
+    lr: 0.001
   scheduler:
     name: PolyLR
   augmentation:
