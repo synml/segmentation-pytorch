@@ -23,6 +23,13 @@ def draw_cam_on_image(image: torch.Tensor, mask: np.ndarray, colormap=cv2.COLORM
     return cam
 
 
+def cam_get_loss(output, target_category):
+    loss = 0
+    for i in range(len(target_category)):
+        loss = loss + output[i, target_category, :, :].mean()
+    return loss
+
+
 if __name__ == '__main__':
     # Load cfg and create components builder
     cfg = utils.builder.load_cfg()
