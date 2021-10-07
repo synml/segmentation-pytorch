@@ -13,5 +13,7 @@ shutil.rmtree('datasets/__pycache__', ignore_errors=True)
 shutil.rmtree('models/backbone/__pycache__', ignore_errors=True)
 shutil.rmtree('utils/__pycache__', ignore_errors=True)
 
-if platform.system() != 'Windows':
+if platform.system() == 'Windows':
+    os.system('cls')
+else:
     os.system('clear')
