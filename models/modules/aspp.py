@@ -42,7 +42,7 @@ class ASPPwDSConv(nn.Module):
         for rate in rates:
             modules.append(ASPPConv(in_channels, out_channels, rate))
 
-        modules.append(models.modules.attention.ChannelAttention(in_channels))
+        modules.append(ASPPPooling(in_channels, out_channels))
 
         self.convs = nn.ModuleList(modules)
 
