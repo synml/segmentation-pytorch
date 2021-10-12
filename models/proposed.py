@@ -43,12 +43,7 @@ class Proposed(nn.Module):
 
         # Auxiliary classifier
         if aux_loss:
-            self.aux_classifier = nn.Sequential(
-                nn.Conv2d(256, 256, 3, padding=1, bias=False),
-                nn.BatchNorm2d(256),
-                nn.ReLU(inplace=True),
-                nn.Conv2d(256, num_classes, 1)
-            )
+            self.aux_classifier = nn.Conv2d(256, num_classes, 1)
         else:
             self.aux_classifier = None
 
