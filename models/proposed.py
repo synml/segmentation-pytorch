@@ -9,43 +9,25 @@ import utils
 
 
 class Proposed(nn.Module):
-    def __init__(self, backbone_type: str, output_stride: int, num_classes: int, aux_loss: bool):
+    def __init__(self, num_classes: int):
         super(Proposed, self).__init__()
-        assert output_stride in (8, 16)
         self.low_level_feature = []
 
         # Backbone
-        self.backbone = models.backbone.efficientnet.efficientnetv2(backbone_type, output_stride, pretrained=True)
+        self.backbone = models.backbone.efficientnet.efficientnetv2('small', 16, pretrained=True)
         self.backbone.stages[0].register_forward_hook(utils.hooks.get_feature_maps(self.low_level_feature))
         self.backbone.stages[1].register_forward_hook(utils.hooks.get_feature_maps(self.low_level_feature))
-        if output_stride == 16:
-            self.backbone.stages[2].register_forward_hook(utils.hooks.get_feature_maps(self.low_level_feature))
+        self.backbone.stages[2].register_forward_hook(utils.hooks.get_feature_maps(self.low_level_feature))
 
         # ASPP
-        if output_stride == 16:
-            atrous_rates = (6, 12, 18)
-        elif output_stride == 8:
-            atrous_rates = (12, 24, 36)
-        else:
-            raise NotImplementedError('Wrong output_stride.')
-        if backbone_type == 'small':
-            self.aspp = models.modules.aspp.ASPPwDSConv(256, atrous_rates, 256)
-        elif backbone_type == 'medium':
-            self.aspp = models.modules.aspp.ASPPwDSConv(512, atrous_rates, 256)
-        elif backbone_type == 'large':
-            self.aspp = models.modules.aspp.ASPPwDSConv(640, atrous_rates, 256)
-        else:
-            raise NotImplementedError('Wrong backbone_type.')
+        self.aspp = models.modules.aspp.ASPPwDSConv(256, (6, 12, 18), 256)
 
         # Decoder
-        self.decoder = Decoder(backbone_type, output_stride, num_classes)
+        self.decoder = Decoder(num_classes)
         self.upsample = nn.Upsample(mode='bilinear', align_corners=False)
 
         # Auxiliary classifier
-        if aux_loss:
-            self.aux_classifier = nn.Conv2d(256, num_classes, 1)
-        else:
-            self.aux_classifier = None
+        self.aux_classifier = nn.Conv2d(256, num_classes, 1)
 
         """
         aux1 = 32x64@256 ( effv2s backbone last )loss_factor =0.2
@@ -98,43 +80,23 @@ class Proposed(nn.Module):
 
 
 class Decoder(nn.Module):
-    def __init__(self, backbone_type: str, output_stride: int, num_classes: int):
+    def __init__(self, num_classes: int):
         super(Decoder, self).__init__()
-        assert output_stride in (8, 16)
+        self.compress_low_level_feature1 = self.make_compressor(64, 64)
+        self.compress_low_level_feature2 = self.make_compressor(48, 32)
+        self.compress_low_level_feature3 = self.make_compressor(24, 16)
 
-        self.compress_low_level_feature1 = None
-        if backbone_type == 'small':
-            if output_stride == 16:
-                self.compress_low_level_feature1 = self.make_compressor(64, 64)
-            self.compress_low_level_feature2 = self.make_compressor(48, 32)
-            self.compress_low_level_feature3 = self.make_compressor(24, 16)
-        elif backbone_type == 'medium':
-            if output_stride == 16:
-                self.compress_low_level_feature1 = self.make_compressor(80, 64)
-            self.compress_low_level_feature2 = self.make_compressor(48, 32)
-            self.compress_low_level_feature3 = self.make_compressor(24, 16)
-        elif backbone_type == 'large':
-            if output_stride == 16:
-                self.compress_low_level_feature1 = self.make_compressor(96, 64)
-            self.compress_low_level_feature2 = self.make_compressor(64, 32)
-            self.compress_low_level_feature3 = self.make_compressor(32, 16)
-        else:
-            raise NotImplementedError('Wrong backbone_type.')
-
-        self.decode1 = None
-        if output_stride == 16:
-            self.decode1 = self.make_decoder(256 + 64, 256, 256)
+        self.decode1 = self.make_decoder(256 + 64, 256, 256)
         self.decode2 = self.make_decoder(256 + 32, 256, 128)
         self.decode3 = self.make_decoder(128 + 16, 128, 128)
 
         self.classifier = nn.Conv2d(128, num_classes, kernel_size=1)
 
     def forward(self, x: torch.Tensor, low_level_feature: list[torch.Tensor]) -> torch.Tensor:
-        if self.compress_low_level_feature1 is not None and self.decode1 is not None:
-            low_level_feature1 = self.compress_low_level_feature1(low_level_feature.pop())
-            x = F.interpolate(x, size=low_level_feature1.size()[2:], mode='bilinear', align_corners=False)
-            x = torch.cat((x, low_level_feature1), dim=1)
-            x = self.decode1(x)
+        low_level_feature1 = self.compress_low_level_feature1(low_level_feature.pop())
+        x = F.interpolate(x, size=low_level_feature1.size()[2:], mode='bilinear', align_corners=False)
+        x = torch.cat((x, low_level_feature1), dim=1)
+        x = self.decode1(x)
 
         low_level_feature2 = self.compress_low_level_feature2(low_level_feature.pop())
         x = F.interpolate(x, size=low_level_feature2.size()[2:], mode='bilinear', align_corners=False)
@@ -167,5 +129,5 @@ class Decoder(nn.Module):
 
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = Proposed('small', output_stride=16, num_classes=19, aux_loss=False).to(device)
+    model = Proposed(num_classes=19, aux_loss=False).to(device)
     models.test.test_model(model, (1, 3, 1024, 2048), '../runs')

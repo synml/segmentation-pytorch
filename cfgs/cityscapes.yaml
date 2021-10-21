@@ -107,8 +107,6 @@ UNet:
   pretrained_weights: weights/UNet_best_miou.pth
 
 Proposed:
-  backbone_type: small
-  output_stride: 16
   batch_size: 10
   epoch: 100
   criterion:
