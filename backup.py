@@ -26,7 +26,6 @@ os.makedirs(backup_dir)
 # Backup
 move_directory('cam', backup_dir)
 move_directory('demo', backup_dir)
-move_directory('feature_maps', backup_dir)
 move_directory('runs', backup_dir)
 move_files('result', backup_dir)
 move_files('weights', backup_dir)
