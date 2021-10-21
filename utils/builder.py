@@ -144,3 +144,7 @@ class Builder:
         else:
             raise NotImplementedError('Wrong aux_criterion name.')
         return aux_criterion
+
+    def build_aux_factor(self) -> tuple:
+        cfg_aux_factor = self.cfg[self.cfg['model']['name']]['aux_factor']
+        return cfg_aux_factor

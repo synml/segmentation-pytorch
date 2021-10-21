@@ -67,7 +67,7 @@ class Proposed(nn.Module):
         x = self.decoder(x, self.low_level_feature)
         x = self.upsample(x)
         if self.training:
-            return x, aux
+            return x, (aux,)
         else:
             return x
 

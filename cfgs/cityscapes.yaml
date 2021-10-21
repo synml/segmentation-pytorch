@@ -115,6 +115,7 @@ Proposed:
     gamma: 1
   aux_criterion:
     name: CrossEntropyLoss
+  aux_factor: !!python/tuple [0.4]
   optimizer:
     name: AdamW
     lr: 0.001

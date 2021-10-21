@@ -46,15 +46,17 @@ if __name__ == '__main__':
     amp_enabled = cfg['model']['amp_enabled']
     print(f'Activated model: {model_name} (rank{local_rank})')
 
-    # 3. Loss function, optimizer, lr scheduler, scaler
+    # 3. Loss function, optimizer, lr scheduler, scaler, aux loss function
     criterion = builder.build_criterion(trainset.ignore_index)
     optimizer = builder.build_optimizer(model)
     scheduler = builder.build_scheduler(optimizer, len(trainloader) * cfg[model_name]['epoch'])
     scaler = torch.cuda.amp.GradScaler(enabled=amp_enabled)
     if cfg[model_name]['aux_criterion'] is not None:
         aux_criterion = builder.build_aux_criterion(trainset.ignore_index)
+        aux_factor = builder.build_aux_factor()
     else:
         aux_criterion = None
+        aux_factor = None
 
     # Resume training at checkpoint
     if cfg['resume_training'] is not None:
@@ -108,10 +110,11 @@ if __name__ == '__main__':
                     outputs = model(images)
                     loss = criterion(outputs, targets)
                 else:
-                    outputs, aux = model(images)
-                    loss = criterion(outputs, targets)
-                    aux_loss = aux_criterion(aux, targets)
-                    loss += 0.4 * aux_loss
+                    outputs, aux_outputs = model(images)
+                    aux_loss = 0
+                    for i, aux_output in enumerate(aux_outputs):
+                        aux_loss += aux_criterion(aux_output, targets) * aux_factor[i]
+                    loss = criterion(outputs, targets) + aux_loss
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()
