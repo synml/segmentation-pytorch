@@ -63,4 +63,4 @@ class UNet(nn.Module):
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = UNet(19).to(device)
-    models.test.test_model(model, (1, 3, 512, 1024), '../runs')
+    models.test.test_model(model, (1, 3, 1024, 2048), '../runs')
