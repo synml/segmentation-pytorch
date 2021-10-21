@@ -129,5 +129,5 @@ class Decoder(nn.Module):
 
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = Proposed(num_classes=19, aux_loss=False).to(device)
+    model = Proposed(num_classes=19).to(device)
     models.test.test_model(model, (1, 3, 1024, 2048), '../runs')
