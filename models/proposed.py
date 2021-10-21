@@ -47,6 +47,31 @@ class Proposed(nn.Module):
         else:
             self.aux_classifier = None
 
+        """
+        aux1 = 32x64@256 ( effv2s backbone last )loss_factor =0.2
+        aux2 = 128x256 ( aspp 종단 concat-conv-bn-ac-upsamling4x ) loss_factor =0.5 
+        aux3 = 128x256 ( dlv3+ skip connection이랑 concat(32channel)한거 이후 ) loss_factor=0.8
+        original 종단 아웃풋 loss_factor=1
+        
+        def classifier(x, upper_factor=4, use_aux):
+            if use_aux:
+                x = SepConv(256, 256)(x)
+            
+            x = Conv2D(256, 19, kernel_size=(1, 1), padding='same', use_bias=True)(x)
+            x = Upsampling2D((upper_factor, upper_factor))(x)
+        
+        loss = CE
+        GLOBAL_BATCH_SIZE = 16
+        Optimizer = Adam
+        LearningRateScheduler = PolynomialDecay
+        
+        그리고, 중요한거 
+        ignore index를 제외한 모든 class 번호의 빈도를 계산하여 class_weight를 계산
+        
+        for i in range(len(output)):
+            output[i] = (ce * class_weight) * loss_factor
+        """
+
     def forward(self, x: torch.Tensor):
         self.upsample.size = x.size()[-2:]
 
@@ -143,4 +168,4 @@ class Decoder(nn.Module):
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = Proposed('small', output_stride=16, num_classes=19, aux_loss=False).to(device)
-    models.test.test_model(model, (1, 3, 512, 1024), '../runs')
+    models.test.test_model(model, (1, 3, 1024, 2048), '../runs')
