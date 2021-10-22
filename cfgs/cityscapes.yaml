@@ -6,6 +6,8 @@ dataset:
   pin_memory: True
   normalize_mean: !!python/tuple [0.28689554, 0.32513303, 0.28389177]
   normalize_std: !!python/tuple [0.18696375, 0.19017339, 0.18720214]
+  class_weight: !!python/tuple [0.8373, 0.918, 0.866, 1.0345, 1.0166, 0.9969, 0.9754, 1.0489, 0.8786, 1.0023,
+                                0.9539, 0.9843, 1.1116, 0.9037, 1.0865, 1.0955, 1.0865, 1.1529, 1.0507]
 
 # Model definitions
 Attention_DeepLabv3plus:
@@ -108,17 +110,18 @@ UNet:
 
 Proposed:
   batch_size: 10
-  epoch: 100
+  epoch: 120
   criterion:
     name: FocalLoss
     alpha: 1
     gamma: 1
   aux_criterion:
     name: CrossEntropyLoss
-  aux_factor: !!python/tuple [0.4]
+  aux_factor: !!python/tuple [0.2, 0.5]
   optimizer:
     name: AdamW
     lr: 0.001
+    weight_decay: 0.00005
   scheduler:
     name: PolyLR
   augmentation:

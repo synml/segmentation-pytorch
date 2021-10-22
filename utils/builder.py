@@ -122,7 +122,7 @@ class Builder:
         elif cfg_optim['name'] == 'Adam':
             optimizer = torch.optim.Adam(model.parameters(), lr=cfg_optim['lr'], weight_decay=cfg_optim['weight_decay'])
         elif cfg_optim['name'] == 'AdamW':
-            optimizer = torch.optim.AdamW(model.parameters(), lr=cfg_optim['lr'])
+            optimizer = torch.optim.AdamW(model.parameters(), lr=cfg_optim['lr'], weight_decay=cfg_optim['weight_decay'])
         else:
             raise NotImplementedError('Wrong optimizer name.')
         return optimizer

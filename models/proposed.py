@@ -27,12 +27,12 @@ class Proposed(nn.Module):
         self.upsample = nn.Upsample(mode='bilinear', align_corners=False)
 
         # Auxiliary classifier
-        self.aux_classifier = nn.Conv2d(256, num_classes, 1)
+        self.aux_classifier1 = nn.Conv2d(256, num_classes, 1)
+        self.aux_classifier2 = nn.Conv2d(256, num_classes, 1)
 
         """
         aux1 = 32x64@256 ( effv2s backbone last )loss_factor =0.2
         aux2 = 128x256 ( aspp 종단 concat-conv-bn-ac-upsamling4x ) loss_factor =0.5 
-        aux3 = 128x256 ( dlv3+ skip connection이랑 concat(32channel)한거 이후 ) loss_factor=0.8
         original 종단 아웃풋 loss_factor=1
         
         def classifier(x, upper_factor=4, use_aux):
@@ -50,6 +50,12 @@ class Proposed(nn.Module):
         그리고, 중요한거 
         ignore index를 제외한 모든 class 번호의 빈도를 계산하여 class_weight를 계산
         
+        self.class_weight = (0.8373, 0.918, 0.866, 1.0345,
+                        1.0166, 0.9969, 0.9754, 1.0489,
+                        0.8786, 1.0023, 0.9539, 0.9843,
+                        1.1116, 0.9037, 1.0865, 1.0955,
+                        1.0865, 1.1529, 1.0507)
+        
         for i in range(len(output)):
             output[i] = (ce * class_weight) * loss_factor
         """
@@ -59,7 +65,7 @@ class Proposed(nn.Module):
 
         x = self.backbone(x)
         if self.training:
-            aux = self.aux_classifier(x)
+            aux = self.aux_classifier1(x)
             aux = self.upsample(aux)
         else:
             aux = None
