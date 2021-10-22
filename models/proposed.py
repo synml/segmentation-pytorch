@@ -82,43 +82,43 @@ class Proposed(nn.Module):
 class Decoder(nn.Module):
     def __init__(self, num_classes: int):
         super(Decoder, self).__init__()
-        self.compress_low_level_feature1 = self.make_compressor(64, 64)
-        self.compress_low_level_feature2 = self.make_compressor(48, 32)
-        self.compress_low_level_feature3 = self.make_compressor(24, 16)
+        self.feature_refinement_module1 = self.make_feature_refinement_module(64, 64)
+        self.feature_refinement_module2 = self.make_feature_refinement_module(48, 32)
+        self.feature_refinement_module3 = self.make_feature_refinement_module(24, 16)
 
-        self.decode1 = self.make_decoder(256 + 64, 256, 256)
-        self.decode2 = self.make_decoder(256 + 32, 256, 128)
-        self.decode3 = self.make_decoder(128 + 16, 128, 128)
+        self.decoding_block1 = self.make_decoding_block(256 + 64, 256, 256)
+        self.decoding_block2 = self.make_decoding_block(256 + 32, 256, 128)
+        self.decoding_block3 = self.make_decoding_block(128 + 16, 128, 128)
 
         self.classifier = nn.Conv2d(128, num_classes, kernel_size=1)
 
     def forward(self, x: torch.Tensor, low_level_feature: list[torch.Tensor]) -> torch.Tensor:
-        low_level_feature1 = self.compress_low_level_feature1(low_level_feature.pop())
+        low_level_feature1 = self.feature_refinement_module1(low_level_feature.pop())
         x = F.interpolate(x, size=low_level_feature1.size()[2:], mode='bilinear', align_corners=False)
         x = torch.cat((x, low_level_feature1), dim=1)
-        x = self.decode1(x)
+        x = self.decoding_block1(x)
 
-        low_level_feature2 = self.compress_low_level_feature2(low_level_feature.pop())
+        low_level_feature2 = self.feature_refinement_module2(low_level_feature.pop())
         x = F.interpolate(x, size=low_level_feature2.size()[2:], mode='bilinear', align_corners=False)
         x = torch.cat((x, low_level_feature2), dim=1)
-        x = self.decode2(x)
+        x = self.decoding_block2(x)
 
-        low_level_feature3 = self.compress_low_level_feature3(low_level_feature.pop())
+        low_level_feature3 = self.feature_refinement_module3(low_level_feature.pop())
         x = F.interpolate(x, size=low_level_feature3.size()[2:], mode='bilinear', align_corners=False)
         x = torch.cat((x, low_level_feature3), dim=1)
-        x = self.decode3(x)
+        x = self.decoding_block3(x)
 
         x = self.classifier(x)
         return x
 
-    def make_compressor(self, in_channels: int, out_channels: int):
+    def make_feature_refinement_module(self, in_channels: int, out_channels: int):
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
         )
 
-    def make_decoder(self, in_channels: int, mid_channels: int, out_channels: int):
+    def make_decoding_block(self, in_channels: int, mid_channels: int, out_channels: int):
         return nn.Sequential(
             models.modules.conv.SeparableConv2d(in_channels, mid_channels, kernel_size=3, stride=1, padding=1),
             nn.ReLU(inplace=True),

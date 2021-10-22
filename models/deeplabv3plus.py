@@ -56,27 +56,27 @@ class DeepLabv3plus(nn.Module):
 class Decoder(nn.Module):
     def __init__(self, num_classes: int):
         super(Decoder, self).__init__()
-        self.compress_low_level_feature = self.make_compressor(256, 48)
-        self.decode1 = self.make_decoder(256 + 48, 256)
+        self.feature_refinement_module = self.make_feature_refinement_module(256, 48)
+        self.decoding_block = self.make_decoding_block(256 + 48, 256)
         self.classifier = nn.Conv2d(256, num_classes, kernel_size=1)
 
     def forward(self, x: torch.Tensor, low_level_feature: list[torch.Tensor]) -> torch.Tensor:
-        low_level_feature = self.compress_low_level_feature(low_level_feature.pop())
+        low_level_feature = self.feature_refinement_module(low_level_feature.pop())
 
         x = F.interpolate(x, size=low_level_feature.size()[2:], mode='bilinear', align_corners=False)
         x = torch.cat((x, low_level_feature), dim=1)
-        x = self.decode1(x)
+        x = self.decoding_block(x)
         x = self.classifier(x)
         return x
 
-    def make_compressor(self, in_channels: int, out_channels: int):
+    def make_feature_refinement_module(self, in_channels: int, out_channels: int):
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
         )
 
-    def make_decoder(self, in_channels: int, out_channels: int):
+    def make_decoding_block(self, in_channels: int, out_channels: int):
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False),
             nn.BatchNorm2d(out_channels),
