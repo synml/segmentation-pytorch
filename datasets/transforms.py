@@ -2,8 +2,10 @@ from typing import Sequence, Union
 
 import numpy as np
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
 import torchvision
-import torchvision.transforms.functional as F
+import torchvision.transforms.functional as TF
 
 
 class Transforms:
@@ -26,6 +28,8 @@ class Transforms:
                     compose_items.append(RandomHorizontalFlip())
                 elif k == 'RandomResizedCrop':
                     compose_items.append(RandomResizedCrop(v['size'], v['scale'], v['ratio']))
+                elif k == 'RandomScale':
+                    compose_items.append(RandomScale(v['min_scale'], v['max_scale']))
                 elif k == 'Resize':
                     compose_items.append(Resize(v['size']))
                 else:
@@ -56,13 +60,13 @@ class ColorJitter(torchvision.transforms.ColorJitter):
 
         for fn_id in fn_idx:
             if fn_id == 0 and brightness_factor is not None:
-                data['image'] = F.adjust_brightness(data['image'], brightness_factor)
+                data['image'] = TF.adjust_brightness(data['image'], brightness_factor)
             elif fn_id == 1 and contrast_factor is not None:
-                data['image'] = F.adjust_contrast(data['image'], contrast_factor)
+                data['image'] = TF.adjust_contrast(data['image'], contrast_factor)
             elif fn_id == 2 and saturation_factor is not None:
-                data['image'] = F.adjust_saturation(data['image'], saturation_factor)
+                data['image'] = TF.adjust_saturation(data['image'], saturation_factor)
             elif fn_id == 3 and hue_factor is not None:
-                data['image'] = F.adjust_hue(data['image'], hue_factor)
+                data['image'] = TF.adjust_hue(data['image'], hue_factor)
         return data
 
 
@@ -72,7 +76,7 @@ class GaussianBlur(torchvision.transforms.GaussianBlur):
 
     def forward(self, data: dict):
         sigma = self.get_params(self.sigma[0], self.sigma[1])
-        data['image'] = F.gaussian_blur(data['image'], self.kernel_size, [sigma, sigma])
+        data['image'] = TF.gaussian_blur(data['image'], self.kernel_size, [sigma, sigma])
         return data
 
 
@@ -82,7 +86,7 @@ class RandomAdjustSharpness(torchvision.transforms.RandomAdjustSharpness):
 
     def forward(self, data: dict):
         if torch.rand(1).item() < self.p:
-            data['image'] = F.adjust_sharpness(data['image'], self.sharpness_factor)
+            data['image'] = TF.adjust_sharpness(data['image'], self.sharpness_factor)
         return data
 
 
@@ -92,8 +96,8 @@ class RandomCrop(torchvision.transforms.RandomCrop):
 
     def forward(self, data: dict):
         i, j, h, w = self.get_params(data['image'], self.size)
-        data['image'] = F.crop(data['image'], i, j, h, w)
-        data['target'] = F.crop(data['target'], i, j, h, w)
+        data['image'] = TF.crop(data['image'], i, j, h, w)
+        data['target'] = TF.crop(data['target'], i, j, h, w)
         return data
 
 
@@ -103,8 +107,8 @@ class RandomHorizontalFlip(torchvision.transforms.RandomHorizontalFlip):
 
     def forward(self, data: dict):
         if torch.rand(1) < self.p:
-            data['image'] = F.hflip(data['image'])
-            data['target'] = F.hflip(data['target'])
+            data['image'] = TF.hflip(data['image'])
+            data['target'] = TF.hflip(data['target'])
         return data
 
 
@@ -134,8 +138,28 @@ class RandomResizedCrop(torchvision.transforms.RandomResizedCrop):
         data['target'].unsqueeze_(dim=0)
 
         i, j, h, w = self.get_params(data['image'], self.scale, self.ratio)
-        data['image'] = F.resized_crop(data['image'], i, j, h, w, self.size, F.InterpolationMode.BILINEAR)
-        data['target'] = F.resized_crop(data['target'], i, j, h, w, self.size, F.InterpolationMode.NEAREST)
+        data['image'] = TF.resized_crop(data['image'], i, j, h, w, self.size, TF.InterpolationMode.BILINEAR)
+        data['target'] = TF.resized_crop(data['target'], i, j, h, w, self.size, TF.InterpolationMode.NEAREST)
+
+        data['target'].squeeze_(dim=0)
+        return data
+
+
+class RandomScale(nn.Module):
+    def __init__(self, min_scale: float, max_scale: float):
+        super(RandomScale, self).__init__()
+        self.min_scale = min_scale
+        self.max_scale = max_scale
+
+    def forward(self, data: dict):
+        scale = torch.empty(1).uniform_(self.min_scale, self.max_scale).item()
+
+        data['target'].unsqueeze_(dim=0)
+
+        F.interpolate(data['image'], scale_factor=scale, mode='bilinear',
+                      align_corners=False, recompute_scale_factor=True)
+        F.interpolate(data['target'], scale_factor=scale, mode='bilinear',
+                      align_corners=False, recompute_scale_factor=True)
 
         data['target'].squeeze_(dim=0)
         return data
@@ -146,8 +170,8 @@ class Resize(torchvision.transforms.Resize):
         super().__init__(size)
 
     def forward(self, data: dict):
-        data['image'] = F.resize(data['image'], self.size, F.InterpolationMode.BILINEAR)
-        data['target'] = F.resize(data['target'], self.size, F.InterpolationMode.NEAREST)
+        data['image'] = TF.resize(data['image'], self.size, TF.InterpolationMode.BILINEAR)
+        data['target'] = TF.resize(data['target'], self.size, TF.InterpolationMode.NEAREST)
         return data
 
 
@@ -156,12 +180,12 @@ class Normalize(torchvision.transforms.Normalize):
         super().__init__(mean, std)
 
     def forward(self, data: dict):
-        data['image'] = F.normalize(data['image'], self.mean, self.std)
+        data['image'] = TF.normalize(data['image'], self.mean, self.std)
         return data
 
 
 class ToTensor(torchvision.transforms.ToTensor):
     def __call__(self, data: dict):
-        data['image'] = F.to_tensor(data['image'])
+        data['image'] = TF.to_tensor(data['image'])
         data['target'] = torch.as_tensor(np.array(data['target']), dtype=torch.int64)
         return data
