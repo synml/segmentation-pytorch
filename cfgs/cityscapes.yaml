@@ -109,26 +109,25 @@ UNet:
   pretrained_weights: weights/UNet_best_miou.pth
 
 Proposed:
-  batch_size: 10
-  epoch: 120
+  batch_size: 8
+  epoch: 110
   criterion:
-    name: FocalLoss
-    alpha: 1
-    gamma: 1
+    name: CrossEntropyLoss
   aux_criterion:
     name: CrossEntropyLoss
   aux_factor: !!python/tuple [0.2, 0.5]
   optimizer:
     name: AdamW
     lr: 0.001
-    weight_decay: 0.00005
+    weight_decay: 0
   scheduler:
     name: PolyLR
   augmentation:
+    RandomScale:
+      min_scale: 0.75
+      max_scale: 2.0
     RandomCrop:
       size: !!python/tuple [512, 1024]
-    RandomAdjustSharpness:
-      sharpness_factor: 2
     ColorJitter:
       brightness: 0.5
       contrast: 0.5
