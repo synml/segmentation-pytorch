@@ -87,7 +87,8 @@ class Builder:
                                          self.cfg[cfg_model_name]['output_stride'], num_classes)
         elif cfg_model_name == 'PSPNet':
             model = models.PSPNet.PSPNet(self.cfg[cfg_model_name]['backbone'],
-                                         self.cfg[cfg_model_name]['output_stride'], num_classes, self.cfg[cfg_model_name]['mode'])
+                                         self.cfg[cfg_model_name]['output_stride'], num_classes,
+                                         self.cfg[cfg_model_name]['mode'])
         else:
             raise NotImplementedError('Wrong model name.')
 
@@ -122,9 +123,9 @@ class Builder:
             optimizer = torch.optim.SGD(model.parameters(), lr=cfg_optim['lr'], momentum=cfg_optim['momentum'],
                                         weight_decay=cfg_optim['weight_decay'], nesterov=cfg_optim['nesterov'])
         elif cfg_optim['name'] == 'Adam':
-            optimizer = torch.optim.Adam(model.parameters(), lr=cfg_optim['lr'], weight_decay=cfg_optim['weight_decay'])
+            optimizer = torch.optim.Adam(model.parameters(), cfg_optim['lr'], weight_decay=cfg_optim['weight_decay'])
         elif cfg_optim['name'] == 'AdamW':
-            optimizer = torch.optim.AdamW(model.parameters(), lr=cfg_optim['lr'], weight_decay=cfg_optim['weight_decay'])
+            optimizer = torch.optim.AdamW(model.parameters(), cfg_optim['lr'], weight_decay=cfg_optim['weight_decay'])
         else:
             raise NotImplementedError('Wrong optimizer name.')
         return optimizer

@@ -2,7 +2,7 @@ import torch
 
 
 class PolyLR(torch.optim.lr_scheduler._LRScheduler):
-    def __init__(self, optimizer: torch.optim.Optimizer, max_iter: int, power=0.9, min_lr=1e-6, last_epoch=-1):
+    def __init__(self, optimizer: torch.optim.Optimizer, max_iter: int, power=0.9, min_lr=1e-7, last_epoch=-1):
         assert max_iter != 0
 
         self.max_iter = max_iter
