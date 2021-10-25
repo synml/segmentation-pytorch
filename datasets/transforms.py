@@ -3,7 +3,6 @@ from typing import Sequence, Union
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torchvision
 import torchvision.transforms.functional as TF
 
@@ -26,10 +25,10 @@ class Transforms:
                     compose_items.append(RandomCrop(v['size']))
                 elif k == 'RandomHorizontalFlip':
                     compose_items.append(RandomHorizontalFlip())
+                elif k == 'RandomResize':
+                    compose_items.append(RandomResize(v['min_scale'], v['max_scale']))
                 elif k == 'RandomResizedCrop':
                     compose_items.append(RandomResizedCrop(v['size'], v['scale'], v['ratio']))
-                elif k == 'RandomScale':
-                    compose_items.append(RandomScale(v['min_scale'], v['max_scale']))
                 elif k == 'Resize':
                     compose_items.append(Resize(v['size']))
                 else:
@@ -112,6 +111,26 @@ class RandomHorizontalFlip(torchvision.transforms.RandomHorizontalFlip):
         return data
 
 
+# Equal to RandomScale
+class RandomResize(nn.Module):
+    def __init__(self, min_scale: float, max_scale: float):
+        super(RandomResize, self).__init__()
+        self.min_scale = min_scale
+        self.max_scale = max_scale
+
+    def forward(self, data: dict):
+        scale = torch.empty(1).uniform_(self.min_scale, self.max_scale)
+        size = torch.round(torch.as_tensor(data['image'].shape[-2:]) * scale).to(dtype=torch.int).tolist()
+
+        data['target'].unsqueeze_(dim=0)
+
+        data['image'] = TF.resize(data['image'], size, TF.InterpolationMode.BILINEAR, antialias=True)
+        data['target'] = TF.resize(data['target'], size, TF.InterpolationMode.NEAREST)
+
+        data['target'].squeeze_(dim=0)
+        return data
+
+
 class RandomResizedCrop(torchvision.transforms.RandomResizedCrop):
     """
     1. ratio로 종횡비를 조절
@@ -141,25 +160,6 @@ class RandomResizedCrop(torchvision.transforms.RandomResizedCrop):
         i, j, h, w = self.get_params(data['image'], self.scale, self.ratio)
         data['image'] = TF.resized_crop(data['image'], i, j, h, w, self.size, TF.InterpolationMode.BILINEAR)
         data['target'] = TF.resized_crop(data['target'], i, j, h, w, self.size, TF.InterpolationMode.NEAREST)
-
-        data['target'].squeeze_(dim=0)
-        return data
-
-
-class RandomScale(nn.Module):
-    def __init__(self, min_scale: float, max_scale: float):
-        super(RandomScale, self).__init__()
-        self.min_scale = min_scale
-        self.max_scale = max_scale
-
-    def forward(self, data: dict):
-        scale = torch.empty(1).uniform_(self.min_scale, self.max_scale)
-        size = torch.round(torch.as_tensor(data['image'].shape[-2:]) * scale).to(dtype=torch.int).tolist()
-
-        data['target'].unsqueeze_(dim=0)
-
-        data['image'] = TF.resize(data['image'], size, TF.InterpolationMode.BILINEAR, antialias=True)
-        data['target'] = TF.resize(data['target'], size, TF.InterpolationMode.NEAREST)
 
         data['target'].squeeze_(dim=0)
         return data

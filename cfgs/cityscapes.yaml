@@ -123,7 +123,7 @@ Proposed:
   scheduler:
     name: PolyLR
   augmentation:
-    RandomScale:
+    RandomResize:
       min_scale: 0.75
       max_scale: 2.0
     RandomCrop:
