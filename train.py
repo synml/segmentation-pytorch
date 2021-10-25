@@ -106,15 +106,15 @@ if __name__ == '__main__':
 
             optimizer.zero_grad(set_to_none=True)
             with torch.cuda.amp.autocast(enabled=amp_enabled):
-                if aux_criterion is None:
-                    outputs = model(images)
-                    loss = criterion(outputs, targets)
-                else:
+                if aux_criterion is not None:
                     outputs, aux_outputs = model(images)
                     aux_loss = 0
                     for i, aux_output in enumerate(aux_outputs):
                         aux_loss += aux_criterion(aux_output, targets) * aux_factor[i]
                     loss = criterion(outputs, targets) + aux_loss
+                else:
+                    outputs = model(images)
+                    loss = criterion(outputs, targets)
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()

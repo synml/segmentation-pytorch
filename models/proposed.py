@@ -63,18 +63,21 @@ class Proposed(nn.Module):
     def forward(self, x: torch.Tensor):
         self.upsample.size = x.size()[-2:]
 
-        x = self.backbone(x)
         if self.training:
-            aux = self.aux_classifier1(x)
-            aux = self.upsample(aux)
+            x = self.backbone(x)
+            aux1 = self.aux_classifier1(x)
+            aux1 = self.upsample(aux1)
+            x = self.aspp(x)
+            aux2 = self.aux_classifier2(x)
+            aux2 = self.upsample(aux2)
+            x = self.decoder(x, self.low_level_feature)
+            x = self.upsample(x)
+            return x, (aux1, aux2)
         else:
-            aux = None
-        x = self.aspp(x)
-        x = self.decoder(x, self.low_level_feature)
-        x = self.upsample(x)
-        if self.training:
-            return x, (aux,)
-        else:
+            x = self.backbone(x)
+            x = self.aspp(x)
+            x = self.decoder(x, self.low_level_feature)
+            x = self.upsample(x)
             return x
 
     def freeze_bn(self):

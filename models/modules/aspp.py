@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-import models.modules.conv
+import models.modules
 
 
 class ASPPConv(nn.Sequential):
