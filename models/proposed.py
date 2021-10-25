@@ -30,42 +30,12 @@ class Proposed(nn.Module):
         self.aux_classifier1 = nn.Conv2d(256, num_classes, 1)
         self.aux_classifier2 = nn.Conv2d(256, num_classes, 1)
 
-        """
-        aux1 = 32x64@256 ( effv2s backbone last )loss_factor =0.2
-        aux2 = 128x256 ( aspp 종단 concat-conv-bn-ac-upsamling4x ) loss_factor =0.5 
-        original 종단 아웃풋 loss_factor=1
-        
-        def classifier(x, upper_factor=4, use_aux):
-            if use_aux:
-                x = SepConv(256, 256)(x)
-            
-            x = Conv2D(256, 19, kernel_size=(1, 1), padding='same', use_bias=True)(x)
-            x = Upsampling2D((upper_factor, upper_factor))(x)
-        
-        loss = CE
-        GLOBAL_BATCH_SIZE = 16
-        Optimizer = Adam
-        LearningRateScheduler = PolynomialDecay
-        
-        그리고, 중요한거 
-        ignore index를 제외한 모든 class 번호의 빈도를 계산하여 class_weight를 계산
-        
-        self.class_weight = (0.8373, 0.918, 0.866, 1.0345,
-                        1.0166, 0.9969, 0.9754, 1.0489,
-                        0.8786, 1.0023, 0.9539, 0.9843,
-                        1.1116, 0.9037, 1.0865, 1.0955,
-                        1.0865, 1.1529, 1.0507)
-        
-        for i in range(len(output)):
-            output[i] = (ce * class_weight) * loss_factor
-        """
-
     def forward(self, x: torch.Tensor):
         self.upsample.size = x.size()[-2:]
 
         if self.training:
             x = self.backbone(x)
-            aux1 = self.aux_classifier1(x)
+            aux1 = self.aux_classifier1(self.low_level_feature[2])
             aux1 = self.upsample(aux1)
             x = self.aspp(x)
             aux2 = self.aux_classifier2(x)
