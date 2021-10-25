@@ -110,7 +110,7 @@ UNet:
 
 Proposed:
   batch_size: 8
-  epoch: 110
+  epoch: 120
   criterion:
     name: CrossEntropyLoss
   aux_criterion:
@@ -132,7 +132,7 @@ Proposed:
       brightness: 0.5
       contrast: 0.5
       saturation: 0.5
-      hue: 0
+      hue: 0.1
     RandomHorizontalFlip:
   pretrained_weights: weights/Proposed_best_miou.pth
 

@@ -174,7 +174,7 @@ class Resize(torchvision.transforms.Resize):
 
     def forward(self, data: dict):
         data['image'] = TF.resize(data['image'], self.size, TF.InterpolationMode.BILINEAR, antialias=True)
-        data['target'] = TF.resize(data['target'], self.size, TF.InterpolationMode.NEAREST, antialias=True)
+        data['target'] = TF.resize(data['target'], self.size, TF.InterpolationMode.NEAREST)
         return data
 
 
