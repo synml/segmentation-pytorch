@@ -105,7 +105,9 @@ class Builder:
         cfg_criterion = self.cfg[self.cfg['model']['name']]['criterion']
 
         if cfg_criterion['name'] == 'CrossEntropyLoss':
-            criterion = nn.CrossEntropyLoss(ignore_index=ignore_index)
+            device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+            class_weight = torch.as_tensor(self.cfg['dataset']['class_weight'], device=device)
+            criterion = nn.CrossEntropyLoss(ignore_index=ignore_index, weight=class_weight)
         elif cfg_criterion['name'] == 'FocalLoss':
             criterion = utils.loss.FocalLoss(ignore_index=ignore_index,
                                              alpha=cfg_criterion['alpha'], gamma=cfg_criterion['gamma'])
@@ -140,7 +142,9 @@ class Builder:
         cfg_aux_criterion = self.cfg[self.cfg['model']['name']]['aux_criterion']
 
         if cfg_aux_criterion['name'] == 'CrossEntropyLoss':
-            aux_criterion = nn.CrossEntropyLoss(ignore_index=ignore_index)
+            device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+            class_weight = torch.as_tensor(self.cfg['dataset']['class_weight'], device=device)
+            aux_criterion = nn.CrossEntropyLoss(ignore_index=ignore_index, weight=class_weight)
         else:
             raise NotImplementedError('Wrong aux_criterion name.')
         return aux_criterion

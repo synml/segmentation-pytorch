@@ -124,7 +124,8 @@ class RandomResizedCrop(torchvision.transforms.RandomResizedCrop):
     """
 
     def __init__(
-        self, size: Union[int, Sequence], scale: Union[tuple[float, float], str], ratio: Union[tuple[float, float], str]
+            self, size: Union[int, Sequence], scale: Union[tuple[float, float], str],
+            ratio: Union[tuple[float, float], str]
     ):
         if ratio == 'auto':
             ratio = (size[1] / size[0], size[1] / size[0])
@@ -152,16 +153,18 @@ class RandomScale(nn.Module):
         self.max_scale = max_scale
 
     def forward(self, data: dict):
-        scale = torch.empty(1).uniform_(self.min_scale, self.max_scale).item()
+        scale = torch.empty(1, dtype=torch.float16).uniform_(self.min_scale, self.max_scale).item()
 
-        data['target'].unsqueeze_(dim=0)
+        data['image'].unsqueeze_(dim=0)
+        data['target'] = data['target'].unsqueeze(dim=0).unsqueeze(dim=0).to(dtype=torch.float)
 
-        F.interpolate(data['image'], scale_factor=scale, mode='bilinear',
-                      align_corners=False, recompute_scale_factor=True)
-        F.interpolate(data['target'], scale_factor=scale, mode='bilinear',
-                      align_corners=False, recompute_scale_factor=True)
+        data['image'] = F.interpolate(data['image'], scale_factor=scale, mode='bilinear',
+                                      align_corners=False, recompute_scale_factor=False)
+        data['target'] = F.interpolate(data['target'], scale_factor=scale, mode='nearest',
+                                       recompute_scale_factor=False)
 
-        data['target'].squeeze_(dim=0)
+        data['image'].squeeze_(dim=0)
+        data['target'] = data['target'].squeeze(dim=0).squeeze(dim=0).to(dtype=torch.int64)
         return data
 
 
@@ -170,8 +173,8 @@ class Resize(torchvision.transforms.Resize):
         super().__init__(size)
 
     def forward(self, data: dict):
-        data['image'] = TF.resize(data['image'], self.size, TF.InterpolationMode.BILINEAR)
-        data['target'] = TF.resize(data['target'], self.size, TF.InterpolationMode.NEAREST)
+        data['image'] = TF.resize(data['image'], self.size, TF.InterpolationMode.BILINEAR, antialias=True)
+        data['target'] = TF.resize(data['target'], self.size, TF.InterpolationMode.NEAREST, antialias=True)
         return data
 
 
