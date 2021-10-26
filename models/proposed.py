@@ -27,7 +27,7 @@ class Proposed(nn.Module):
         self.upsample = nn.Upsample(mode='bilinear', align_corners=False)
 
         # Auxiliary classifier
-        self.aux_classifier1 = nn.Conv2d(256, num_classes, 1)
+        self.aux_classifier1 = nn.Conv2d(64, num_classes, 1)
         self.aux_classifier2 = nn.Conv2d(256, num_classes, 1)
 
     def forward(self, x: torch.Tensor):
