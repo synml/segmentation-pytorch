@@ -27,7 +27,7 @@ class Proposed(nn.Module):
         self.upsample = nn.Upsample(mode='bilinear', align_corners=False)
 
         # Auxiliary classifier
-        self.aux_classifier1 = nn.Conv2d(64, num_classes, 1)
+        self.aux_classifier1 = nn.Conv2d(256, num_classes, 1)
         self.aux_classifier2 = nn.Conv2d(256, num_classes, 1)
 
     def forward(self, x: torch.Tensor):
@@ -35,7 +35,7 @@ class Proposed(nn.Module):
 
         if self.training:
             x = self.backbone(x)
-            aux1 = self.aux_classifier1(self.low_level_feature[2])
+            aux1 = self.aux_classifier1(x)
             aux1 = self.upsample(aux1)
             x = self.aspp(x)
             aux2 = self.aux_classifier2(x)
