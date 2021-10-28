@@ -52,7 +52,7 @@ class ASPPwDSConv(nn.Module):
             nn.Conv2d(len(self.convs) * out_channels, out_channels, 1, bias=False),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(),
-            nn.Dropout(0.1))
+            nn.Dropout(0.5))
 
     def forward(self, x):
         res = []
