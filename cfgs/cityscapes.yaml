@@ -110,7 +110,7 @@ UNet:
 
 Proposed:
   batch_size: 8
-  epoch: 120
+  epoch: 110
   criterion:
     name: CrossEntropyLoss
   aux_criterion:
