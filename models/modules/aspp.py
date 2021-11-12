@@ -51,12 +51,21 @@ class ASPPwDSConv(nn.Module):
         self.project = nn.Sequential(
             nn.Conv2d(len(self.convs) * out_channels, out_channels, 1, bias=False),
             nn.BatchNorm2d(out_channels),
-            nn.ReLU(),
-            nn.Dropout(0.5))
+            nn.ReLU()
+        )
+
+        self.shortcut = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, 1, bias=False),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU()
+        )
+        self.dropout = nn.Dropout(0.5)
 
     def forward(self, x):
         res = []
         for conv in self.convs:
             res.append(conv(x))
         res = torch.cat(res, dim=1)
-        return self.project(res)
+        res = self.project(res)
+        res = res + self.shortcut(x)
+        return self.dropout(res)
