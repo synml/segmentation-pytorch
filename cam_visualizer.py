@@ -57,7 +57,7 @@ if __name__ == '__main__':
     use_cuda = torch.cuda.is_available()
     cam_layers = {
         'backbone': pytorch_grad_cam.GradCAMPlusPlus(model, target_layer=model.backbone, use_cuda=use_cuda),
-        'aspp': pytorch_grad_cam.GradCAMPlusPlus(model, target_layer=model.aspp, use_cuda=use_cuda),
+        'dappm': pytorch_grad_cam.GradCAMPlusPlus(model, target_layer=model.dappm, use_cuda=use_cuda),
         'decoder': pytorch_grad_cam.GradCAMPlusPlus(model, target_layer=model.decoder, use_cuda=use_cuda),
     }
 
