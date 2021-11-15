@@ -10,6 +10,7 @@ class ASPPConv(nn.Sequential):
         modules = [
             models.modules.conv.SeparableConv2d(
                 in_channels, out_channels, 3, padding=dilation, dilation=dilation,
+                activation=nn.ReLU(),
                 channel_attention=models.modules.attention.ChannelAttention(in_channels)
             ),
             nn.ReLU()
