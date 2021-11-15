@@ -8,9 +8,10 @@ import models.modules
 class ASPPConv(nn.Sequential):
     def __init__(self, in_channels, out_channels, dilation):
         modules = [
-            models.modules.conv.SeparableConv2d(in_channels, out_channels, 3, padding=dilation, dilation=dilation,
-                                                activation=nn.ReLU(),
-                                                channel_attention=models.modules.attention.ChannelAttention(in_channels)),
+            models.modules.conv.SeparableConv2d(
+                in_channels, out_channels, 3, padding=dilation, dilation=dilation,
+                channel_attention=models.modules.attention.ChannelAttention(in_channels)
+            ),
             nn.ReLU()
         ]
         super(ASPPConv, self).__init__(*modules)
@@ -53,7 +54,6 @@ class ASPPwDSConv(nn.Module):
             nn.BatchNorm2d(out_channels),
             nn.ReLU()
         )
-
         self.shortcut = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, 1, bias=False),
             nn.BatchNorm2d(out_channels),

@@ -4,14 +4,11 @@ import torch.nn as nn
 
 class ChannelAttention(nn.Module):
     """ Squeeze and Excitation"""
-    def __init__(self, in_channels: int, reduction_ratio=4, activation: nn.Module = None, multiplication=True):
+    def __init__(self, in_channels: int, reduction_ratio=4, activation=nn.ReLU(), multiplication=True):
         super(ChannelAttention, self).__init__()
         self.gap = nn.AdaptiveAvgPool2d(1)
         self.conv1 = nn.Conv2d(in_channels, in_channels // reduction_ratio, 1)
-        if activation is not None:
-            self.activation = activation
-        else:
-            self.activation = nn.ReLU()
+        self.activation = activation
         self.conv2 = nn.Conv2d(in_channels // reduction_ratio, in_channels, 1)
         self.sigmoid = nn.Sigmoid()
         self.multiplication = multiplication
