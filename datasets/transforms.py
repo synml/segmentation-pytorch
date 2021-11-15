@@ -9,9 +9,8 @@ import torchvision.transforms.functional as TF
 
 class Transforms:
     def __init__(self, cfg: dict, augmentation=False):
-        if not augmentation:
-            self.augmentation = None
-        else:
+        self.augmentation = None
+        if augmentation:
             cfg_augmentation: dict = cfg[cfg['model']['name']]['augmentation']
             compose_items = []
             for k, v in cfg_augmentation.items():
