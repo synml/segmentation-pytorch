@@ -25,7 +25,7 @@ class Proposed(nn.Module):
         self.aspp = models.modules.aspp.ASPPwDSConv(256, (6, 12, 18), 256)
 
         # Decoder
-        self.decoder = Decoder(num_classes)
+        self.decoder = Decoder()
 
         # Classifier
         self.classifier = nn.Conv2d(128, num_classes, 1)
