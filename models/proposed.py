@@ -21,8 +21,8 @@ class Proposed(nn.Module):
         }
         self.backbone = torchvision.models.feature_extraction.create_feature_extractor(efficientnetv2, return_nodes)
 
-        # ASPP
-        self.aspp = models.modules.aspp.ASPPwDSConv(256, (6, 12, 18), 256)
+        # DAPPM
+        self.dappm = models.modules.aspp.DAPPM(256, (6, 12, 18), 256)
 
         # Decoder
         self.decoder = Decoder()
@@ -32,8 +32,8 @@ class Proposed(nn.Module):
         self.upsample = nn.Upsample(mode='bilinear', align_corners=False)
 
         # Auxiliary classifier
-        self.aux_classifier1 = nn.Conv2d(256, num_classes, 1)
-        self.aux_classifier2 = nn.Conv2d(256, num_classes, 1)
+        self.aux_classifier1 = torchvision.models.segmentation.fcn.FCNHead(256, num_classes)
+        self.aux_classifier2 = torchvision.models.segmentation.fcn.FCNHead(256, num_classes)
 
     def forward(self, x: torch.Tensor):
         self.upsample.size = x.size()[-2:]
@@ -43,7 +43,7 @@ class Proposed(nn.Module):
             x = features.pop('stage6')
             aux1 = self.aux_classifier1(x)
             aux1 = self.upsample(aux1)
-            x = self.aspp(x)
+            x = self.dappm(x)
             aux2 = self.aux_classifier2(x)
             aux2 = self.upsample(aux2)
             x = self.decoder(x, features)
@@ -53,7 +53,7 @@ class Proposed(nn.Module):
         else:
             features = self.backbone(x)
             x = features.pop('stage6')
-            x = self.aspp(x)
+            x = self.dappm(x)
             x = self.decoder(x, features)
             x = self.classifier(x)
             x = self.upsample(x)

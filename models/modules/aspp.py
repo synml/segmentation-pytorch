@@ -32,9 +32,9 @@ class ASPPPooling(nn.Sequential):
         return F.interpolate(x, size=size, mode='bilinear', align_corners=False)
 
 
-class ASPPwDSConv(nn.Module):
+class DAPPM(nn.Module):
     def __init__(self, in_channels, atrous_rates, out_channels=256):
-        super(ASPPwDSConv, self).__init__()
+        super(DAPPM, self).__init__()
         modules = []
         modules.append(nn.Sequential(
             nn.Conv2d(in_channels, out_channels, 1, bias=False),
