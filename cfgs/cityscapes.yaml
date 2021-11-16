@@ -117,7 +117,7 @@ Proposed:
     name: CrossEntropyLoss
   aux_factor: !!python/tuple [0.2, 0.5]
   optimizer:
-    name: AdamW
+    name: RAdam
     lr: 0.001
     weight_decay: 0
   scheduler:
