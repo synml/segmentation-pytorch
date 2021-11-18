@@ -104,9 +104,9 @@ class Decoder(nn.Module):
 
     def make_decoding_block(self, in_channels: int, mid_channels: int, out_channels: int):
         return nn.Sequential(
-            models.modules.conv.SeparableConv2d(in_channels, mid_channels, 3, 1, 1, activation=nn.ReLU()),
+            models.modules.conv.SeparableConv2d(in_channels, mid_channels, 3, 1, 1),
             nn.ReLU(inplace=True),
-            models.modules.conv.SeparableConv2d(mid_channels, out_channels, 3, 1, 1, activation=nn.ReLU()),
+            models.modules.conv.SeparableConv2d(mid_channels, out_channels, 3, 1, 1),
             nn.ReLU(inplace=True),
         )
 
