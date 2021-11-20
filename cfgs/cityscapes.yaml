@@ -39,19 +39,21 @@ DeepLabv3plus:
   backbone: Xception
   output_stride: 16
   batch_size: 8
-  epoch: 100
-  criterion:
-    name: CrossEntropyLoss
+    epoch: 110
+    criterion:
+      name: CrossEntropyLoss
   optimizer:
-    name: AdamW
+    name: RAdam
     lr: 0.001
+    weight_decay: 0
   scheduler:
     name: PolyLR
   augmentation:
+    RandomResize:
+      min_scale: 0.75
+      max_scale: 2.0
     RandomCrop:
       size: !!python/tuple [769, 769]
-    RandomAdjustSharpness:
-      sharpness_factor: 2
     ColorJitter:
       brightness: 0.5
       contrast: 0.5
