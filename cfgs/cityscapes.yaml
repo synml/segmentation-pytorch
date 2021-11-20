@@ -54,7 +54,7 @@ DeepLabv3plus:
       min_scale: 0.75
       max_scale: 2.0
     RandomCrop:
-      size: !!python/tuple [769, 769]
+      size: !!python/tuple [768, 768]
     ColorJitter:
       brightness: 0.5
       contrast: 0.5
