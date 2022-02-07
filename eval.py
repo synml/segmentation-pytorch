@@ -57,17 +57,12 @@ def evaluate(model: torch.nn.Module,
 
         val_loss = val_loss_list[0] / (len(valloader) * world_size)
         evaluator.confusion_matrix = confusion_matrix_list[0]
-        iou, miou = evaluator.get_scores()
+        iou, miou = evaluator.mean_intersection_over_union()
         inference_time = inference_time_list[0] / (len(valloader) * world_size)
         fps = 1 / inference_time
     else:
-        # Calculate average validation loss for batches
         val_loss /= len(valloader)
-
-        # Get evaluation metrics
-        iou, miou = evaluator.get_scores()
-
-        # Calculate inference time and fps (inference time unit: seconds)
+        iou, miou = evaluator.mean_intersection_over_union()
         inference_time /= len(valloader)
         fps = 1 / inference_time
 
