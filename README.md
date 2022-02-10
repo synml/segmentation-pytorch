@@ -1,6 +1,6 @@
 # PyTorch Semantic Segmentation
 
-> A simple PyTorch implementation of semantic segmentation models.
+> PyTorch implementation of semantic segmentation models.
 
 This repository aims to implement semantic segmentation models with PyTorch.
 
