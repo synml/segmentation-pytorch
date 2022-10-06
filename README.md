@@ -89,7 +89,7 @@ This repository supports these datasets as follows:
 1. Clone this repository.
    
    ```bash
-   git clone https://github.com/synml/pytorch-semantic-segmentation
+   git clone https://github.com/synml/segmentation-pytorch
    ```
    
 2. Create and activate a new virtual environment with Miniconda.
