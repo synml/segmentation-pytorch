@@ -106,7 +106,7 @@ This repository supports these datasets as follows:
 4. Install the dependent packages mentioned above.
 
    ```bash
-   conda install matplotlib pyyaml scikit-learn tensorboard tqdm
+   conda install torch matplotlib pyyaml scikit-learn tensorboard tqdm
    ```
 
 5. Prepare datasets.
